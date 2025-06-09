@@ -1,5 +1,3 @@
-# See https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files for more about ignoring files.
-
 # compiled output
 dist
 tmp
@@ -16,6 +14,10 @@ node_modules
 *.launch
 .settings/
 *.sublime-workspace
+
+# Env
+.env
+.env.*
 
 # IDE - VSCode
 .vscode/*
@@ -48,3 +50,19 @@ Thumbs.db
 out
 
 test-output
+
+# Expo
+node_modules/
+.expo/
+.yarn/
+dist/
+npm-debug.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.orig.*
+web-build/
+cache/
+

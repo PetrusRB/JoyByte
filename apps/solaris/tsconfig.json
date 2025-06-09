@@ -23,25 +23,31 @@
     "paths": {
       "@/*": [
         "./src/*"
-      ]
+      ],
+      "@root/*": [
+        "./*"
+      ],
     },
     "types": [
       "jest",
       "node"
     ],
     "outDir": "dist",
-    "rootDir": "src",
+    "rootDir": ".",
     "tsBuildInfoFile": "dist/tsconfig.tsbuildinfo"
   },
   "include": [
-    "src/**/*.ts",
-    "src/**/*.tsx",
-    "src/**/*.js",
-    "src/**/*.jsx",
     "../../apps/solaris/.next/types/**/*.ts",
     "../../dist/apps/solaris/.next/types/**/*.ts",
-    "next-env.d.ts"
-  ],
+    "src/locales/**/*.json",
+    "public/locales/**/*.json",
+    "next-env.d.ts",
+    "src/**/*.js",
+    "src/**/*.jsx",
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    ".next/types/**/*.ts"
+, "next-i18next.config.js"  ],
   "exclude": [
     "out-tsc",
     "dist",
