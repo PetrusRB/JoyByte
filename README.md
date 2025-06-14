@@ -1,4 +1,4 @@
-# 🌻 Solaris
+# 🕹️ JoyByte
 
 ✨ Uma rede social focada para um publico mais jovem e games. ✨
 
