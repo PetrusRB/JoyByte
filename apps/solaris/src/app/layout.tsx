@@ -1,27 +1,37 @@
-import LayoutClient from "./(client)/layout";
+import type { Metadata } from "next";
+import { NextIntlClientProvider } from "next-intl";
+import { getLocale, getMessages } from "next-intl/server";
+import localFont from "next/font/local";
 import "./global.css";
-import { Inter } from "next/font/google";
-import localFont from 'next/font/local'
- 
-const inter = Inter({ subsets: ["latin"] });
+import LayoutClient from "./(client)/layout";
 
-const Fulmini = localFont({
-  src: '../../public/fonts/fulmini.ttf',
-})
-const Retroica = localFont({
-  src: '../../public/fonts/Retroica.ttf',
+const poppins = localFont({
+  src: "../../public/fonts/poppins.ttf",
+  variable: "--font-geist-sans",
+  weight: "100 900",
 });
 
-export const metadata = {
+export const metadata: Metadata = {
   title: "JoyByte",
-  description: "Social network",
+  description: "A social network",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  const locale = await getLocale();
+ 
+  // Providing all messages to the client
+  // side is the easiest way to get started
+  const messages = await getMessages();
   return (
-    <html lang="pt-BR">
-      <body className={`${inter.className} ${Fulmini.className} ${Retroica.className} bg-black`}>
-        <LayoutClient>{children}</LayoutClient>
+    <html lang={locale}>
+      <body
+        className={`${poppins.variable} bg-black antialiased`}
+      >
+        <NextIntlClientProvider messages={messages}><LayoutClient>{children}</LayoutClient></NextIntlClientProvider>
       </body>
     </html>
   );

@@ -7,6 +7,7 @@ import { ThumbsUp, MessageSquareMore } from "lucide-react";
 import { useAuth } from "@/contexts/auth/AuthContext";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import DynamicMedia from "../DynamicMedia";
 
 type PostGridProps = {
   data: PostType | PostType[];
@@ -69,9 +70,9 @@ const PostCard: React.FC<PostType> = ({
         <div className="p-6">
           {image && (
             <div className="mb-6 rounded-lg overflow-hidden">
-              <Image
-                src={image}
-                alt="Imagem do post"
+              <DynamicMedia
+                url={image}
+                alt="Media do post"
                 width={600}
                 height={400}
                 className="w-full h-auto object-cover transition-transform duration-300 hover:scale-105"

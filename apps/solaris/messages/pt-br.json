@@ -1,0 +1,49 @@
+{
+    "Auth": {
+        "Login": "Entrar",
+        "Logout": "Sair",
+        "Register": "Registrar",
+        "Forgot Password": "Esqueci minha senha",
+        "Reset Password": "Redefinir senha",
+        "Change Password": "Alterar senha",
+        "Don't have an account?": "Não tem uma conta?",
+        "Already have an account?": "Já tem uma conta?",
+        "Username": "Nome de usuário",
+        "Password": "Senha",
+        "Email": "E-mail",
+        "Not Authenticated": "Você não esta Authenticado."
+    },
+    "User": {
+        "Save": "Salvar",
+        "Delete": "Excluir",
+        "Edit": "Editar",
+        "Update": "Atualizar",
+        "Settings": "Configurações",
+        "Dashboard": "Painel de controle",
+        "Notifications": "Notificações",
+        "Profile": "Perfil"
+    },
+    "Post": {
+        "Submit": "Enviar",
+        "Cancel": "Cancelar",
+        "View": "Ver",
+        "Create": "Criar"
+    },
+    "Navbar": {
+        "Search": "Pesquisar"
+    },
+    "Others": {
+        "Welcome": "Bem-vindo",
+        "Welcome back": "Bem-vindo de volta",
+        "Home": "Inicio",
+        "Contacts": "Contatos",
+        "Friends": "Amigos",
+        "Loading": "Carregando",
+        "Help": "Ajuda",
+        "Confirm": "Confirmar",
+        "Back": "Voltar",
+        "Next": "Próximo",
+        "Previous": "Anterior",
+        "Error": "Erro"
+    }
+}

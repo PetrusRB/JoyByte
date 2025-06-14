@@ -4,6 +4,7 @@ import { twMerge } from "tailwind-merge"
 export function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs))
 }
+// Format Numbers, Dates and Relative Times.
 export function formatNumber(value: number): string {
     if (value < 1000) return value.toString();
     const units = ['', 'k', 'M', 'B', 'T', 'Q', 'Qi', 'Sx', 'Sp', 'Oc', 'No', 'Dc'];
@@ -12,7 +13,7 @@ export function formatNumber(value: number): string {
     const formattedValue = scaledValue.toFixed(scaledValue >= 10 || unitIndex > 4 ? 0 : 1);
     return `${formattedValue}${units[unitIndex]}`;
 }
-
+// Format date to Brazilian Portuguese locale
 export function formatRelativeTime(date: Date | null): string {
     if (!date || !(date instanceof Date)) return "";
     const now = Date.now();
@@ -34,4 +35,31 @@ export function formatRelativeTime(date: Date | null): string {
     }
 
     return date.toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' });
+}
+
+// Get file type from URL based on extension
+export function getFileTypeFromUrl(url: string): 'image' | 'video' | 'unknown' {
+    const extension = url.split('.').pop()?.toLowerCase();
+
+    const imageExts = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+    const videoExts = ['mp4', 'webm', 'ogg', 'mov'];
+
+    if (extension && imageExts.includes(extension)) return 'image';
+    if (extension && videoExts.includes(extension)) return 'video';
+    return 'unknown';
+}
+
+// Fetch content type from URL using HEAD request
+export async function fetchContentType(url: string): Promise<'image' | 'video' | 'unknown'> {
+    try {
+        const response = await fetch(url, { method: 'HEAD' });
+        const contentType = response.headers.get('Content-Type');
+
+        if (contentType?.startsWith('image/')) return 'image';
+        if (contentType?.startsWith('video/')) return 'video';
+    } catch (err) {
+        console.warn("Erro ao detectar tipo de conteúdo", err);
+    }
+
+    return 'unknown';
 }

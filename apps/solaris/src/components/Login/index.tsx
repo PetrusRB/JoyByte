@@ -1,9 +1,9 @@
 "use client";
 
 import React, { JSX, useMemo } from "react";
-import Image from "next/image";
 import { useAuth } from "@/contexts/auth/AuthContext";
 import { Provider } from "@/types";
+import { Button } from "../Button";
 
 const providers: Provider[] = ["google", "github", "facebook"];
 // Mapeia provider para SVG inline
@@ -33,54 +33,108 @@ export default function EnhancedAuth() {
   const buttons = useMemo(
     () =>
       providers.map((provider) => (
-        <button
+        <Button
           key={provider}
           onClick={handleSignIn(provider)}
           disabled={isLoading}
-          className="w-full mb-4 inline-flex items-center justify-center space-x-2 py-3 px-6 rounded-2xl bg-orange-600 hover:bg-orange-700 transition disabled:opacity-50"
+          className="w-full bg-white hover:bg-gray-50 text-gray-800 border-0 h-12 rounded-xl font-medium transition-all duration-200 hover:scale-105 shadow-lg"
         >
           {providerIcons[provider]}
-          <span className="text-white font-medium">
-            Entrar com {provider.charAt(0).toUpperCase() + provider.slice(1)}
-          </span>
-        </button>
+          Entrar com {provider.charAt(0).toUpperCase() + provider.slice(1)}
+        </Button>
       )),
     [isLoading]
   );
 
   return (
-    <div className="min-h-screen flex flex-col lg:flex-row items-center justify-center bg-black text-white">
-      {/* Left: login form */}
-      <div className="w-full lg:w-1/2 p-6 flex flex-col items-center">
-        <Image
-          src="/favicon.ico"
-          alt="Logo"
-          width={100}
-          height={100}
-          className="mb-6"
-          priority
-        />
-        <h1 className="text-3xl font-bold mb-4">JoyByte</h1>
-        {isLoading ? (
-          <p className="animate-pulse">Carregando...</p>
-        ) : (
-          <>
-            <div className="w-full max-w-xs">{buttons}</div>
-          </>
-        )}
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-orange-600 via-amber-600 to-orange-700 flex items-center justify-center p-4">
+      <div className="w-full max-w-6xl mx-auto">
+        <div className="grid lg:grid-cols-2 gap-0 bg-white rounded-3xl overflow-hidden min-h-[600px]">
 
-      {/* Divider */}
-      <div className="hidden lg:block w-px h-3/4 bg-gray-700 mx-8" />
+          {/* Left Side - Login Form */}
+          <div className="flex flex-col justify-center p-8 lg:p-12 bg-gradient-to-br from-orange-600 via-amber-600 to-orange-700">
+            <div className="max-w-md mx-auto w-full">
+              {/* Logo/Title */}
+              <div className="text-center mb-8">
+                <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4 backdrop-blur-sm">
+                  <div className="w-8 h-8 bg-white rounded-full"></div>
+                </div>
+                <h1 className="text-3xl font-bold text-white mb-2">Bem-vindo!</h1>
+                <p className="text-orange-100">Entre na sua conta para continuar</p>
+              </div>
 
-      {/* Right: illustration */}
-      <div className="hidden lg:flex lg:w-1/2 items-center justify-center p-6">
-        <div className="relative w-full max-w-md">
-          <img
-            src="https://ik.imagekit.io/9k3mcoolader/ilustration-min.png?updatedAt=1749844267853"
-            alt="Ilustração"
-            className="object-cover w-full h-auto rounded-lg shadow-lg"
-          />
+              {/* Social Login Buttons */}
+              <div className="space-y-4">
+                {buttons}
+              </div>
+
+              {/* Terms */}
+              <p className="text-center text-orange-100 text-sm mt-6">
+                Ao continuar, você concorda com nossos{" "}
+                <span className="underline cursor-pointer hover:text-white">Termos de Uso</span>
+                {" "}e{" "}
+                <span className="underline cursor-pointer hover:text-white">Política de Privacidade</span>
+              </p>
+            </div>
+          </div>
+
+          {/* Right Side - Creative Banner */}
+          <div className="relative bg-gradient-to-br from-amber-400 via-orange-400 to-red-400 p-8 lg:p-12 flex items-center justify-center">
+            {/* Background Decorations */}
+            <div className="absolute inset-0 overflow-hidden">
+              <div className="absolute top-10 left-10 w-20 h-20 bg-white/10 rounded-full animate-pulse"></div>
+              <div className="absolute top-32 right-20 w-12 h-12 bg-white/20 rounded-full animate-bounce"></div>
+              <div className="absolute bottom-20 left-20 w-16 h-16 bg-white/15 rounded-full animate-pulse" style={{ animationDelay: '1s' }}></div>
+              <div className="absolute bottom-32 right-12 w-8 h-8 bg-white/25 rounded-full animate-bounce" style={{ animationDelay: '0.5s' }}></div>
+
+              {/* Geometric shapes */}
+              <div className="absolute top-20 right-10 w-24 h-24 border-2 border-white/20 rotate-45 rounded-lg"></div>
+              <div className="absolute bottom-40 left-8 w-16 h-16 border-2 border-white/30 rotate-12 rounded-lg"></div>
+            </div>
+
+            {/* Main Content */}
+            <div className="relative z-10 text-center text-white">
+              <div className="mb-8">
+                <div className="w-32 h-32 bg-white/20 rounded-full mx-auto mb-6 flex items-center justify-center backdrop-blur-sm">
+                  <div className="w-20 h-20 bg-gradient-to-br from-white/40 to-white/60 rounded-full flex items-center justify-center">
+                    <svg className="w-12 h-12 text-white" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+                    </svg>
+                  </div>
+                </div>
+                <h2 className="text-4xl lg:text-5xl font-bold mb-4 leading-tight">
+                  Conecte-se
+                  <br />
+                  <span className="text-white/90">com o Futuro</span>
+                </h2>
+                <p className="text-xl text-white/80 leading-relaxed max-w-md mx-auto">
+                  Junte-se a milhares de usuários que já descobriram uma nova forma de se conectar
+                </p>
+              </div>
+
+              {/* Feature highlights */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-8">
+                <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
+                  <div className="w-8 h-8 bg-white/20 rounded-lg mx-auto mb-2 flex items-center justify-center">
+                    <div className="w-4 h-4 bg-white rounded-full"></div>
+                  </div>
+                  <p className="text-sm font-medium">Seguro</p>
+                </div>
+                <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
+                  <div className="w-8 h-8 bg-white/20 rounded-lg mx-auto mb-2 flex items-center justify-center">
+                    <div className="w-4 h-4 bg-white rounded-full"></div>
+                  </div>
+                  <p className="text-sm font-medium">Rápido</p>
+                </div>
+                <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
+                  <div className="w-8 h-8 bg-white/20 rounded-lg mx-auto mb-2 flex items-center justify-center">
+                    <div className="w-4 h-4 bg-white rounded-full"></div>
+                  </div>
+                  <p className="text-sm font-medium">Fácil</p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

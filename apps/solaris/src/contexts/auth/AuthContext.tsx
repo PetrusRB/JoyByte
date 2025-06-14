@@ -1,8 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useMemo, ReactNode, useState, useEffect } from "react";
-
-import Loading from "@/components/Loading";
+import { Loading } from "@/components/Loading";
 import { login } from "@/db/actions/login";
 import { User } from "@supabase/auth-js";
 import { signout } from "@/db/actions/signout";
@@ -72,4 +71,21 @@ export function useAuth(): AuthContextType {
   const context = useContext(AuthContext);
   if (!context) throw new Error("useAuth must be used within AuthProvider");
   return context;
+}
+
+// Componente de proteção de rotas
+export function ProtectedRoute({ children }: { children: ReactNode }) {
+  const { isAuthenticated, isLoading } = useAuth();
+  const router = typeof window !== "undefined" ? require("next/navigation").useRouter() : null;
+
+  if (isLoading) {
+    return <Loading />;
+  }
+
+  if (!isAuthenticated && router) {
+    router.push("/");
+    return null;
+  }
+
+  return <>{children}</>;
 }

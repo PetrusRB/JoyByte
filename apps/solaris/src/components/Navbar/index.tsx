@@ -27,7 +27,11 @@ const items: MenuProps['items'] = [
     },
     {
         key: '4',
-        label: 'Settings',
+        label: (
+            <a onClick={() => window.location.href = "/config"} rel="noopener noreferrer">
+                Settings
+            </a>
+        ),
         icon: <SettingsIcon />,
         extra: '⌘S',
     },
@@ -73,14 +77,14 @@ const Navbar = () => {
                                     <input
                                         type="text"
                                         placeholder="Pesquisar"
-                                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-300"
+                                        className="w-full dark:bg-zinc-950 bg-slate-300 pl-10 pr-4 py-2 rounded-lg transition-all focus:outline-none focus:ring-2 focus:ring-yellow-300"
                                     />
                                 </div>
                             </div>
                             <div className="my-2 md:my-0 md:mx-2">
                                 <div className="w-full h-px md:w-px md:h-4 bg-gray-100 md:bg-gray-300 dark:bg-neutral-700"></div>
                             </div>
-                            <Dropdown menu={{ items }}>
+                            <Dropdown className="dark:bg-zinc-950 dark:text-white text-gray-600 bg-white" menu={{ items }} trigger={['click']}>
                                 <div className="w-8 h-8 rounded-full hover:scale-110 transition-transform border-transparent hover:border-gray-300 bg-gray-300 overflow-hidden">
                                     {/* Foto do usuário */}
                                     <Image src={user?.user_metadata?.picture || "/user.png"} alt="Perfil" width={32} height={32} />

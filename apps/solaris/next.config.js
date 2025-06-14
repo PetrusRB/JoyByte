@@ -2,8 +2,8 @@
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { composePlugins, withNx } = require('@nx/next');
-const { i18n } = require('./next-i18next.config')
-
+const createNextIntlPlugin = require('next-intl/plugin');
+ 
 /**
  * @type {import('@nx/next/plugins/with-nx').WithNxOptions}
  **/
@@ -16,6 +16,12 @@ const nextConfig = {
       {
         protocol: 'https',
         hostname: 'images.unsplash.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'imbsfvotjqhpbvjkhbwi.supabase.co',
         port: '',
         pathname: '/**',
       },
@@ -50,13 +56,15 @@ const nextConfig = {
         pathname: '/**',
       },
     ],
-  },
-  i18n,
+  }
 };
 
+const withNextIntl = createNextIntlPlugin();
+ 
 const plugins = [
   // Add more Next.js plugins to this list if needed.
   withNx,
+  withNextIntl
 ];
 
 module.exports = composePlugins(...plugins)(nextConfig);
