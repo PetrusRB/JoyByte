@@ -1,38 +1,69 @@
 "use client";
 
-import React, { createContext, useContext, useMemo, ReactNode } from "react";
-import { useSession, signIn as nextAuthSignIn, signOut as nextAuthSignOut } from "next-auth/react";
-import type { Session } from "next-auth";
+import React, { createContext, useContext, useMemo, ReactNode, useState, useEffect } from "react";
 
-// Tipos de provedores suportados
-export type AuthProvider = "google" | "github" | "instagram" | "facebook";
+import Loading from "@/components/Loading";
+import { login } from "@/db/actions/login";
+import { User } from "@supabase/auth-js";
+import { signout } from "@/db/actions/signout";
+import supabase from "@/db";
+import { Provider } from "@/types";
 
 interface AuthContextType {
   isAuthenticated: boolean;
-  user: Session["user"] | null;
-  status: "loading" | "authenticated" | "unauthenticated";
-  signIn: (provider: AuthProvider) => Promise<void>;
+  isLoading: boolean;
+  user: User | null;
+  signIn: (provider: Provider) => Promise<void>;
   signOut: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const { data: session, status } = useSession();
-  const isAuthenticated = status === "authenticated";
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const signIn = async (provider: AuthProvider) => {
-    await nextAuthSignIn(provider, { callbackUrl: "/" });
+  useEffect(() => {
+    const fetchUser = async () => {
+      const { data } = await supabase.auth.getUser();
+      setUser(data.user);
+      setIsLoading(false);
+    };
+
+    fetchUser();
+
+    const { data } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_IN") {
+        setUser(session?.user || null);
+      } else if (event === "SIGNED_OUT") {
+        setUser(null);
+      }
+    });
+
+    return () => {
+      data?.subscription.unsubscribe();
+    };
+  }, []);
+
+  const isAuthenticated = !!user;
+
+  const signIn = async (provider: Provider) => {
+    await login(provider);
   };
 
   const signOut = async () => {
-    await nextAuthSignOut({ callbackUrl: "/" });
+    await signout();
+    setUser(null);
   };
 
   const value = useMemo<AuthContextType>(
-    () => ({ isAuthenticated, user: session?.user ?? null, status, signIn, signOut }),
-    [isAuthenticated, session, status]
+    () => ({ isAuthenticated, isLoading, user, signIn, signOut }),
+    [isAuthenticated, isLoading, user]
   );
+
+  if (isLoading) {
+    return <Loading />;
+  }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
