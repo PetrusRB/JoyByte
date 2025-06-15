@@ -1,6 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { Home, User, MessageCircle, Menu } from 'lucide-react';
+import { useAuth } from '@/contexts/auth/AuthContext';
 
 const items = [
   { icon: <Home />, href: '/' },
@@ -10,6 +11,10 @@ const items = [
 ];
 
 export default function MobileNav() {
+  const {isAuthenticated} = useAuth();
+  if (!isAuthenticated){
+    return null;
+  }
   return (
     <nav className="fixed bottom-0 w-full bg-zinc-950/30 backdrop-blur-lg shadow-inner py-2 flex justify-around lg:hidden">
       {items.map((item, i) => (

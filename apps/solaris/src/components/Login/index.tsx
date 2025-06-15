@@ -56,7 +56,7 @@ export default function EnhancedAuth() {
             <div className="max-w-md mx-auto w-full">
               {/* Logo/Title */}
               <div className="text-center mb-8">
-                <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4 backdrop-blur-sm">
+                <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4 ">
                   <div className="w-8 h-8 bg-white rounded-full"></div>
                 </div>
                 <h1 className="text-3xl font-bold text-white mb-2">Bem-vindo!</h1>
@@ -95,7 +95,7 @@ export default function EnhancedAuth() {
             {/* Main Content */}
             <div className="relative z-10 text-center text-white">
               <div className="mb-8">
-                <div className="w-32 h-32 bg-white/20 rounded-full mx-auto mb-6 flex items-center justify-center backdrop-blur-sm">
+                <div className="w-32 h-32 bg-white/20 rounded-full mx-auto mb-6 flex items-center justify-center">
                   <div className="w-20 h-20 bg-gradient-to-br from-white/40 to-white/60 rounded-full flex items-center justify-center">
                     <svg className="w-12 h-12 text-white" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
@@ -114,19 +114,19 @@ export default function EnhancedAuth() {
 
               {/* Feature highlights */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-8">
-                <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
+                <div className="bg-white/10 rounded-xl p-4">
                   <div className="w-8 h-8 bg-white/20 rounded-lg mx-auto mb-2 flex items-center justify-center">
                     <div className="w-4 h-4 bg-white rounded-full"></div>
                   </div>
                   <p className="text-sm font-medium">Seguro</p>
                 </div>
-                <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
+                <div className="bg-white/10 rounded-xl p-4">
                   <div className="w-8 h-8 bg-white/20 rounded-lg mx-auto mb-2 flex items-center justify-center">
                     <div className="w-4 h-4 bg-white rounded-full"></div>
                   </div>
                   <p className="text-sm font-medium">Rápido</p>
                 </div>
-                <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
+                <div className="bg-white/10 rounded-xl p-4">
                   <div className="w-8 h-8 bg-white/20 rounded-lg mx-auto mb-2 flex items-center justify-center">
                     <div className="w-4 h-4 bg-white rounded-full"></div>
                   </div>
