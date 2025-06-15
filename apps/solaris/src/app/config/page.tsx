@@ -34,7 +34,7 @@ const Settings = () => {
             reader.readAsDataURL(file);
         }
     };
-
+    
     const handleSave = async () => {
         setIsLoading(true);
         // Simulate API call
