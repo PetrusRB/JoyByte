@@ -93,7 +93,7 @@ export default function DynamicMedia({
     return (
       <VideoPlayer
         src={url}
-        playing={autoPlay}
+        autoPlay={autoPlay}
         loop
         className={className}
       />
