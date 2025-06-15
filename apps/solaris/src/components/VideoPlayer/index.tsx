@@ -31,7 +31,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = React.memo(({
   const [isMuted, setIsMuted] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showControls, setShowControls] = useState(true);
-  const [isLoading, setIsLoading] = useState(true);
+
   const [showVolumeSlider, setShowVolumeSlider] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -58,15 +58,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = React.memo(({
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   }, []);
 
-  // Video event handlers
-  const handleLoadStart = useCallback(() => {
-    setIsLoading(true);
-    setError(null);
-  }, []);
-
-  const handleCanPlay = useCallback(() => {
-    setIsLoading(false);
-  }, []);
 
   const handleLoadedMetadata = useCallback(() => {
     if (videoRef.current) {
@@ -98,7 +89,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = React.memo(({
 
   const handleError = useCallback(() => {
     setError('Erro ao carregar o vídeo');
-    setIsLoading(false);
   }, []);
 
   // Setup video event listeners
@@ -107,8 +97,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = React.memo(({
     if (!video) return;
 
     const events = [
-      ['loadstart', handleLoadStart],
-      ['canplay', handleCanPlay],
       ['loadedmetadata', handleLoadedMetadata],
       ['timeupdate', handleTimeUpdate],
       ['progress', handleProgress],
@@ -125,7 +113,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = React.memo(({
         video.removeEventListener(event, handler);
       });
     };
-  }, [handleLoadStart, handleCanPlay, handleLoadedMetadata, handleTimeUpdate, handleProgress, handleVolumeChange, handleError]);
+  }, [handleLoadedMetadata, handleTimeUpdate, handleProgress, handleVolumeChange, handleError]);
 
   // Play/Pause toggle
   const togglePlayPause = useCallback(() => {
@@ -358,14 +346,14 @@ const VideoPlayer: React.FC<VideoPlayerProps> = React.memo(({
       />
 
       {/* Loading overlay */}
-      {isLoading && (
+      {/* {isLoading && (
         <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-orange-500/20 to-yellow-500/20 backdrop-blur-sm">
           <div className="flex flex-col items-center space-y-4">
             <div className="w-12 h-12 sm:w-16 sm:h-16 border-4 border-orange-300/30 border-t-orange-400 rounded-full animate-spin"></div>
             <p className="text-white text-sm sm:text-base font-medium">Carregando vídeo...</p>
           </div>
         </div>
-      )}
+      )} */}
 
       {/* Error overlay */}
       {error && (
@@ -378,7 +366,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = React.memo(({
       )}
 
       {/* Play button overlay */}
-      {!isPlaying && !isLoading && !error && (
+      {!isPlaying && !error && (
         <div className="absolute inset-0 flex items-center justify-center">
           <button
             onClick={handleVideoClick}
