@@ -48,7 +48,7 @@ const PostCard: React.FC<PostType> = ({
   };
 
   return (
-    <div className="w-full mx-auto my-8">
+    <div className="w-auto mx-auto my-8">
       <div className="bg-white dark:bg-zinc-950 dark:text-white rounded-xl text-gray-600 shadow-lg overflow-hidden transition hover:shadow-2xl">
         {/* Header */}
         <div className="p-6 flex items-center gap-4 border-b border-gray-200 dark:border-gray-700">
@@ -85,7 +85,7 @@ const PostCard: React.FC<PostType> = ({
         </div>
 
         {/* Footer Buttons */}
-        <div className="flex items-center justify-between px-6 py-4 dark:bg-neutral-900 bg-neutral-400">
+        <div className="flex items-center justify-between px-6 py-4 dark:bg-neutral-900 bg-neutral-600">
           <button className="flex items-center gap-2 text-gray-300 hover:text-blue-400 transition">
             <ThumbsUp size={24} />
             <span>Curtir</span>

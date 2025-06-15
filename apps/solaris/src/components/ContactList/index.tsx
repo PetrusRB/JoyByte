@@ -1,5 +1,6 @@
 import { Search, MoreHorizontal } from "lucide-react";
 import { Button } from "@/components/Button";
+import { useTranslations } from "next-intl";
 
 interface Contact {
   name: string;
@@ -11,11 +12,12 @@ interface ContactsListProps {
 }
 
 const ContactsList = ({ contacts }: ContactsListProps) => {
+  const t = useTranslations("User");
   return (
-    <div className="p-4 h-full dark:bg-black bg-white dark:text-white text-gray-600">
-      <div className="dark:bg-black bg-white dark:text-white rounded-2xl shadow-sm p-4">
+    <div className="p-4 h-full dark:text-white text-gray-600">
+      <div className="dark:text-white rounded-2xl shadow-sm p-4">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="font-semibold dark:text-white text-gray-600">Contacts</h3>
+          <h3 className="font-semibold dark:text-white text-gray-600">{t("Contacts")}</h3>
           <div className="flex space-x-1">
             <Button variant="ghost" size="icon" className="rounded-full w-8 h-8 hover:bg-slate-100">
               <Search className="w-4 h-4 text-slate-500" />

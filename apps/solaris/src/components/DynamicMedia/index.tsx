@@ -6,7 +6,8 @@ import Image from 'next/image';
 import { Loading } from '../Loading';
 
 // Lazy load do react-player
-const ReactPlayer = dynamic(() => import('react-player'), { ssr: false });
+// const ReactPlayer = dynamic(() => import('react-player'), { ssr: false });
+const VideoPlayer = dynamic(() => import('@/components/VideoPlayer'), {ssr:false});
 
 type MediaDisplayProps = {
   url: string;
@@ -90,13 +91,10 @@ export default function DynamicMedia({
 
   if (mediaType === 'video') {
     return (
-      <ReactPlayer
-        url={url}
-        width={width}
-        height={height}
+      <VideoPlayer
+        src={url}
         playing={autoPlay}
         loop
-        controls
         className={className}
       />
     );

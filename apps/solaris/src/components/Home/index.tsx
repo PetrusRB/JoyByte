@@ -55,26 +55,30 @@ const contacts = [
 
 export default function HomeForm() {
   return (
-    <div className="min-h-screen dark:bg-black bg-white dark:text-white text-gray-600">
-      <div className="flex max-w-7xl mx-auto pt-16">
-        {/* Left Sidebar */}
-        <div className="hidden lg:block w-80 fixed left-0 top-16 h-full overflow-y-auto">
-          <Sidebar />
-        </div>
+    <div className="min-h-screen dark:bg-black bg-orange-50 dark:text-white text-orange-700">
+         <div className="grid grid-cols-1 lg:grid-cols-[250px,1fr,250px] gap-4 max-w-7xl mx-auto pt-4 lg:pt-16">
+           {/* Left Sidebar */}
+           <aside className="hidden lg:block">
+             <div className="sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto">
+               <Sidebar />
+             </div>
+           </aside>
 
-        {/* Main Content */}
-        <div className="flex-1 lg:ml-80 lg:mr-80 px-4 py-6">
-          <div className="max-w-2xl mx-auto space-y-6">
-            <CreatePost />
-            <PostGrid data={items} status="success" />
-          </div>
-        </div>
+           {/* Main Content */}
+           <main className="col-span-1 lg:col-span-1 px-2 sm:px-4 py-4">
+             <div className="max-w-full sm:max-w-lg md:max-w-xl lg:max-w-2xl mx-auto space-y-4 sm:space-y-6">
+               <CreatePost />
+               <PostGrid data={items} status="success" />
+             </div>
+           </main>
 
-        {/* Right Sidebar - Contacts */}
-        <div className="hidden lg:block w-80 fixed right-0 top-16 h-full overflow-y-auto">
-          <ContactsList contacts={contacts} />
-        </div>
-      </div>
+           {/* Right Sidebar - Contacts */}
+           <aside className="hidden lg:block">
+             <div className="sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto">
+               <ContactsList contacts={contacts} />
+             </div>
+           </aside>
+         </div>
     </div>
   );
 }

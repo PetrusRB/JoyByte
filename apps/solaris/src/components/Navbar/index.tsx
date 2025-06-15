@@ -1,45 +1,15 @@
-import Link from "next/link";
-import { Search, SettingsIcon } from "lucide-react";
+import { Bell, Menu, MessageCircle, Search, Settings, User } from "lucide-react";
 import { useAuth } from "@/contexts/auth/AuthContext";
-import Image from "next/image";
 import { useEffect, useState } from "react";
-import type { MenuProps } from 'antd';
-import { Dropdown } from 'antd';
-
-const items: MenuProps['items'] = [
-    {
-        key: '1',
-        label: 'Minha conta',
-        disabled: true,
-    },
-    {
-        type: 'divider',
-    },
-    {
-        key: '2',
-        label: 'Profile',
-        extra: '⌘P',
-    },
-    {
-        key: '3',
-        label: 'Billing',
-        extra: '⌘B',
-    },
-    {
-        key: '4',
-        label: (
-            <a onClick={() => window.location.href = "/config"} rel="noopener noreferrer">
-                Settings
-            </a>
-        ),
-        icon: <SettingsIcon />,
-        extra: '⌘S',
-    },
-];
+import { Button } from "../Button";
+import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 const Navbar = () => {
-    const { isAuthenticated, user } = useAuth();
+    const { isAuthenticated } = useAuth();
     const [isDesktop, setIsDesktop] = useState(false);
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const navigate = useRouter();
 
     useEffect(() => {
         const handleResize = () => {
@@ -57,41 +27,101 @@ const Navbar = () => {
     if (!isAuthenticated || !isDesktop) {
         return null; // Não renderiza a navbar se não estiver autenticado ou em dispositivos móveis
     }
-
+    const onMenuClick = () => {
+        setIsMobileMenuOpen(!isMobileMenuOpen)
+    }
     return (
         <>
-            <header className="sticky top-0 z-50 w-full px-4 sm:px-6 lg:px-8 py-2">
-                <div className="mx-auto max-w-7xl">
-                    <nav className="relative flex items-center justify-between py-2 sm:py-3 dark:bg-zinc-950/50 dark:text-white bg-white/50 text-gray-600 backdrop-blur-lg rounded-xl px-4 sm:px-6">
-                        <div className="flex items-center flex-shrink-0">
-                            {/* Logo */}
-                            <Link href="/" className="hover:scale-110 transition-transform duration-300">
-                                <Image src="/favicon.ico" alt="Logo" width={32} height={32} />
-                            </Link>
+            <header className="bg-orange-50 dark:bg-black backdrop-blur-md border-b border-slate-200/60 sticky top-0 z-50 px-4 py-3">
+                <div className="flex items-center justify-between max-w-7xl mx-auto">
+                    {/* Left - Mobile Menu + Logo */}
+                    <div className="flex items-center space-x-3">
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="lg:hidden rounded-full hover:bg-slate-100"
+                            onClick={onMenuClick}
+                        >
+                            <Menu className="w-5 h-5 text-slate-600" />
+                        </Button>
+                        <Image
+                            src="/favicon.ico"
+                            alt="Logo"
+                            className="hover:scale-110 transition-transform"
+                            width={32}
+                            height={32}
+                            priority
+                        />
+                    </div>
+
+                    {/* Center - Search Bar (Hidden on mobile) */}
+                    <div className="hidden md:flex flex-1 max-w-md mx-4">
+                        <div className="relative w-full">
+                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-500" />
+                            <input
+                                type="text"
+                                placeholder="Pesquisar..."
+                                className="w-full pl-10 pr-4 py-2 bg-slate-100 border-0 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all duration-200"
+                            />
                         </div>
-                        <div className="hidden md:flex items-center space-x-4">
-                            {/* Search Bar */}
-                            <div className="flex-1 max-w-lg mx-4">
-                                <div className="relative">
-                                    <Search className="absolute top-1/2 left-3 -translate-y-1/2 text-gray-400" size={16} />
-                                    <input
-                                        type="text"
-                                        placeholder="Pesquisar"
-                                        className="w-full dark:bg-zinc-950 bg-slate-300 pl-10 pr-4 py-2 rounded-lg transition-all focus:outline-none focus:ring-2 focus:ring-yellow-300"
-                                    />
-                                </div>
-                            </div>
-                            <div className="my-2 md:my-0 md:mx-2">
-                                <div className="w-full h-px md:w-px md:h-4 bg-gray-100 md:bg-gray-300 dark:bg-neutral-700"></div>
-                            </div>
-                            <Dropdown className="dark:bg-zinc-950 dark:text-white text-gray-600 bg-white" menu={{ items }} trigger={['click']}>
-                                <div className="w-8 h-8 rounded-full hover:scale-110 transition-transform border-transparent hover:border-gray-300 bg-gray-300 overflow-hidden">
-                                    {/* Foto do usuário */}
-                                    <Image src={user?.user_metadata?.picture || "/user.png"} alt="Perfil" width={32} height={32} />
-                                </div>
-                            </Dropdown>
-                        </div>
-                    </nav>
+                    </div>
+
+                    {/* Right - Actions */}
+                    <div className="flex items-center space-x-2">
+                        {/* Mobile Search */}
+                        <Button variant="ghost" size="icon" className="md:hidden rounded-full hover:bg-slate-100">
+                            <Search className="w-5 h-5 text-slate-600" />
+                        </Button>
+
+                        {/* Dynamic Action Buttons */}
+                        {[
+                            {
+                                icon: Bell,
+                                onClick: () => console.log("Notifications clicked"),
+                                badgeColor: "bg-red-500",
+                                showBadge: true,
+                                tooltip: "Notifications",
+                            },
+                            {
+                                icon: MessageCircle,
+                                onClick: () => console.log("Messages clicked"),
+                                badgeColor: "bg-blue-500",
+                                showBadge: true,
+                                tooltip: "Messages",
+                            },
+                            {
+                                icon: Settings,
+                                onClick: () => navigate.push('/config'),
+                                showBadge: false,
+                                tooltip: "Settings",
+                            },
+                        ].map(({ icon: Icon, onClick, badgeColor, showBadge, tooltip }, index) => (
+                            <Button
+                                key={index}
+                                variant="ghost"
+                                size="icon"
+                                onClick={onClick}
+                                className="hidden sm:flex rounded-full bg-gradient-to-br hover:from-yellow-500 hover:to-yellow-700 relative"
+                                title={tooltip}
+                            >
+                                <Icon className="w-5 h-5 hover:text-white text-orange-700" />
+                                {showBadge && (
+                                    <span className={`absolute -top-1 -right-1 w-3 h-3 ${badgeColor} rounded-full border-2 border-white`}></span>
+                                )}
+                            </Button>
+                        ))}
+
+                        {/* Login Button */}
+                        {!isAuthenticated &&
+                            <Button
+                                onClick={() => navigate.push('/')}
+                                className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white rounded-full px-4 py-2 transition-all duration-200 hover:scale-105"
+                            >
+                                <User className="w-4 h-4 mr-2" />
+                                <span className="hidden sm:inline">Login</span>
+                            </Button>
+                        }
+                    </div>
                 </div>
             </header>
         </>

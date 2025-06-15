@@ -21,20 +21,20 @@ const Sidebar = () => {
     const { user } = useAuth();
 
     return (
-        <div className="p-4 h-full dark:bg-black bg-white dark:text-white text-gray-600">
+        <div className="p-4 h-full dark:text-white">
             <div className="space-y-2">
                 {/* Profile Section */}
                 <div className="p-4 dark:bg-black bg-white dark:text-white rounded-2xl shadow-sm mb-6">
                     <div className="flex items-center space-x-3">
                         <Image
-                            src={user?.user_metadata?.picture}
+                            src={user?.user_metadata?.picture ?? "/user.png"}
                             alt="Você"
                             width={"48px"}
                             height={"48px"}
                             className="rounded-full border-2 border-blue-200"
                         />
                         <div>
-                            <h3 className="font-semibold dark:text-white text-gray-600">{user?.user_metadata?.name}</h3>
+                            <h3 className="font-semibold dark:text-white">{user?.user_metadata?.name}</h3>
                             <p className="text-sm text-slate-500">Ver seu perfil.</p>
                         </div>
                     </div>
@@ -48,13 +48,13 @@ const Sidebar = () => {
                             variant="ghost"
                             className={cn(
                                 "w-full justify-start h-12 px-4 rounded-xl transition-all duration-200 bg-transparent hover:scale-[1.02]",
-                                item.active ? "bg-gradient-to-r from-yellow-500 to-yellow-700 hover:from-yellow-600 hover:to-yellow-700 text-white-600 shadow-sm" : "dark:text-white text-gray-600 hover:text-gray-600"
+                                item.active ? "bg-gradient-to-r from-yellow-500 to-yellow-700 hover:from-yellow-600 hover:to-yellow-700 text-white shadow-sm" : "dark:text-white text-orange-700 hover:bg-orange-100 hover:text-orange-800"
                             )}
                         >
-                            <item.icon className={cn("w-5 h-5 mr-3", item.active ? "text-white-600" : "text-slate-600")} />
+                            <item.icon className={cn("w-5 h-5 mr-3 text-orange-700", item.active && "text-white")} />
                             <span className="font-medium">{item.label}</span>
                             {item.count && (
-                                <span className={`ml-auto bg-red-500 dark:text-white text-gray-600 text-xs rounded-full px-2 py-0.5`}>
+                                <span className={`ml-auto bg-red-500 text-white text-xs rounded-full px-2 py-0.5`}>
                                     {item.count}
                                 </span>
                             )}

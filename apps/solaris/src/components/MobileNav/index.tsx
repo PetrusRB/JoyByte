@@ -16,9 +16,9 @@ export default function MobileNav() {
     return null;
   }
   return (
-    <nav className="fixed bottom-0 w-full bg-zinc-950/30 backdrop-blur-lg shadow-inner py-2 flex justify-around lg:hidden">
+    <nav className="fixed bottom-0 w-full bg-zinc-950/30 backdrop-blur-md shadow-inner py-2 flex justify-around lg:hidden">
       {items.map((item, i) => (
-        <Link key={i} href={item.href} className="dark:text-white text-gray-600 hover:scale-50 transition-transform hover:text-yellow-500">
+        <Link key={i} href={item.href} className="text-white hover:scale-50 transition-transform hover:text-yellow-500">
           {item.icon}
         </Link>
       ))}

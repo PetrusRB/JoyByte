@@ -22,14 +22,14 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const locale = await getLocale();
- 
+
   // Providing all messages to the client
   // side is the easiest way to get started
   const messages = await getMessages();
   return (
     <html lang={locale}>
       <body
-        className={`${poppins.variable} bg-black antialiased`}
+        className={`${poppins.variable} dark:bg-black bg-orange-50 antialiased`}
       >
         <NextIntlClientProvider messages={messages}><LayoutClient>{children}</LayoutClient></NextIntlClientProvider>
       </body>
