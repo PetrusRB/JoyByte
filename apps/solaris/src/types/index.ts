@@ -1,3 +1,4 @@
+import { UserMetadata } from "@supabase/supabase-js";
 export type Provider = "google" | "github" | "facebook";
 export interface User {
     id: string;
@@ -11,6 +12,49 @@ export interface Comment {
     author: User;
     content: string;
     createdAt: string;
+}
+
+export interface UserAppMetadata {
+  provider?: string;
+  providers?: string[];
+}
+
+export interface UserIdentity {
+  id: string;
+  user_id: string;
+  identity_data?: Record<string, any>;
+  provider: string;
+  last_sign_in_at?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Factor {
+  id: string;
+  friendly_name?: string;
+  factor_type: string;
+  status: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface UserProfile {
+  id: string;
+  email: string;
+  role?: string;
+  badge?: string;
+  phone?: string;
+  banner?: string;
+  bio?: string;
+  created_at: Date;
+  raw_user_meta_data: UserMetadata;
+  twitter?: string;
+  tiktok?: string;
+  youtube?: string;
+  kwai?: string;
+  linkedin?: string;
+  instagram?: string;
+  website?: string;
 }
 
 export interface Post {

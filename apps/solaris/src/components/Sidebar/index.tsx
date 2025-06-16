@@ -4,9 +4,11 @@ import { cn } from "@/libs/utils";
 import { useAuth } from "@/contexts/auth/AuthContext";
 import { Image } from "antd";
 import { useTranslations } from "next-intl";
+import { useRouter } from "next/navigation";
 
 const Sidebar = () => {
     const SidebarTrans = useTranslations("Sidebar");
+    const navigate = useRouter();
     const menuItems = [
         { icon: Home, label: SidebarTrans('Home'), active: true },
         { icon: Users, label: SidebarTrans('Friends'), count: 12 },
@@ -16,7 +18,6 @@ const Sidebar = () => {
         { icon: ImageIcon, label: SidebarTrans("Photos") },
         { icon: Calendar, label: SidebarTrans("Events") }
     ];
-
 
     const { user } = useAuth();
 
@@ -34,8 +35,8 @@ const Sidebar = () => {
                             className="rounded-full border-2 border-blue-200"
                         />
                         <div>
-                            <h3 className="font-semibold dark:text-white">{user?.user_metadata?.name}</h3>
-                            <p className="text-sm text-slate-500">Ver seu perfil.</p>
+                            <h3 className="font-semibold dark:text-white">{user?.user_metadata?.name??"Misterioso(a)"}</h3>
+                            <p onClick={() => navigate.push(`/user/${user?.user_metadata?.name}`)} className="text-sm text-slate-500 cursor-pointer">Ver seu perfil.</p>
                         </div>
                     </div>
                 </div>

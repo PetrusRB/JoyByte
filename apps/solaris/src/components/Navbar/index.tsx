@@ -32,7 +32,7 @@ const Navbar = () => {
     }
     return (
         <>
-            <header className="bg-orange-50 dark:bg-black backdrop-blur-md border-b border-slate-200/60 sticky top-0 z-50 px-4 py-3">
+            <header className="bg-orange-50 dark:bg-black backdrop-blur-md border-b border-orange-200/40 sticky top-0 z-50 px-4 py-3">
                 <div className="flex items-center justify-between max-w-7xl mx-auto">
                     {/* Left - Mobile Menu + Logo */}
                     <div className="flex items-center space-x-3">
@@ -47,7 +47,8 @@ const Navbar = () => {
                         <Image
                             src="/favicon.ico"
                             alt="Logo"
-                            className="hover:scale-110 transition-transform"
+                            className="hover:scale-110 transition-transform cursor-pointer"
+                            onClick={() => navigate.push("/")}
                             width={32}
                             height={32}
                             priority

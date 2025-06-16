@@ -24,6 +24,8 @@ export async function GET(request: Request) {
       } else {
         return NextResponse.redirect(`${origin}${next}`)
       }
+    }else{
+      console.log(`An error occurred during authentication: ${error.message}`)
     }
   }
   // return the user to an error page with instructions
