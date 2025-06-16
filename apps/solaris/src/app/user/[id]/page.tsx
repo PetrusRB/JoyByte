@@ -5,7 +5,6 @@ import { useParams, useRouter } from "next/navigation";
 import supabase from "@/db";
 import { UserProfile } from "@/types";
 import { useAuth } from "@/contexts/auth/AuthContext";
-import { z } from "zod";
 import { Button } from "@/components/Button";
 import { ArrowLeft, Badge, Calendar, Camera, Edit3, Grid3X3, Heart, Link2, Mail, Users } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/Avatar";
