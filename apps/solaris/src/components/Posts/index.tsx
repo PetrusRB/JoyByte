@@ -53,7 +53,7 @@ const PostCard: React.FC<PostType> = ({
         {/* Header */}
         <div className="p-6 flex items-center gap-4 border-b border-gray-200 dark:border-gray-700">
           <Image
-            src={author?.avatar || DEFAULT_AVATAR}
+            src={author?.picture || DEFAULT_AVATAR}
             alt={author?.name || "Avatar"}
             width={56}
             height={56}
@@ -104,7 +104,7 @@ const PostCard: React.FC<PostType> = ({
           <div className="p-6 bg-neutral-800 space-y-6">
             <div className="flex items-center gap-4">
               <Image
-                src={user?.user_metadata?.picture || DEFAULT_AVATAR}
+                src={user?.picture || DEFAULT_AVATAR}
                 alt="Seu avatar"
                 width={40}
                 height={40}
@@ -131,14 +131,14 @@ const PostCard: React.FC<PostType> = ({
               {comments.map((comment, index) => (
                 <div key={`${id}-comment-${index}`} className="flex items-start gap-4 bg-neutral-700 p-4 rounded-lg shadow">
                   <Image
-                    src={user?.user_metadata?.picture || DEFAULT_AVATAR}
+                    src={user?.picture || DEFAULT_AVATAR}
                     alt="Comentário avatar"
                     width={40}
                     height={40}
                     className="w-10 h-10 rounded-full"
                   />
                   <div>
-                    <p className="font-semibold text-white">{user?.user_metadata?.name || "Você"}</p>
+                    <p className="font-semibold text-white">{user?.name || "Você"}</p>
                     <p className="text-gray-300">{comment}</p>
                   </div>
                 </div>
