@@ -13,7 +13,7 @@ const CreatePost = () => {
       <CardContent className="p-6">
         <div className="flex items-start space-x-4">
           <img
-            src={user?.user_metadata?.picture ?? ""}
+            src={user?.picture ?? ""}
             alt="Seu perfil"
             className="w-12 h-12 rounded-full border-2 border-blue-200"
           />
