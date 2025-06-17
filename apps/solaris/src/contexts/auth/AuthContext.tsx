@@ -35,31 +35,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const fetchUser = async () => {
       try {
         const res = await ky.get("/api/auth/user").json<any>()
-
-        if (
-          res &&
-          typeof res.id === "string" &&
-          typeof res.email === "string" &&
-          typeof res.name === "string" &&
-          typeof res.picture === "string" &&
-          typeof res.aud === "string" &&
-          typeof res.name === "string" &&
-          typeof res.avatar_url === "string"
-        ) {
-          const parsedUser: User = {
-            id: res.id,
-            email: res.email,
-            picture: res.picture || "/user.png",
-            aud: res.aud || "authenticated",
-            created_at: res.created_at || new Date().toISOString(),
-            name: res.name || "Misterioso(a)",
-          }
-
-          if (isMounted) setUser(parsedUser)
-        } else {
-          console.warn("Usuário com dados inválidos:", res)
-          if (isMounted) setUser(null)
+        const parsedUser: User = {
+          id: res.id,
+          email: res.email,
+          picture: res.picture || "/user.png",
+          aud: res.aud || "authenticated",
+          created_at: res.created_at || new Date().toISOString(),
+          name: res.name || "Misterioso(a)",
         }
+
+        if (isMounted) setUser(parsedUser)
       } catch (error) {
         console.error("Erro ao buscar usuário:", error)
         if (isMounted) setUser(null)
