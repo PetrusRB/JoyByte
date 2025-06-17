@@ -8,7 +8,7 @@ import ContactsList from "../ContactList";
 const items: Post[] = [
   {
     id: "1",
-    author: { id: "3", name: "Yakuza", avatar: "https://fastly.picsum.photos/id/496/536/354.jpg?hmac=U8UJd7a1T_tp4baF1lfEma_vCZI9XA6ou60WNjRWC4s", isOnline: true },
+    author: { id: "3", name: "Yakuza", picture: "https://fastly.picsum.photos/id/496/536/354.jpg?hmac=U8UJd7a1T_tp4baF1lfEma_vCZI9XA6ou60WNjRWC4s" },
     title: "Meu primeiro post",
     content: "Este é o conteúdo do meu primeiro post no Solaris!",
     image: "https://i.imgur.com/7W4gB0Z.png",
@@ -16,7 +16,7 @@ const items: Post[] = [
     comments: [
       {
         id: "1",
-        author: { id: "2", name: "Goku", avatar: "https://fastly.picsum.photos/id/496/536/354.jpg?hmac=U8UJd7a1T_tp4baF1lfEma_vCZI9XA6ou60WNjRWC4s", isOnline: true },
+        author: { id: "2", name: "Goku", picture: "https://fastly.picsum.photos/id/496/536/354.jpg?hmac=U8UJd7a1T_tp4baF1lfEma_vCZI9XA6ou60WNjRWC4s" },
         content: "Parabéns pelo primeiro post!",
         createdAt: Date.now().toString(),
       },
@@ -26,7 +26,7 @@ const items: Post[] = [
   },
   {
     id: "2",
-    author: { id: "41", name: "Yakuza", avatar: "https://fastly.picsum.photos/id/496/536/354.jpg?hmac=U8UJd7a1T_tp4baF1lfEma_vCZI9XA6ou60WNjRWC4s", isOnline: true },
+    author: { id: "41", name: "Yakuza", picture: "https://fastly.picsum.photos/id/496/536/354.jpg?hmac=U8UJd7a1T_tp4baF1lfEma_vCZI9XA6ou60WNjRWC4s" },
     title: "Capa de 360",
     content: "Capa de 360 no ff",
     image: "https://imbsfvotjqhpbvjkhbwi.supabase.co/storage/v1/object/sign/postmedia/videoplayback.mp4?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV85ZGRkZmRmNy03NmIxLTQ0ZTQtYjI4ZS0yYjk1ZDEwOWQ5YmUiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJwb3N0bWVkaWEvdmlkZW9wbGF5YmFjay5tcDQiLCJpYXQiOjE3NDk5MTc2NjEsImV4cCI6MTc4MTQ1MzY2MX0.dBaEOGs-hvTk9PVCyvriG5gnOpGVJuggZU4LWR42xIY",
@@ -34,7 +34,7 @@ const items: Post[] = [
     comments: [
       {
         id: "2",
-        author: { id: "2", name: "Pietro", avatar: "https://fastly.picsum.photos/id/496/536/354.jpg?hmac=U8UJd7a1T_tp4baF1lfEma_vCZI9XA6ou60WNjRWC4s", isOnline: true },
+        author: { id: "2", name: "Pietro", picture: "https://fastly.picsum.photos/id/496/536/354.jpg?hmac=U8UJd7a1T_tp4baF1lfEma_vCZI9XA6ou60WNjRWC4s" },
         content: "Olha o capa de 360",
         createdAt: Date.now().toString(),
       },

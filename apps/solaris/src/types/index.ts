@@ -2,11 +2,11 @@ import { UserMetadata } from "@supabase/supabase-js";
 export type Provider = "google" | "github" | "facebook";
 export interface User {
   id: string;
-  email: string | undefined;
+  email?: string | undefined;
   name: string;
-  aud: string;
-  avatar_url: string;
-  picture: string;
+  aud?: string;
+  avatar_url?: string;
+  picture?: string;
 }
 
 export interface Comment {
@@ -43,6 +43,7 @@ export interface Factor {
 export interface UserProfile {
   id: string;
   email: string;
+  name: string;
   role?: string;
   badge?: string;
   phone?: string;
