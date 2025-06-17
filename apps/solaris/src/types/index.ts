@@ -5,7 +5,7 @@ export interface User {
   email?: string | undefined;
   name: string;
   aud?: string;
-  created_at: Date;
+  created_at?: Date;
   picture?: string;
 }
 
