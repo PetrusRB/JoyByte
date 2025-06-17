@@ -18,7 +18,7 @@ export default function MobileNav() {
   return (
     <nav className="fixed bottom-0 w-full bg-zinc-950/30 backdrop-blur-md shadow-inner py-2 flex justify-around lg:hidden">
       {items.map((item, i) => (
-        <Link key={i} href={item.href.replace(":user", user?.user_metadata?.name)} className="text-white hover:scale-50 transition-transform hover:text-yellow-500">
+        <Link key={i} href={item.href.replace(":user", user?.name || "")} className="text-white hover:scale-50 transition-transform hover:text-yellow-500">
           {item.icon}
         </Link>
       ))}
