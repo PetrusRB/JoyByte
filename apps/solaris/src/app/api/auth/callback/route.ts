@@ -10,8 +10,8 @@ export async function GET(request: Request) {
     // if "next" is not a relative URL, use the default
     next = '/'
   }
+  const supabase = await createClient()
   if (code) {
-    const supabase = await createClient()
     const { error } = await supabase.auth.exchangeCodeForSession(code)
     if (!error) {
       const forwardedHost = request.headers.get('x-forwarded-host') // original origin before load balancer

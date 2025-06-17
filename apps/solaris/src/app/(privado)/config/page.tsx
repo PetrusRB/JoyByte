@@ -1,7 +1,8 @@
 "use client";
 
 import {
-  Camera, User, Palette, Save, ArrowLeft
+  Camera, User, Palette, Save, ArrowLeft,
+  DoorOpen
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useCallback, useMemo } from "react";
@@ -15,12 +16,15 @@ import { useAuth } from "@/contexts/auth/AuthContext";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 
+import DynamicPopup from "@/components/DynamicPopup";
+
 const Settings = () => {
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const t = useTranslations("User");
   const router = useRouter();
 
   const [name, setName] = useState(user?.user_metadata?.name ?? "Desconhecido");
+  const [exitPop, setExitPop ] = useState<boolean>(false)
   const [email, setEmail] = useState(user?.user_metadata?.email ?? "Email Desconhecido");
   const [profileImage, setProfileImage] = useState(user?.user_metadata?.picture ?? "/user.png");
   const [isDarkMode, setIsDarkMode] = useState(false);
@@ -38,6 +42,9 @@ const Settings = () => {
     }
   }, []);
 
+  const handleQuit = useCallback(async () => {
+      await signOut();
+  }, [ ])
   const handleSave = useCallback(async () => {
     setIsLoading(true);
     await new Promise(res => setTimeout(res, 1000));
@@ -138,7 +145,7 @@ const Settings = () => {
             </Card>
 
             {/* Theme */}
-            <Card className="dark:bg-zinc-950 transition-all border-none bg-white/80 dark:text-white text-orange-700 transition-all ring ring-transparent hover:ring-orange-700">
+            <Card className="dark:bg-zinc-950 border-none bg-white/80 dark:text-white text-orange-700 transition-all ring ring-transparent hover:ring-orange-700">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Palette className="w-5 h-5" /> Aparência
@@ -160,6 +167,21 @@ const Settings = () => {
               </CardContent>
             </Card>
 
+            {/* Perigoso */}
+            <Card className="dark:bg-zinc-950 border-none bg-white/80 dark:text-white text-orange-700 transition-all ring ring-transparent hover:ring-orange-700">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <DoorOpen className="w-5 h-5" /> Perigoso
+                </CardTitle>
+                <CardDescription>Aqui terão butões perigosos</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {/* Dynamic Popup */}
+                <Button type="button" color="red" onClick={() => {setExitPop(true)}} variant="secondary">
+                  Sair
+                </Button>
+              </CardContent>
+            </Card>
             {/* Save */}
             <div className="flex justify-end">
               <Button
@@ -176,6 +198,29 @@ const Settings = () => {
               </Button>
             </div>
           </div>
+          <DynamicPopup
+            isOpen={exitPop}
+            onClose={() => setExitPop(false)}
+            size={"sm"}
+          >
+            <div className="text-center space-y-6 p-6">
+                        {/* <div className="flex justify-center">
+                          <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
+                            <Sparkles className="w-8 h-8 text-white" />
+                          </div>
+                        </div> */}
+                        <div className="flex justify-center items-center">
+                          <h2 className="text-2xl font-bold text-gray-900 mb-3 flex items-center justify-center gap-1">Quer mesmo <span className="text-red-500">Sair?</span></h2>
+                        </div>
+                        <div className="flex flex-wrap gap-3 justify-center">
+                          <Button type="button" color="red" className="bg-zinc-950 dark:text-white text-orange-700 ring ring-transparent transition-all duration-200 hover:ring-orange-700 rounded-full border-none" onClick={() => {handleQuit(), setExitPop(false)}}>
+                            <DoorOpen/>
+                            Sair
+                          </Button>
+                        </div>
+                      </div>
+
+          </DynamicPopup>
         </div>
       </main>
     </div>

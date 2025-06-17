@@ -1,10 +1,12 @@
 import { UserMetadata } from "@supabase/supabase-js";
 export type Provider = "google" | "github" | "facebook";
 export interface User {
-    id: string;
-    name: string;
-    avatar: string;
-    isOnline: boolean;
+  id: string;
+  email: string | undefined;
+  name: string;
+  aud: string;
+  avatar_url: string;
+  picture: string;
 }
 
 export interface Comment {

@@ -28,15 +28,15 @@ const Sidebar = () => {
                 <div className="p-4 dark:bg-black bg-white dark:text-white rounded-2xl shadow-sm mb-6">
                     <div className="flex items-center space-x-3">
                         <Image
-                            src={user?.user_metadata?.picture ?? "/user.png"}
+                            src={user?.avatar_url ?? "/user.png"}
                             alt="Você"
                             width={"48px"}
                             height={"48px"}
                             className="rounded-full border-2 border-blue-200"
                         />
                         <div>
-                            <h3 className="font-semibold dark:text-white">{user?.user_metadata?.name??"Misterioso(a)"}</h3>
-                            <p onClick={() => navigate.push(`/user/${user?.user_metadata?.name}`)} className="text-sm text-slate-500 cursor-pointer">Ver seu perfil.</p>
+                            <h3 className="font-semibold dark:text-white">{user?.name??"Misterioso(a)"}</h3>
+                            <p onClick={() => navigate.push(`/user/${user?.name}`)} className="text-sm text-slate-500 cursor-pointer">Ver seu perfil.</p>
                         </div>
                     </div>
                 </div>

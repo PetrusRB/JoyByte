@@ -1,104 +1,90 @@
-"use client";
+"use client"
 
 import React, {
   createContext,
   useContext,
   useMemo,
-  ReactNode,
   useState,
   useEffect,
+  ReactNode,
   useCallback,
-} from "react";
-import { useRouter } from "next/navigation";
-import { Loading } from "@/components/Loading";
-import { login } from "@/db/actions/login";
-import { signout } from "@/db/actions/signout";
-import supabase from "@/db";
-import { User } from "@supabase/auth-js";
-import { Provider } from "@/types";
+} from "react"
+import { Loading } from "@/components/Loading"
+import { login } from "@/db/actions/login"
+import { signout } from "@/db/actions/signout"
+import ky from "ky"
+import { Provider, User } from "@/types"
 
 interface AuthContextType {
-  isAuthenticated: boolean;
-  isLoading: boolean;
-  user: User | null;
-  signIn: (provider: Provider) => Promise<void>;
-  signOut: () => Promise<void>;
+  user: User | null
+  isAuthenticated: boolean
+  isLoading: boolean
+  signIn: (provider: Provider) => Promise<void>
+  signOut: () => Promise<void>
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextType | null>(null)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [user, setUser] = useState<User | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
 
-  // Fetch inicial + escuta eventos
   useEffect(() => {
     const fetchUser = async () => {
-      const { data } = await supabase.auth.getUser();
-      setUser(data.user ?? null);
-      setIsLoading(false);
-    };
+      try {
+        const res = await ky.get("/api/auth/user").json<User>()
 
-    fetchUser();
+        // Criar um objeto parcial compatível e lançar como unknown antes de User
+        const partialUser = {
+          id: res.id,
+          email: res.email,
+          user_metadata: {
+            full_name: res.name,
+            avatar_url: res.avatar_url,
+          },
+          aud: res.aud,
+          created_at: new Date().toISOString(),
+        } as unknown as User
 
-    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === "SIGNED_IN") {
-        setUser(session?.user ?? null);
-      } else if (event === "SIGNED_OUT") {
-        setUser(null);
+        setUser(partialUser)
+      } catch (error) {
+        setUser(null)
+      } finally {
+        setIsLoading(false)
       }
-    });
-
-    return () => {
-      authListener?.subscription.unsubscribe();
-    };
-  }, []);
+    }
+    fetchUser()
+  }, [])
 
   const signIn = useCallback(async (provider: Provider) => {
-    await login(provider);
-  }, []);
+    await login(provider)
+  }, [])
 
   const signOut = useCallback(async () => {
-    await signout();
-    setUser(null);
-  }, []);
+    await signout()
+    setUser(null)
+  }, [])
 
   const value = useMemo(
     () => ({
+      user,
       isAuthenticated: !!user,
       isLoading,
-      user,
       signIn,
       signOut,
     }),
     [user, isLoading, signIn, signOut]
-  );
+  )
 
-  if (isLoading) return <Loading />;
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={value}>
+      {isLoading ? <Loading /> : children}
+    </AuthContext.Provider>
+  )
 }
 
 export function useAuth(): AuthContextType {
-  const context = useContext(AuthContext);
-  if (!context) throw new Error("useAuth must be used within AuthProvider");
-  return context;
-}
-
-// Componente de proteção de rota
-export function ProtectedRoute({ children }: { children: ReactNode }) {
-  const { isAuthenticated, isLoading } = useAuth();
-  const router = useRouter();
-
-  useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      router.push("/");
-    }
-  }, [isAuthenticated, isLoading, router]);
-
-  if (isLoading || !isAuthenticated) {
-    return <Loading />;
-  }
-
-  return <>{children}</>;
+  const context = useContext(AuthContext)
+  if (!context) throw new Error("useAuth precisa estar dentro de <AuthProvider>")
+  return context
 }

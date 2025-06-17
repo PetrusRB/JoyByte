@@ -1,12 +1,12 @@
 import { type NextRequest } from 'next/server'
-import { updateSession } from '@/db/middleware'
+import { updateSession } from './db/middleware'
 
 export async function middleware(request: NextRequest) {
-  return await updateSession(request)
+  return updateSession(request)
 }
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
-    "/(en|pt-br)/:path*", "/"
+  matcher: ['/((?!_next/static|api|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    "/(en|pt-br)/:path*", "/", "/(privado)(.*)"
   ],
 }

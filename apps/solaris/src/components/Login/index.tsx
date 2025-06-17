@@ -4,6 +4,7 @@ import React, { JSX, useMemo } from "react";
 import { useAuth } from "@/contexts/auth/AuthContext";
 import { Provider } from "@/types";
 import { Button } from "../Button";
+import Image from "next/image";
 
 const providers: Provider[] = ["google", "github", "facebook"];
 // Mapeia provider para SVG inline
@@ -49,15 +50,14 @@ export default function EnhancedAuth() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-600 via-amber-600 to-orange-700 flex items-center justify-center p-4">
       <div className="w-full max-w-6xl mx-auto">
-        <div className="grid lg:grid-cols-2 gap-0 bg-white rounded-3xl overflow-hidden min-h-[600px]">
-
+        <div className="grid lg:grid-cols-2 gap-0 bg-transparent rounded-3xl overflow-hidden min-h-[600px]">
           {/* Left Side - Login Form */}
-          <div className="flex flex-col justify-center p-8 lg:p-12 bg-gradient-to-br from-orange-600 via-amber-600 to-orange-700">
+          <div className="flex flex-col justify-center p-8 lg:p-12 bg-transparent">
             <div className="max-w-md mx-auto w-full">
               {/* Logo/Title */}
               <div className="text-center mb-8">
-                <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4 ">
-                  <div className="w-8 h-8 bg-white rounded-full"></div>
+                <div className="w-16 h-16 flex items-center justify-center mx-auto mb-4 ">
+                  <Image src="/favicon.ico" width={96} height={96} alt="Logo"/>
                 </div>
                 <h1 className="text-3xl font-bold text-white mb-2">Bem-vindo!</h1>
                 <p className="text-orange-100">Entre na sua conta para continuar</p>
