@@ -21,6 +21,7 @@ export async function GET() {
     aud: user.aud,
     name: user.user_metadata?.full_name || user.user_metadata?.name || null,
     avatar_url: user.user_metadata?.avatar_url || null,
-    picture: user.user_metadata?.picture || null
+    picture: user.user_metadata?.picture || null,
+    created_at: user.created_at ? new Date(user.created_at) : new Date()
   })
 }

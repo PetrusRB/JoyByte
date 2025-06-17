@@ -30,30 +30,49 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
+    let isMounted = true
+
     const fetchUser = async () => {
       try {
-        const res = await ky.get("/api/auth/user").json<User>()
+        const res = await ky.get("/api/auth/user").json<any>()
 
-        // Criar um objeto parcial compatível e lançar como unknown antes de User
-        const partialUser = {
-          id: res.id,
-          email: res.email,
-          user_metadata: {
-            full_name: res.name,
-            avatar_url: res.avatar_url,
-          },
-          aud: res.aud,
-          created_at: new Date().toISOString(),
-        } as unknown as User
+        if (
+          res &&
+          typeof res.id === "string" &&
+          typeof res.email === "string" &&
+          typeof res.name === "string" &&
+          typeof res.picture === "string" &&
+          typeof res.aud === "string" &&
+          typeof res.name === "string" &&
+          typeof res.avatar_url === "string"
+        ) {
+          const parsedUser: User = {
+            id: res.id,
+            email: res.email,
+            picture: res.picture || "/user.png",
+            aud: res.aud || "authenticated",
+            created_at: res.created_at || new Date().toISOString(),
+            name: res.name || "Misterioso(a)",
+          }
 
-        setUser(partialUser)
+          if (isMounted) setUser(parsedUser)
+        } else {
+          console.warn("Usuário com dados inválidos:", res)
+          if (isMounted) setUser(null)
+        }
       } catch (error) {
-        setUser(null)
+        console.error("Erro ao buscar usuário:", error)
+        if (isMounted) setUser(null)
       } finally {
-        setIsLoading(false)
+        if (isMounted) setIsLoading(false)
       }
     }
+
     fetchUser()
+
+    return () => {
+      isMounted = false
+    }
   }, [])
 
   const signIn = useCallback(async (provider: Provider) => {
@@ -65,7 +84,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null)
   }, [])
 
-  const value = useMemo(
+  const value = useMemo<AuthContextType>(
     () => ({
       user,
       isAuthenticated: !!user,
@@ -85,6 +104,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 export function useAuth(): AuthContextType {
   const context = useContext(AuthContext)
-  if (!context) throw new Error("useAuth precisa estar dentro de <AuthProvider>")
+  if (!context)
+    throw new Error("useAuth precisa estar dentro de <AuthProvider>")
   return context
 }

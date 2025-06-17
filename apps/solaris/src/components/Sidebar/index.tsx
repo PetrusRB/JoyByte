@@ -28,7 +28,7 @@ const Sidebar = () => {
                 <div className="p-4 dark:bg-black bg-white dark:text-white rounded-2xl shadow-sm mb-6">
                     <div className="flex items-center space-x-3">
                         <Image
-                            src={user?.avatar_url ?? "/user.png"}
+                            src={user?.picture ?? "/user.png"}
                             alt="Você"
                             width={"48px"}
                             height={"48px"}
