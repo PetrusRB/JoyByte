@@ -23,10 +23,10 @@ const Settings = () => {
   const t = useTranslations("User");
   const router = useRouter();
 
-  const [name, setName] = useState(user?.user_metadata?.name ?? "Desconhecido");
+  const [name, setName] = useState(user?.name ?? "Desconhecido");
   const [exitPop, setExitPop ] = useState<boolean>(false)
-  const [email, setEmail] = useState(user?.user_metadata?.email ?? "Email Desconhecido");
-  const [profileImage, setProfileImage] = useState(user?.user_metadata?.picture ?? "/user.png");
+  const [email, setEmail] = useState(user?.email ?? "Email Desconhecido");
+  const [profileImage, setProfileImage] = useState(user?.picture ?? "/user.png");
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
