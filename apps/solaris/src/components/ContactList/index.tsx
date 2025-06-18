@@ -3,9 +3,7 @@
 import { Search, MoreHorizontal } from "lucide-react";
 import { Button } from "@/components/Button";
 import { useTranslations } from "next-intl";
-import { usernameSlugSchema } from "@/schemas/user";
-import { memo, useCallback, useMemo, useRef } from "react";
-import { toast } from "sonner";
+import { memo, useCallback, useMemo } from "react";
 import { slugToSearchQuery } from "@/libs/utils";
 import { useRouter } from "next/navigation";
 
