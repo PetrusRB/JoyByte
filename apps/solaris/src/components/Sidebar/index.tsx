@@ -5,11 +5,9 @@ import { useAuth } from "@/contexts/auth/AuthContext";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import {Image} from "antd";
-import { useRouter } from "next/navigation";
 
 const Sidebar = () => {
     const SidebarTrans = useTranslations("Sidebar");
-    const navigate = useRouter();
     const menuItems = [
         { icon: Home, label: SidebarTrans('Home'), active: true },
         { icon: Users, label: SidebarTrans('Friends'), count: 12 },
