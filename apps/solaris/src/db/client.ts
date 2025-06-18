@@ -1,13 +1,21 @@
 import { createBrowserClient } from '@supabase/ssr'
 
-const createClientForBrowser = () =>
-  createBrowserClient(
-    process.env.NODE_ENV === 'development'
-      ? process.env.SUPABASE_URL_DEVELOPMENT!
-      : process.env.SUPABASE_URL!,
-    process.env.NODE_ENV === 'development'
-      ? process.env.SUPABASE_ANON_KEY_DEVELOPMENT!
-      : process.env.SUPABASE_ANON_KEY!,
-  )
+export function createClientForBrowser() {
+  const isDev = process.env.NODE_ENV === 'development'
+
+  const supabaseUrl = isDev
+    ? process.env.NEXT_PUBLIC_SUPABASE_URL_DEVELOPMENT
+    : process.env.NEXT_PUBLIC_SUPABASE_URL
+
+  const supabaseAnonKey = isDev
+    ? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY_DEVELOPMENT
+    : process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error('Supabase env vars are missing. Check your environment configuration.')
+  }
+
+  return createBrowserClient(supabaseUrl, supabaseAnonKey)
+}
 
 export default createClientForBrowser

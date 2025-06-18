@@ -51,7 +51,7 @@ const contacts = [
   { name: "Anna Vitoria", avatar: "https://images.unsplash.com/photo-1517841905240-472988babdf9?q=80&w=404&auto=format&fit=crop=face" },
   { name: "Marliza Albino", avatar: "https://images.unsplash.com/photo-1544723795-3fb6469f5b39?w=40&h=40&fit=crop&crop=face" },
   { name: "Cleber Souza", avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=face" },
-  { name: "Waglison Tonelo", avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=40&h=40&fit=crop&crop=face" },
+  { name: "Pedro", avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=40&h=40&fit=crop&crop=face" },
   { name: "Celia Ferreira", avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=40&h=40&fit=crop&crop=face" }
 ];
 

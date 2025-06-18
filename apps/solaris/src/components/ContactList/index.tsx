@@ -6,6 +6,8 @@ import { useTranslations } from "next-intl";
 import { usernameSlugSchema } from "@/schemas/user";
 import { memo, useCallback, useMemo, useRef } from "react";
 import { toast } from "sonner";
+import { slugToSearchQuery } from "@/libs/utils";
+import { useRouter } from "next/navigation";
 
 interface Contact {
   name: string;
@@ -18,23 +20,12 @@ interface ContactsListProps {
 
 const ContactsList = memo(({ contacts }: ContactsListProps) => {
   const t = useTranslations("User");
-  const toastShown = useRef(false);
+  const navigate = useRouter();
 
   const goto = useCallback((contact: Contact) => {
     if (!contact) return;
-
-    const parsedSlug = usernameSlugSchema.safeParse(contact.name);
-
-    if (!parsedSlug.success) {
-      if (!toastShown.current) {
-        toast.error(`Nome de usuário inválido: ${contact.name}`);
-        toastShown.current = true;
-      }
-      return;
-    }
-
-    // Aqui você pode fazer o push para a rota, se quiser
-    // router.push(`/@${slug}`);
+    const slugProfile = slugToSearchQuery(contact.name??"");
+    navigate.push("/user/:user".replace(":user", slugProfile.replace(' ', '.')))
   }, []);
 
   const renderedContacts = useMemo(

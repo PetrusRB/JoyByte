@@ -1,109 +1,52 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import supabase from "@/db";
 import { UserProfile } from "@/types";
 import { useAuth } from "@/contexts/auth/AuthContext";
 import { Button } from "@/components/Button";
 import { ArrowLeft, Badge, Calendar, Camera, Edit3, Grid3X3, Heart, Link2, Mail, Users } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/Avatar";
-import { usernameSlugSchema } from "@/schemas/user";
 
-// Utilitário: converte 'pedro.silvia.oliveira' → 'Pedro Silvia Oliveira'
-const slugToFullName = (username: string) => {
-  return username
-    .split(".")
-    .map(part => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
-    .join(" ");
-};
+import { useUserProfile } from "@/hooks/useUserProfile";
 
 const default_banner = "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=1200&h=400&fit=crop"
 
-const Profile = () => {
-  const { id: username } = useParams<{ id: string }>();
-  const { user: currentUser } = useAuth();
-
-  const [user, setUser] = useState<UserProfile | null>(null);
-  const [duplicates, setDuplicates] = useState<UserProfile[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [showBannerModal, setShowBannerModal] = useState(false);
-  const [showAvatarModal, setShowAvatarModal] = useState(false);
+type Props = {
+  user: UserProfile | null
+  duplicates: UserProfile[]
+  loading: boolean
+  error: string | null
+  setUser: React.Dispatch<React.SetStateAction<UserProfile | null>>
+  setDuplicates: React.Dispatch<React.SetStateAction<UserProfile[]>>
+}
+const Profile: React.FC<Props> = ({user, duplicates, loading, error, setUser, setDuplicates}) => {
+  const [showBannerModal, setShowBannerModal] = useState<boolean>(false)
+  const [showAvatarModal, setShowAvatarModal] = useState<boolean>(false)
   const [activeTab, setActiveTab] = useState<'posts' | 'media' | 'likes'>('posts');
-  const [error, setError] = useState<string | null>(null);
-
+  const { user: currentUser } = useAuth();
   const navigate = useRouter();
 
-  useEffect(() => {
-    const fetchUserByName = async (fullName: string) => {
-      const { data, error: supaError } = await supabase
-        .from("profiles")
-        .select("*")
-        .ilike("raw_user_meta_data->>name", `%${fullName}%`);
+  const isCurrentUser = user?.id === currentUser?.id;
 
-      if (supaError) throw supaError;
-
-      if (!data || data.length === 0) {
-        setError(`Usuário não encontrado: ${fullName}`);
-      } else if (data.length === 1) {
-        setUser(data[0]);
-      } else {
-        setDuplicates(data);
-      }
-    };
-
-    const run = async () => {
-      try {
-        if (!username) {
-          setError("Slug não fornecido");
-          return;
-        }
-
-        const parsedSlug = usernameSlugSchema.safeParse(username);
-        if (!parsedSlug.success) {
-          setError("Slug inválido");
-          return;
-        }
-
-        const fullName = slugToFullName(username);
-        await fetchUserByName(fullName);
-      } catch (err) {
-        console.error("Erro ao buscar perfil:", err);
-        setError("Erro ao buscar perfil");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    run();
-  }, [username]);
-
-  const handleSelectDuplicate = (selectedUser: UserProfile) => {
-    setUser(selectedUser);
+  const handleSelectDuplicate = useCallback((selected: UserProfile) => {
+    setUser(selected);
     setDuplicates([]);
-  };
+  }, [setUser, setDuplicates]);
 
-  if (loading) {
-    return <div className="p-8 text-center">Carregando perfil...</div>;
-  }
+  if (loading) return <div className="p-8 text-center">Carregando perfil...</div>;
+  if (error) return (
+    <div className="p-8 text-center text-red-600">
+      <p>Erro: {error}</p>
+      <a href="/" className="text-blue-600 underline">Voltar ao início</a>
+    </div>
+  );
 
-  if (error) {
-    return (
-      <div className="p-8 text-center text-red-600">
-        <p>Erro: {error}</p>
-        <a href="/" className="text-blue-600 underline">
-          Voltar ao início
-        </a>
-      </div>
-    );
-  }
-
+  if(!user) return <p>Você não esta logado</p>
   if (duplicates.length > 1) {
     return (
       <div className="p-8">
-        <h2 className="text-xl font-semibold mb-4">
-          Vários usuários encontrados com esse nome:
-        </h2>
+        <h2 className="text-xl font-semibold mb-4">Vários usuários encontrados com esse nome:</h2>
         <ul className="space-y-2">
           {duplicates.map(dup => (
             <li
@@ -111,7 +54,7 @@ const Profile = () => {
               className="p-4 bg-orange-50 dark:bg-black shadow rounded cursor-pointer hover:bg-gray-100"
               onClick={() => handleSelectDuplicate(dup)}
             >
-              <p className="font-bold">{dup?.raw_user_meta_data?.name??"Misterioso(a)"}</p>
+              <p className="font-bold">{dup?.raw_user_meta_data?.name ?? "Misterioso(a)"}</p>
               <p className="text-sm text-gray-600">ID: {dup.id}</p>
             </li>
           ))}
@@ -119,12 +62,6 @@ const Profile = () => {
       </div>
     );
   }
-
-  if (!user) {
-    return <div className="p-8 text-center text-red-500">Usuário não encontrado.</div>;
-  }
-
-  const isCurrentUser = user.id === currentUser?.id;
 
   return (
     <div className="dark:bg-black bg-orange-50">
@@ -164,7 +101,9 @@ const Profile = () => {
                   onClick={() => setShowAvatarModal(true)}
                 >
                   <Avatar className="w-32 h-32 border-4 border-white shadow-lg">
-                    <AvatarImage src={user?.raw_user_meta_data?.picture} alt={user?.raw_user_meta_data.name} />
+                    <AvatarImage
+                    src={user?.raw_user_meta_data?.picture}
+                    alt={user?.raw_user_meta_data.name} />
                     <AvatarFallback className="bg-gradient-to-br from-orange-400 to-yellow-400 text-white text-2xl">
                       {user?.raw_user_meta_data.name?.split(' ').map((n: string) => n[0]).join('')}
                     </AvatarFallback>
@@ -210,28 +149,28 @@ const Profile = () => {
                         <span>{user?.raw_user_meta_data.location}</span>
                       </div>
                     )} */}
-                    {user?.raw_user_meta_data.website && (
+                    {user?.website && (
                       <div className="flex items-center gap-1">
                         <Link2 className="w-4 h-4" />
-                        <a href={user?.raw_user_meta_data.website} target="_blank" rel="noopener noreferrer"
+                        <a href={user?.website} target="_blank" rel="noopener noreferrer"
                            className="hover:text-orange-600 hover:underline">
-                          {user?.raw_user_meta_data.website.replace('https://', '')}
+                          {user?.website.replace('https://', '')}
                         </a>
                       </div>
                     )}
                     <div className="flex items-center gap-1">
                       <Calendar className="w-4 h-4" />
-                      <span>Entrou em {new Date(user.created_at).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}</span>
+                      <span>Entrou em {new Date(user?.created_at).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}</span>
                     </div>
                   </div>
 
                   <div className="flex gap-6 text-sm">
                     <div className="flex items-center gap-1">
-                      <span className="font-semibold text-orange-900">{user?.raw_user_meta_data.following_count}</span>
+                      <span className="font-semibold text-orange-900">{user?.following}</span>
                       <span className="text-orange-600/70">Seguindo</span>
                     </div>
                     <div className="flex items-center gap-1">
-                      <span className="font-semibold text-orange-900">{user?.raw_user_meta_data.followers_count}</span>
+                      <span className="font-semibold text-orange-900">{user?.followers}</span>
                       <span className="text-orange-600/70">Seguidores</span>
                     </div>
                     <div className="flex items-center gap-1">
@@ -331,7 +270,7 @@ const Profile = () => {
             <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4" onClick={() => setShowBannerModal(false)}>
               <div className="max-w-4xl w-full">
                 <img
-                  src={user?.raw_user_meta_data.banner}
+                  src={user?.banner??default_banner}
                   alt="Banner"
                   className="w-full rounded-lg"
                   onClick={(e) => e.stopPropagation()}
@@ -356,4 +295,21 @@ const Profile = () => {
   );
 };
 
-export default Profile;
+const ProfileData = () => {
+  const { id: username } = useParams<{ id: string }>();
+  if (!username) return null;
+
+  const {
+    user,
+    duplicates,
+    loading,
+    error,
+    setUser,
+    setDuplicates
+  } = useUserProfile(username);
+  return(
+    <Profile user={user} duplicates={duplicates} loading={loading} error={error} setUser={setUser} setDuplicates={setDuplicates}/>
+  )
+}
+
+export default ProfileData;

@@ -2,6 +2,7 @@
 
 import { AuthProvider } from "@/contexts/auth/AuthContext";
 import { AntdRegistry } from '@ant-design/nextjs-registry';
+import { ThemeProvider } from 'next-themes'
 
 import Navbar from "@/components/Navbar";
 import MobileNav from "@/components/MobileNav";
@@ -16,21 +17,23 @@ type LayoutClientProps = {
 const LayoutClient: React.FC<LayoutClientProps> = ({ children }) => {
   return (
     <AntdRegistry>
-      <AuthProvider>
-        <ErrorBoundary>
-          {/* Navbar sempre visível, dentro do AuthContext */}
-          <Navbar />
+      <ThemeProvider attribute='class' defaultTheme="system">
+        <AuthProvider>
+          <ErrorBoundary>
+            {/* Navbar sempre visível, dentro do AuthContext */}
+            <Navbar />
 
-          {/* Aqui irá renderizar o layout com home/login */}
-          <div className="flex-1">
-            {children}
-          </div>
-          {/* Notificações */}
-          <Toaster/>
-          {/* Navegação mobile fixa embaixo */}
-          <MobileNav />
-        </ErrorBoundary>
-      </AuthProvider>
+            {/* Aqui irá renderizar o layout com home/login */}
+            <div className="flex-1">
+              {children}
+            </div>
+            {/* Notificações */}
+            <Toaster/>
+            {/* Navegação mobile fixa embaixo */}
+            <MobileNav />
+          </ErrorBoundary>
+        </AuthProvider>
+      </ThemeProvider>
     </AntdRegistry>
   );
 }

@@ -5,6 +5,42 @@ export function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs))
 }
 
+/**
+ * Transforma um slug ou nome de usuário em uma string de busca normalizada.
+ * Garante que qualquer combinação de maiúsculas/minúsculas ou separadores funcione.
+ *
+ * Ex: "PeDrO--_ " => "pedro"
+ *
+ * @param username - Nome de usuário bruto
+ * @returns String pronta para busca no banco (compatível com normalized_name)
+ */
+ export const slugToSearchQuery = (username: string): string => {
+   return username
+     .normalize("NFKC")                      // Normaliza Unicode (acentos, espaços invisíveis)
+     .replace(/[\.\_\-\s]+/g, " ")           // Substitui pontuação e separadores por espaço
+     .trim()
+     .toLowerCase();                         // Insensível a maiúsculas/minúsculas
+ };
+/**
+ * Formata o slug para um nome de exibição amigável (capitalizado).
+ * Ex: "john_doe" => "John Doe"
+ *
+ * @param username - Nome de usuário bruto
+ * @returns Nome de exibição bonitinho
+ */
+export const slugToDisplayName = (username: string): string => {
+  return username
+    .normalize("NFKC")
+    .replace(/[\.\_\-\s]+/g, " ")
+    .trim()
+    .split(/\s+/)
+    .map(part =>
+      part.charAt(0).toLocaleUpperCase() + part.slice(1).toLocaleLowerCase()
+    )
+    .join(" ");
+};
+
+
 // Format Numbers, Dates and Relative Times.
 export function formatNumber(value: number): string {
     if (value < 1000) return value.toString();

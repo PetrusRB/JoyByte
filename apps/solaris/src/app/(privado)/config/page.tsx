@@ -9,7 +9,6 @@ import { useState, useCallback, useMemo } from "react";
 import { Button } from "@/components/Button";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
-import { Switch } from "@/components/ui/Switch";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/Avatar";
 import { useAuth } from "@/contexts/auth/AuthContext";
@@ -17,17 +16,21 @@ import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 
 import DynamicPopup from "@/components/DynamicPopup";
+import ThemeSwitch from "@/components/Toggles/theme";
+import { useTheme } from "next-themes";
 
 const Settings = () => {
   const { user, signOut } = useAuth();
   const t = useTranslations("User");
+  const ConfigTrans = useTranslations("Config");
+  const AuthTrans = useTranslations("Auth");
   const router = useRouter();
-
+  const {theme} = useTheme();
   const [name, setName] = useState(user?.name ?? "Desconhecido");
   const [exitPop, setExitPop ] = useState<boolean>(false)
   const [email, setEmail] = useState(user?.email ?? "Email Desconhecido");
   const [profileImage, setProfileImage] = useState(user?.picture ?? "/user.png");
-  const [isDarkMode, setIsDarkMode] = useState(false);
+
   const [isLoading, setIsLoading] = useState(false);
 
   const initials = useMemo(() =>
@@ -80,8 +83,8 @@ const Settings = () => {
           {/* Preview */}
           <Card className="w-full lg:max-w-sm transition-all dark:bg-zinc-950 bg-white/80 border-none dark:text-white text-orange-700 ring ring-transparent hover:ring-orange-700">
             <CardHeader className="text-center pb-2">
-              <CardTitle>Preview</CardTitle>
-              <CardDescription>Como outros te veem</CardDescription>
+              <CardTitle>{ConfigTrans("Preview")}</CardTitle>
+              <CardDescription>{ConfigTrans("How people see you")}</CardDescription>
             </CardHeader>
             <CardContent className="text-center space-y-4">
               <div className="relative inline-block">
@@ -115,13 +118,13 @@ const Settings = () => {
             <Card className="dark:bg-zinc-950 transition-all bg-white/80 border-none dark:text-white text-orange-700 ring ring-transparent hover:ring-orange-700">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <User className="w-5 h-5" /> Informações Pessoais
+                  <User className="w-5 h-5" /> {ConfigTrans("Pessoal Information")}
                 </CardTitle>
                 <CardDescription>Atualize seus dados básicos</CardDescription>
               </CardHeader>
               <CardContent className="grid sm:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <Label htmlFor="name">Nome</Label>
+                  <Label htmlFor="name">{AuthTrans("Username")}</Label>
                   <Input
                     id="name"
                     value={name}
@@ -131,13 +134,13 @@ const Settings = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
+                  <Label htmlFor="email">{AuthTrans("Email")}</Label>
                   <Input
                     id="email"
                     type="email"
                     value={email}
                     onChange={e => setEmail(e.target.value)}
-                    placeholder="seu@email.com"
+                    placeholder="jubiscleudon@email.com"
                     className="border-orange-200 bg-zinc-100 dark:bg-zinc-800"
                   />
                 </div>
@@ -148,22 +151,18 @@ const Settings = () => {
             <Card className="dark:bg-zinc-950 border-none bg-white/80 dark:text-white text-orange-700 transition-all ring ring-transparent hover:ring-orange-700">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Palette className="w-5 h-5" /> Aparência
+                  <Palette className="w-5 h-5" /> {ConfigTrans("Appearance")}
                 </CardTitle>
-                <CardDescription>Escolha o tema visual</CardDescription>
+                <CardDescription>{ConfigTrans("Choose visual theme")}</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="flex items-center justify-between rounded-lg px-4 py-3">
                   <div>
-                    <Label className="font-medium">Tema Escuro</Label>
-                    <p className="text-sm">{isDarkMode ? "Ativado" : "Desativado"}</p>
+                    <Label className="font-medium">{ConfigTrans("Dark Theme")}</Label>
+                    <p className="text-sm">{theme === "dark" ? "Ativado" : "Desativado"}</p>
                   </div>
-                  <Switch
-                    checked={isDarkMode}
-                    onCheckedChange={setIsDarkMode}
-                    className="data-[state=checked]:bg-orange-500 data-[state=unchecked]:bg-zinc-700"
-                  />
-                </div>
+                 <ThemeSwitch/>
+              </div>
               </CardContent>
             </Card>
 
@@ -171,7 +170,7 @@ const Settings = () => {
             <Card className="dark:bg-zinc-950 border-none bg-white/80 dark:text-white text-orange-700 transition-all ring ring-transparent hover:ring-orange-700">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <DoorOpen className="w-5 h-5" /> Perigoso
+                  <DoorOpen className="w-5 h-5" /> {ConfigTrans("Danger")}
                 </CardTitle>
                 <CardDescription>Aqui terão butões perigosos</CardDescription>
               </CardHeader>

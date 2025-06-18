@@ -84,7 +84,8 @@ export default function DynamicMedia({
         height={height}
         alt={alt}
         className={className}
-        unoptimized // remove se você tiver domains configurados
+        placeholder='blur'
+        blurDataURL={url}
       />
     );
   }

@@ -1,64 +1,74 @@
 {
-    "Auth": {
-        "Login": "Entrar",
-        "Logout": "Sair",
-        "Register": "Registrar",
-        "Forgot Password": "Esqueci minha senha",
-        "Reset Password": "Redefinir senha",
-        "Change Password": "Alterar senha",
-        "Don't have an account?": "Não tem uma conta?",
-        "Already have an account?": "Já tem uma conta?",
-        "Username": "Nome de usuário",
-        "Password": "Senha",
-        "Email": "E-mail",
-        "Not Authenticated": "Você não esta Authenticado."
-    },
-    "User": {
-        "Save": "Salvar",
-        "Delete": "Excluir",
-        "Edit": "Editar",
-        "Update": "Atualizar",
-        "Settings": "Configurações",
-        "Dashboard": "Painel de controle",
-        "Notifications": "Notificações",
-        "Profile": "Perfil",
-        "Contacts": "Contatos",
-        "friends online": "Amigos Online"
-    },
-    "Post": {
-        "Submit": "Enviar",
-        "Cancel": "Cancelar",
-        "View": "Ver",
-        "Go Live": "Fazer Live",
-        "Photo/Video": "Fotos/Videos",
-        "Create": "Criar",
-        "Reaction": "Reação"
-    },
-    "Navbar": {
-        "Search": "Pesquisar"
-    },
-    "Sidebar": {
-        "Home": "Inicio",
-        "Contacts": "Contatos",
-        "Friends": "Amigos",
-        "Messages": "Mensagens",
-        "Notifications": "Notificações",
-        "Watch": "Stories",
-        "Photos": "Fotos",
-        "Events": "Eventos",
-        "Quick Actions": "Ações Rápidas",
-        "Create Story": "Criar Story",
-        "Create Event": "Criar Evento"
-    },
-    "Others": {
-        "Welcome": "Bem-vindo",
-        "Welcome back": "Bem-vindo de volta",
-        "Loading": "Carregando",
-        "Help": "Ajuda",
-        "Confirm": "Confirmar",
-        "Back": "Voltar",
-        "Next": "Próximo",
-        "Previous": "Anterior",
-        "Error": "Erro"
-    }
+  "Auth": {
+    "Login": "Entrar",
+    "Logout": "Sair",
+    "Register": "Registrar",
+    "Forgot Password": "Esqueci minha senha",
+    "Reset Password": "Redefinir senha",
+    "Change Password": "Alterar senha",
+    "Don't have an account?": "Não tem uma conta?",
+    "Already have an account?": "Já tem uma conta?",
+    "Username": "Nome de usuário",
+    "Password": "Senha",
+    "Email": "E-mail",
+    "Not Authenticated": "Você não esta Authenticado."
+  },
+  "User": {
+    "Save": "Salvar",
+    "Delete": "Excluir",
+    "Edit": "Editar",
+    "Update": "Atualizar",
+    "Settings": "Configurações",
+    "Dashboard": "Painel de controle",
+    "Notifications": "Notificações",
+    "Profile": "Perfil",
+    "Contacts": "Contatos",
+    "friends online": "Amigos Online"
+  },
+  "Post": {
+    "Submit": "Enviar",
+    "Cancel": "Cancelar",
+    "View": "Ver",
+    "Go Live": "Fazer Live",
+    "Photo/Video": "Fotos/Videos",
+    "Create": "Criar",
+    "Reaction": "Reação"
+  },
+  "Navbar": {
+    "Search": "Pesquisar"
+  },
+  "Config": {
+    "Preview": "Visualização",
+    "Appearance": "Aparência",
+    "Choose visual theme": "Escolha seu Tema visual",
+    "Dark Theme": "Tema Escuro",
+    "Danger": "Perigoso",
+    "How people see you": "Como os outros te veem",
+    "Pessoal Information": "Informações Pessoais",
+    "Update your basic data": "Atualize seus dados básicos"
+  },
+  "Sidebar": {
+    "Home": "Inicio",
+    "Contacts": "Contatos",
+    "Friends": "Amigos",
+    "Messages": "Mensagens",
+    "Notifications": "Notificações",
+    "Watch": "Stories",
+    "Photos": "Fotos",
+    "Events": "Eventos",
+    "Quick Actions": "Ações Rápidas",
+    "Create Story": "Criar Story",
+    "Create Event": "Criar Evento"
+  },
+  "Others": {
+    "Welcome": "Bem-vindo",
+    "Welcome back": "Bem-vindo de volta",
+    "Loading": "Carregando",
+    "Help": "Ajuda",
+    "Confirm": "Confirmar",
+    "Back": "Voltar",
+    "Next": "Próximo",
+    "Previous": "Anterior",
+    "Error": "Erro"
+  }
 }

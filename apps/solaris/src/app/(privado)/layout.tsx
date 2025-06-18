@@ -1,7 +1,10 @@
-"use client"
+'use client';
 
-function PrivateLayout({ children }: { children: React.ReactNode }) {
-  return <>{children}</>
+import { ReactNode } from 'react';
+import { withPrivate } from '@/hocs/withPrivate';
+
+function PrivateLayout({ children }: { children: ReactNode }) {
+  return <>{children}</>;
 }
 
-export default PrivateLayout
+export default withPrivate(PrivateLayout);

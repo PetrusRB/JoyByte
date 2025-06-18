@@ -1,9 +1,10 @@
 import { Home, Users, MessageSquare, Bell, Video, Image as ImageIcon, Calendar } from "lucide-react";
 import { Button } from "@/components/Button";
-import { cn } from "@/libs/utils";
+import { cn, slugToSearchQuery } from "@/libs/utils";
 import { useAuth } from "@/contexts/auth/AuthContext";
-import { Image } from "antd";
 import { useTranslations } from "next-intl";
+import Link from "next/link";
+import {Image} from "antd";
 import { useRouter } from "next/navigation";
 
 const Sidebar = () => {
@@ -20,23 +21,25 @@ const Sidebar = () => {
     ];
 
     const { user } = useAuth();
-
+    const slugProfile = slugToSearchQuery(user?.name??"");
     return (
         <div className="p-4 h-full dark:text-white">
             <div className="space-y-2">
                 {/* Profile Section */}
                 <div className="p-4 dark:bg-black bg-white dark:text-white rounded-2xl shadow-sm mb-6">
                     <div className="flex items-center space-x-3">
-                        <Image
-                            src={user?.picture ?? "/user.png"}
-                            alt="Você"
-                            width={"48px"}
-                            height={"48px"}
-                            className="rounded-full border-2 border-blue-200"
-                        />
+                      <Image
+                      src={user?.picture??"/user.png"}
+                      alt={user?.name??"Misterioso(a)"}
+                      className="rounded-full ring-1 ring-orange-500 hover:ring-orange-400 transition-all duration-300"
+                      width={48}
+                      height={48}
+                      />
                         <div>
                             <h3 className="font-semibold dark:text-white">{user?.name??"Misterioso(a)"}</h3>
-                            <p onClick={() => navigate.push(`/user/${user?.name}`)} className="text-sm text-slate-500 cursor-pointer">Ver seu perfil.</p>
+                            <Link href={"/user/:user".replace(":user", slugProfile.replace(' ', '.'))}>
+                              <p className="text-sm text-slate-500 cursor-pointer">Ver seu perfil.</p>
+                            </Link>
                         </div>
                     </div>
                 </div>
