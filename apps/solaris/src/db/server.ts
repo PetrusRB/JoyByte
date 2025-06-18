@@ -1,4 +1,4 @@
-import { createServerClient } from '@supabase/ssr'
+import { CookieOptions, createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 
 export async function createClient() {
@@ -19,19 +19,27 @@ export async function createClient() {
 
   return createServerClient(supabaseUrl, supabaseAnonKey, {
     cookies: {
-      getAll() {
-        return cookieStore.getAll()
-      },
-      setAll(cookiesToSet) {
-        try {
-          cookiesToSet.forEach(({ name, value, options }) => {
-            cookieStore.set(name, value, options)
-          })
-        } catch {
-          // Safe fallback: provavelmente chamado de Server Component
-          // e `set` não é permitido — ignora com segurança
-        }
-      },
+      get(name: string) {
+               return cookieStore.get(name)?.value;
+             },
+             set(name: string, value: string, options: CookieOptions) {
+               try {
+                 cookieStore.set({ name, value, ...options });
+               } catch (error) {
+                 // The `set` method was called from a Server Component.
+                 // This can be ignored if you have middleware refreshing
+                 // user sessions.
+               }
+             },
+             remove(name: string, options: CookieOptions) {
+               try {
+                 cookieStore.set({ name, value: "", ...options });
+               } catch (error) {
+                 // The `delete` method was called from a Server Component.
+                 // This can be ignored if you have middleware refreshing
+                 // user sessions.
+               }
+             },
     },
     auth: {
       autoRefreshToken: true,

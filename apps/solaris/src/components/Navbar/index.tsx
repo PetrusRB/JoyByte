@@ -32,7 +32,7 @@ const Navbar = () => {
     }
     return (
         <>
-            <header className="bg-orange-50 dark:bg-black backdrop-blur-md border-b border-orange-200/40 sticky top-0 z-50 px-4 py-3">
+            <header className="bg-orange-50 dark:bg-black/50 backdrop-blur-md ring-1 dark:ring-zinc-800 ring-orange-200/40 sticky top-0 z-50 px-4 py-3">
                 <div className="flex items-center justify-between max-w-7xl mx-auto">
                     {/* Left - Mobile Menu + Logo */}
                     <div className="flex items-center space-x-3">
@@ -102,10 +102,10 @@ const Navbar = () => {
                                 variant="ghost"
                                 size="icon"
                                 onClick={onClick}
-                                className="hidden sm:flex rounded-full bg-gradient-to-br hover:from-yellow-500 hover:to-yellow-700 relative"
+                                className="hidden sm:flex rounded-full bg-gradient-to-br hover:from-orange-500 hover:to-orange-700 relative"
                                 title={tooltip}
                             >
-                                <Icon className="w-5 h-5 hover:text-white text-orange-700" />
+                                <Icon className="w-5 h-5 dark:text-white text-orange-800" />
                                 {showBadge && (
                                     <span className={`absolute -top-1 -right-1 w-3 h-3 ${badgeColor} rounded-full border-2 border-white`}></span>
                                 )}

@@ -58,7 +58,7 @@ const ContactsList = memo(({ contacts }: ContactsListProps) => {
     <div className="p-4 h-full dark:text-white text-gray-600">
       <div className="dark:text-white rounded-2xl shadow-sm p-4">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="font-semibold">{t("Contacts")}</h3>
+          <h3 className="font-semibold bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">{t("Contacts")}</h3>
           <div className="flex gap-1">
             <Button
               variant="ghost"

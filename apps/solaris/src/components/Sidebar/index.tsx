@@ -50,10 +50,10 @@ const Sidebar = () => {
                             variant="ghost"
                             className={cn(
                                 "w-full justify-start h-12 px-4 rounded-xl transition-all duration-200 bg-transparent hover:scale-[1.02]",
-                                item.active ? "bg-gradient-to-r from-yellow-500 to-yellow-700 hover:from-yellow-600 hover:to-yellow-700 text-white shadow-sm" : "dark:text-white text-orange-700 hover:bg-orange-100 hover:text-orange-800"
+                                item.active ? "bg-gradient-to-r from-orange-500 to-orange-700 hover:from-orange-600 hover:to-orange-700 text-white shadow-sm" : "text-orange-500 hover:bg-orange-100 hover:text-orange-800"
                             )}
                         >
-                            <item.icon className={cn("w-5 h-5 mr-3 text-orange-700", item.active && "text-white")} />
+                            <item.icon className={cn("w-5 h-5 mr-3 text-orange-500", item.active && "text-white")} />
                             <span className="font-medium">{item.label}</span>
                             {item.count && (
                                 <span className={`ml-auto bg-red-500 text-white text-xs rounded-full px-2 py-0.5`}>

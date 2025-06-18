@@ -27,7 +27,7 @@ const CreatePost = () => {
         </div>
 
         <div className="flex items-center justify-between mt-4 pt-4 border-t border-slate-100">
-          <div className="flex space-x-2">
+          <div className="flex-1 space-x-2">
             <Button
               variant="ghost"
               className="rounded-xl hover:bg-red-50 hover:text-red-600 transition-all duration-200"
@@ -51,7 +51,7 @@ const CreatePost = () => {
             </Button>
           </div>
 
-          <Button className="bg-gradient-to-r from-yellow-500 to-yellow-700 hover:from-yellow-600 hover:to-yellow-700 text-white rounded-xl px-6 transition-all duration-200 hover:scale-105">
+          <Button className="bg-gradient-to-r from-orange-500 to-orange-700 hover:from-orange-600 hover:to-orange-700 text-white rounded-xl px-6 transition-all duration-200 hover:scale-105">
             Post
           </Button>
         </div>

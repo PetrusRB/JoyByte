@@ -1,19 +1,27 @@
-'use client';
+'use client'
 
-import { useEffect } from "react";
-import ErrorDisplay from "@/components/ErrorDisplay";
-import { getErrorDetails } from "@/libs/errors";
+import ErrorDisplay from '@/components/ErrorDisplay'
+import { useEffect } from 'react'
 
-export default function GlobalError({
-  error,
-  reset,
-}: {
-  error: Error & { digest?: string };
-  reset: () => void;
-}) {
+interface ErrorPageProps {
+  error: Error & { digest?: string }
+  reset: () => void
+}
+
+export default function Error({ error, reset }: ErrorPageProps) {
   useEffect(() => {
-    console.error("Erro global capturado:", error);
-  }, [error]);
+    console.error('Erro capturado pelo boundary:', error)
+  }, [error])
 
-  return <ErrorDisplay error={getErrorDetails("INTERNAL")} onRetry={reset} />;
+  // Mapeia o erro genérico para uma chave conhecida (se quiser mais detalhado, crie uma função de mapeamento)
+  const errorKey = (() => {
+    if (error.message.includes('invalid_provider')) return 'invalid_provider'
+    if (error.message.includes('provider_disabled')) return 'provider_disabled'
+    if (error.message.includes('rate_limit')) return 'rate_limit'
+    if (error.message.includes('network')) return 'network'
+    if (error.message.includes('server')) return 'server_error'
+    return null
+  })()
+
+  return <ErrorDisplay error={errorKey} onRetry={reset} />
 }

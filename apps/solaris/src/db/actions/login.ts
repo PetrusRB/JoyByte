@@ -1,21 +1,63 @@
 'use server'
-import { revalidatePath } from 'next/cache'
+
 import { redirect } from 'next/navigation'
-import { createClient } from '@/db/server'
 import { Provider } from '@/types'
+import { createClient } from '../server'
+
+// Lista branca de providers suportados
+const SUPPORTED_PROVIDERS = ['google', 'github', 'facebook'] as const
+
+// Server-safe redirect wrapper
+function redirectToError(params: {
+  error: string
+  provider?: string
+  code?: number
+  message?: string
+  details?: string
+}) {
+  redirect(`/error?message=${params.message}&code=${params.code}`)
+}
 
 export async function login(provider: Provider) {
-    const supabase = await createClient()
-    const { data, error } = await supabase.auth.signInWithOAuth({
-        provider,
-        options: {
-            redirectTo: `${process.env.NEXT_PUBLIC_BASE_URL}/api/auth/callback`,
-        },
+  // Checa se provider é válido e suportado
+  if (!SUPPORTED_PROVIDERS.includes(provider)) {
+    // Fallback se URL ausente
+    redirectToError({
+      error: 'server_error',
+      provider,
+      message: 'URL de redirecionamento ausente.'
     })
-    if (data?.url) {
-        redirect(data.url)
-    }
-    if (error) redirect('/error')
-    revalidatePath('/', 'layout')
-    redirect('/')
+  }
+  const origin = process.env.NEXT_PUBLIC_BASE_URL
+  const supabase = await createClient()
+
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: provider as Provider,
+    options: {
+      redirectTo: `${origin}/api/auth/callback`,
+    },
+  })
+
+  if(error){
+    // Fallback se URL ausente
+    redirectToError({
+      error: error.name,
+      provider,
+      message: `${error.message}`,
+      details: JSON.stringify(data),
+    })
+  }
+
+  if (data?.url) {
+    console.log("Funcionou.")
+    redirect(data.url)
+  }
+
+  // Fallback se URL ausente
+  redirectToError({
+    error: 'server_error',
+    provider,
+    message: 'URL de redirecionamento ausente.',
+    details: JSON.stringify(data),
+  })
 }

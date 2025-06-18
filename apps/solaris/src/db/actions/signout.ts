@@ -1,14 +1,31 @@
 'use server'
-import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-import { createClient } from '@/db/server'
+import { createClient } from '../server'
+
+// Server-safe redirect wrapper
+function redirectToError(params: {
+  error: string
+  provider?: string
+  code?: number
+  message?: string
+  details?: string
+}) {
+  redirect(`/error?message=${params.message}&code=${params.code}`)
+}
 
 export async function signout() {
-    const supabase = await createClient()
-    const { error } = await supabase.auth.signOut()
-    if (error) {
-        redirect('/error')
-    }
-    revalidatePath('/', 'layout')
-    redirect('/')
+  const supabase = await createClient()
+
+  const {error} = await supabase.auth.signOut()
+
+  if(error){
+    // Fallback se URL ausente
+    redirectToError({
+      error: error.name,
+      message: `${error.message}`
+    })
+  }
+
+  // Fallback se URL ausente
+  redirect("/")
 }

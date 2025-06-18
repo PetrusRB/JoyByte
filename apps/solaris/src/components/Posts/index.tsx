@@ -85,7 +85,7 @@ const PostCard: React.FC<PostType> = ({
         </div>
 
         {/* Footer Buttons */}
-        <div className="flex items-center justify-between px-6 py-4 dark:bg-neutral-900 bg-neutral-600">
+        <div className="flex items-center justify-between px-6 py-4 dark:bg-zinc-900 bg-zinc-950">
           <button className="flex items-center gap-2 text-gray-300 hover:text-blue-400 transition">
             <ThumbsUp size={24} />
             <span>Curtir</span>
