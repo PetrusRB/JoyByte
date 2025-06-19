@@ -70,12 +70,12 @@ export interface Comment {
 
 export interface Post {
     id: string;
-    author: User;
+    author: UserMetadata;
     title: string;
     content: string;
     image?: string;
     likes: number;
+    deslikes: number;
     comments: Comment[];
-    createdAt: Date;
-    isLiked: boolean;
+    created_at: Date;
 }

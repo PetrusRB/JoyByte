@@ -5,7 +5,6 @@ import { AntdRegistry } from '@ant-design/nextjs-registry';
 import { ThemeProvider } from 'next-themes'
 
 import Navbar from "@/components/Navbar";
-import MobileNav from "@/components/MobileNav";
 import React from "react";
 import { Toaster } from "@/components/ui/Toast";
 
@@ -27,8 +26,6 @@ const LayoutClient: React.FC<LayoutClientProps> = ({ children }) => {
           </div>
           {/* Notificações */}
           <Toaster/>
-          {/* Navegação mobile fixa embaixo */}
-          <MobileNav />
         </AuthProvider>
       </ThemeProvider>
     </AntdRegistry>

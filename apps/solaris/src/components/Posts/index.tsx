@@ -20,7 +20,7 @@ const PostCard: React.FC<PostType> = ({
   id,
   title,
   content,
-  createdAt,
+  created_at,
   image,
   author
 }) => {
@@ -62,7 +62,7 @@ const PostCard: React.FC<PostType> = ({
           />
           <div>
             <h3 className="text-xl font-bold text-gray-900 dark:text-white">{title}</h3>
-            <span className="text-sm text-gray-500 dark:text-gray-400">{formatRelativeTime(createdAt)}</span>
+            <span className="text-sm text-gray-500 dark:text-gray-400">{formatRelativeTime(created_at)}</span>
           </div>
         </div>
 

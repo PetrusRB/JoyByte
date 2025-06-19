@@ -8,6 +8,9 @@
     },
     {
       "path": "./apps/solaris-mobile"
+    },
+    {
+      "path": "./apps/joy-mob"
     }
   ]
 }
