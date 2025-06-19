@@ -101,7 +101,7 @@ const PostCard: React.FC<PostType> = ({
 
         {/* Comment Section */}
         {showComments && (
-          <div className="p-6 bg-neutral-800 space-y-6">
+          <div className="p-6 dark:bg-zinc-900 bg-zinc-950 space-y-6">
             <div className="flex items-center gap-4">
               <Image
                 src={user?.picture || DEFAULT_AVATAR}
@@ -122,7 +122,7 @@ const PostCard: React.FC<PostType> = ({
               />
               <button
                 onClick={handleAddComment}
-                className="px-5 py-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition"
+                className="px-5 py-2 bg-gradient-to-r from-orange-500 to-orange-700 hover:from-orange-600 hover:to-orange-700 text-white rounded-full transition"
               >
                 Enviar
               </button>

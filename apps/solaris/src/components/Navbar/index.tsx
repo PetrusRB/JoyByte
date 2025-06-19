@@ -32,7 +32,7 @@ const Navbar = () => {
     }
     return (
         <>
-            <header className="bg-orange-50 dark:bg-black/50 backdrop-blur-md ring-1 dark:ring-zinc-800 ring-orange-200/40 sticky top-0 z-50 px-4 py-3">
+            <header className="bg-orange-50/50 dark:bg-black/50 backdrop-blur-md ring-1 dark:ring-zinc-800 ring-orange-200/40 sticky top-0 z-50 px-4 py-3">
                 <div className="flex items-center justify-between max-w-7xl mx-auto">
                     {/* Left - Mobile Menu + Logo */}
                     <div className="flex items-center space-x-3">
