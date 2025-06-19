@@ -4,7 +4,8 @@ import { useSearchParams, useRouter } from 'next/navigation'
 import { useEffect, useMemo, useState } from 'react'
 import {
   AlertTriangle, RefreshCw, Home, ArrowLeft, Copy,
-  CheckCircle, Shield, Wifi, Clock, User
+  CheckCircle, Shield, Wifi, Clock, User,
+  Hash
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -78,6 +79,19 @@ const errorConfigs: Record<string, ErrorConfig> = {
     ],
     showDetails: false,
     canRetry: false
+  },
+  not_found: {
+    title: 'Pagina não encontrada',
+    message: 'Desculpe, mas parece que você encontrou uma página misteriosa. Talvez ela esteja em férias ou simplesmente não queria ser encontrada.',
+    icon: Hash,
+    color: 'text-zinc-800 dark:text-zinc-100',
+    bgColor: 'bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700',
+    actions: [
+      { label: 'Tentar Novamente', href: '/', variant: 'primary', icon: RefreshCw },
+      { label: 'Página Inicial', href: '/', variant: 'secondary', icon: Home }
+    ],
+    showDetails: false,
+    canRetry: true
   },
   network: {
     title: 'Problema de Conexão',
