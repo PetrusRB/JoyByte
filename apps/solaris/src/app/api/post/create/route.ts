@@ -1,22 +1,99 @@
 import { createClient } from "@/db/server";
+import { createPostSchema } from "@/schemas/post";
 import { NextRequest, NextResponse } from "next/server";
 
-export async function POST(request: NextRequest){
-  const supabase = await createClient()
-  try{
+export async function POST(request: NextRequest) {
+  const supabase = await createClient();
+  const body = await request.json();
+  if (!request.headers.get("content-type")?.includes("application/json")) {
+    return NextResponse.json(
+      { error: "Content-Type deve ser application/json" },
+      { status: 415 },
+    );
+  }
+  try {
     // Authentication
-    const {data: currentUser, error: authError} = await supabase.auth.getSession()
-    if(authError || !currentUser){
-      return NextResponse.json({
-        error: authError ?? "Unauthorized"
-      }, {status: 401})
+    const { data: currentUser, error: authError } =
+      await supabase.auth.getUser();
+    if (authError || !currentUser) {
+      return NextResponse.json(
+        {
+          error: authError ?? "Unauthorized",
+        },
+        { status: 401 },
+      );
     }
-    return NextResponse.json({
 
-    }, {status: 200})
-  }catch(err){
-    return NextResponse.json({
-      error: err
-    }, {status: 500})
+    const parsed = createPostSchema.safeParse(body);
+    // Check if the data on body is valid
+    if (!parsed.success) {
+      return NextResponse.json(
+        {
+          error: "Dados inválidos",
+          details: parsed.error.flatten(),
+        },
+        { status: 400 },
+      );
+    }
+    // Get body data
+    const { title, content, image } = parsed.data;
+    // Verificar se já existe um post com mesmo título (ou slug se tiver)
+    const { data: existingPost, error: searchError } = await supabase
+      .from("posts")
+      .select("id")
+      .eq("title", title)
+      .maybeSingle();
+
+    if (searchError) {
+      console.error("Erro ao verificar post existente:", searchError);
+      return NextResponse.json(
+        { error: "Erro ao verificar post existente" },
+        { status: 500 },
+      );
+    }
+    if (existingPost) {
+      return NextResponse.json(
+        { error: "Post com esse título já existe." },
+        { status: 409 },
+      );
+    }
+    // Create post
+    const author = {
+      id: currentUser.user.id,
+      ...currentUser.user.user_metadata, // Nome, avatar_url, etc.
+    };
+    const { data: postData, error: insertError } = await supabase
+      .from("posts")
+      .insert([
+        {
+          title,
+          content,
+          image,
+          author: author,
+        },
+      ])
+      .select()
+      .single();
+
+    if (insertError) {
+      console.error("Erro ao salvar no Supabase:", insertError);
+      return NextResponse.json(
+        { error: "Erro ao salvar post" },
+        { status: 500 },
+      );
+    }
+    return NextResponse.json(
+      {
+        data: { postData },
+      },
+      { status: 200 },
+    );
+  } catch (err) {
+    return NextResponse.json(
+      {
+        error: "Um erro desconhecido",
+      },
+      { status: 500 },
+    );
   }
 }

@@ -1,166 +1,261 @@
-"use client"
+"use client";
 
-import { useState, useCallback } from "react";
-import { formatRelativeTime } from "@/libs/utils";
+import React, { useState, useCallback, memo, useMemo, Suspense } from "react";
+import dynamic from "next/dynamic";
+import { formatRelativeTime, getUserSlug } from "@/libs/utils";
 import { Post as PostType } from "@/types";
-import { ThumbsUp, MessageSquareMore } from "lucide-react";
+import {
+  ThumbsUp,
+  ThumbsDown,
+  MessageCircle,
+  MoreVertical,
+} from "lucide-react";
+import { Dropdown } from "antd";
 import { useAuth } from "@/contexts/auth/AuthContext";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import DynamicMedia from "../DynamicMedia";
+import { toast } from "sonner";
+import { Input } from "../ui/Input";
+import { RequestButton } from "../RequestButton";
+import type { MenuProps } from "antd";
 
-type PostGridProps = {
-  data: PostType | PostType[];
-  status: "pending" | "error" | "success";
-};
+// DynamicMedia Lazy
+const DynamicMedia = dynamic(() => import("../DynamicMedia"), { ssr: false });
+const DynamicMediaSkeleton = () => (
+  <div className="animate-pulse bg-gray-200 dark:bg-zinc-800 h-60 w-full rounded-lg" />
+);
 
 const DEFAULT_AVATAR = "/user.png";
 
-const PostCard: React.FC<PostType> = ({
-  id,
-  title,
-  content,
-  created_at,
-  image,
-  author
-}) => {
-  const { user } = useAuth();
-  const router = useRouter();
+type PostGridProps = {
+  data: PostType[];
+  loading: boolean;
+  error: string | null;
+};
 
-  const [comments, setComments] = useState<string[]>([]);
-  const [newComment, setNewComment] = useState('');
-  const [showComments, setShowComments] = useState(false);
+const PostCard: React.FC<PostType> = memo(
+  ({ id, title, content, created_at, image, author }) => {
+    const { user } = useAuth();
+    const router = useRouter();
+    const [comments, setComments] = useState<string[]>([]);
+    const [newComment, setNewComment] = useState("");
+    const [showComments, setShowComments] = useState(false);
 
-  const handleAddComment = useCallback(() => {
-    const trimmed = newComment.trim();
-    if (trimmed) {
-      setComments((prev) => [...prev, trimmed]);
-      setNewComment('');
-    }
-  }, [newComment]);
+    const handleAddComment = useCallback(() => {
+      if (!newComment.trim()) return;
+      setComments((prev) => [...prev, newComment]);
+      setNewComment("");
+    }, [newComment]);
 
-  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') handleAddComment();
-  };
+    const handleAvatarClick = useCallback(() => {
+      if (!author) {
+        toast("Usuário não encontrado");
+        return;
+      }
+      author.name && router.push(getUserSlug(author.name));
+    }, [author, router]);
 
-  const handleAvatarClick = () => {
-    if (author?.id) router.push(`/user/${author.id}`);
-  };
+    const menuItems: MenuProps["items"] = useMemo(
+      () => [
+        {
+          key: "edit",
+          label: (
+            <button
+              className="w-full text-left px-4 py-2"
+              onClick={() => toast("Editar em construção")}
+            >
+              Editar
+            </button>
+          ),
+        },
+        {
+          key: "delete",
+          label: (
+            <RequestButton
+              url="/api/post/delete"
+              method="POST"
+              body={{ id: id }}
+              message="Deletado com sucesso, recarregue a página para visualizar as alterações."
+              label="Deletar"
+              className="w-full text-left px-4 py-2 dark:text-red-600 text-red-600"
+            />
+          ),
+        },
+      ],
+      [],
+    );
 
-  return (
-    <div className="w-auto mx-auto my-8">
-      <div className="bg-white dark:bg-zinc-950 dark:text-white rounded-xl text-gray-600 shadow-lg overflow-hidden transition hover:shadow-2xl">
-        {/* Header */}
-        <div className="p-6 flex items-center gap-4 border-b border-gray-200 dark:border-gray-700">
-          <Image
-            src={author?.picture || DEFAULT_AVATAR}
-            alt={author?.name || "Avatar"}
-            width={56}
-            height={56}
-            onClick={handleAvatarClick}
-            className="w-14 h-14 rounded-full ring-2 ring-blue-500 dark:ring-blue-400 cursor-pointer"
-          />
-          <div>
-            <h3 className="text-xl font-bold text-gray-900 dark:text-white">{title}</h3>
-            <span className="text-sm text-gray-500 dark:text-gray-400">{formatRelativeTime(created_at)}</span>
+    return (
+      <article className="bg-white dark:bg-zinc-950 text-gray-900 dark:text-white rounded-2xl shadow-lg hover:shadow-xl transition-all overflow-hidden flex flex-col">
+        <header className="flex items-center justify-between px-5 py-3 bg-gray-50 dark:bg-zinc-900">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handleAvatarClick}
+              aria-label="Ver perfil"
+              className="flex-shrink-0 w-10 h-10 rounded-full ring-2 ring-blue-500 focus:outline-none focus:ring-4"
+            >
+              <Image
+                src={author?.picture || DEFAULT_AVATAR}
+                alt={author?.name || "Avatar"}
+                width={40}
+                height={40}
+                className="rounded-full object-cover"
+                placeholder="blur"
+                blurDataURL={DEFAULT_AVATAR}
+              />
+            </button>
+            <div className="overflow-hidden">
+              <p className="font-semibold truncate max-w-xs">
+                {author?.name || "Anônimo"}
+              </p>
+              <time
+                dateTime={new Date(created_at).toISOString()}
+                className="text-xs text-gray-500 dark:text-gray-400"
+              >
+                {formatRelativeTime(created_at)}
+              </time>
+            </div>
           </div>
-        </div>
+          {author?.id === user?.id && (
+            <Dropdown
+              menu={{ items: menuItems }}
+              trigger={["click"]}
+              placement="bottomRight"
+              className="dark:bg-zinc-950 border-b border-zinc-900"
+            >
+              <button className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-zinc-800 focus:outline-none">
+                <MoreVertical size={20} />
+              </button>
+            </Dropdown>
+          )}
+        </header>
 
-        {/* Content */}
-        <div className="p-6">
+        <div className="flex-grow px-5 py-4">
+          <h3 className="text-lg font-bold mb-2 truncate" title={title}>
+            {title}
+          </h3>
           {image && (
-            <div className="mb-6 rounded-lg overflow-hidden">
+            <Suspense fallback={<DynamicMediaSkeleton />}>
               <DynamicMedia
                 url={image}
-                alt="Media do post"
+                alt={title}
                 width={600}
                 height={400}
-                className="w-full h-auto object-cover transition-transform duration-300 hover:scale-105"
+                className="w-full h-auto object-cover rounded-lg mb-3"
               />
-            </div>
+            </Suspense>
           )}
-          {content && (
-            <p className="text-lg text-gray-700 dark:text-gray-300 leading-relaxed">{content}</p>
-          )}
+          <p className="text-sm leading-relaxed text-gray-700 dark:text-gray-300 mb-2 line-clamp-4">
+            {content}
+          </p>
         </div>
 
-        {/* Footer Buttons */}
-        <div className="flex items-center justify-between px-6 py-4 dark:bg-zinc-900 bg-zinc-950">
-          <button className="flex items-center gap-2 text-gray-300 hover:text-blue-400 transition">
-            <ThumbsUp size={24} />
-            <span>Curtir</span>
-          </button>
-          <button
-            onClick={() => setShowComments((prev) => !prev)}
-            className="flex items-center gap-2 text-gray-300 hover:text-green-400 transition"
-          >
-            <MessageSquareMore size={24} />
-            <span>Comentar</span>
-          </button>
-        </div>
+        <footer className="px-5 py-3 bg-gray-50 dark:bg-zinc-900 flex items-center justify-between">
+          <div className="flex space-x-4">
+            <button
+              className="flex items-center space-x-1 p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-zinc-800 focus:outline-none transition"
+              aria-label="Curtir"
+            >
+              <ThumbsUp size={18} /> <span className="text-sm">Like</span>
+            </button>
+            <button
+              className="flex items-center space-x-1 p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-zinc-800 focus:outline-none transition"
+              aria-label="Deslike"
+            >
+              <ThumbsDown size={18} /> <span className="text-sm">Dislike</span>
+            </button>
+            <button
+              onClick={() => setShowComments((v) => !v)}
+              className="flex items-center space-x-1 p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-zinc-800 focus:outline-none transition"
+              aria-label="Comentar"
+            >
+              <MessageCircle size={18} />{" "}
+              <span className="text-sm">Comentar</span>
+            </button>
+          </div>
+        </footer>
 
-        {/* Comment Section */}
         {showComments && (
-          <div className="p-6 dark:bg-zinc-900 bg-zinc-950 space-y-6">
-            <div className="flex items-center gap-4">
+          <div className="px-5 py-3 bg-white dark:bg-zinc-950 border-t border-gray-200 dark:border-gray-700">
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleAddComment();
+              }}
+              className="flex items-center gap-3 mb-3"
+            >
               <Image
                 src={user?.picture || DEFAULT_AVATAR}
                 alt="Seu avatar"
-                width={40}
-                height={40}
-                className="w-10 h-10 rounded-full"
+                width={32}
+                height={32}
+                className="rounded-full"
+                placeholder="blur"
+                blurDataURL={DEFAULT_AVATAR}
               />
-              <input
-                type="text"
-                name="comment"
-                aria-label="Escreva um comentário"
+              <Input
                 value={newComment}
                 onChange={(e) => setNewComment(e.target.value)}
-                onKeyPress={handleKeyPress}
-                placeholder="Escreva um comentário..."
-                className="flex-grow p-3 border rounded-full bg-neutral-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-400"
+                placeholder="Adicionar comentário..."
+                className="flex-grow"
+                required
               />
               <button
-                onClick={handleAddComment}
-                className="px-5 py-2 bg-gradient-to-r from-orange-500 to-orange-700 hover:from-orange-600 hover:to-orange-700 text-white rounded-full transition"
+                type="submit"
+                className="px-4 py-1 bg-orange-500 rounded-full hover:bg-orange-600 text-white focus:outline-none transition"
               >
                 Enviar
               </button>
-            </div>
-            <div className="space-y-4">
-              {comments.map((comment, index) => (
-                <div key={`${id}-comment-${index}`} className="flex items-start gap-4 bg-neutral-700 p-4 rounded-lg shadow">
+            </form>
+            <div className="space-y-2 max-h-40 overflow-y-auto scrollbar-thin scrollbar-thumb-zinc-600 scrollbar-track-zinc-800">
+              {comments.map((c, i) => (
+                <div key={`${id}-c-${i}`} className="flex items-start gap-2">
                   <Image
                     src={user?.picture || DEFAULT_AVATAR}
-                    alt="Comentário avatar"
-                    width={40}
-                    height={40}
-                    className="w-10 h-10 rounded-full"
+                    alt="Comentário"
+                    width={24}
+                    height={24}
+                    className="rounded-full"
+                    placeholder="blur"
+                    blurDataURL={DEFAULT_AVATAR}
                   />
-                  <div>
-                    <p className="font-semibold text-white">{user?.name || "Você"}</p>
-                    <p className="text-gray-300">{comment}</p>
-                  </div>
+                  <p className="bg-gray-100 dark:bg-zinc-800 rounded-lg px-3 py-1 text-sm break-words">
+                    {c}
+                  </p>
                 </div>
               ))}
             </div>
           </div>
         )}
+      </article>
+    );
+  },
+);
+PostCard.displayName = "PostCard";
+
+const PostGrid: React.FC<PostGridProps> = ({ data, loading, error }) => {
+  const memoizedData = useMemo(() => data, [data]);
+
+  if (loading)
+    return (
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-6">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <div
+            key={i}
+            className="animate-pulse bg-gray-200 dark:bg-zinc-800 h-60 rounded-2xl"
+          />
+        ))}
       </div>
-    </div>
-  );
-};
+    );
 
-const PostGrid: React.FC<PostGridProps> = ({ data, status }) => {
-  if (status === "pending") return <p>Carregando posts...</p>;
-  if (status === "error") return <p>Erro ao carregar posts.</p>;
-  if (!data || (Array.isArray(data) && data.length === 0)) return <p>Nenhum post encontrado.</p>;
+  if (error) return <p className="text-center text-red-600 py-8">{error}</p>;
 
-  const posts = Array.isArray(data) ? data : [data];
+  if (!memoizedData.length)
+    return <p className="text-center py-8">Nenhum post encontrado.</p>;
 
   return (
-    <div className="grid grid-cols-1 gap-6">
-      {posts.map((post) => (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-6">
+      {memoizedData.map((post) => (
         <PostCard key={post.id} {...post} />
       ))}
     </div>

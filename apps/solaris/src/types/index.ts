@@ -48,6 +48,7 @@ export interface UserProfile {
   website?: string;
   followers?: number;
   following?: number;
+  posts: Post[];
 }
 
 // Authentication-related interfaces
@@ -62,20 +63,20 @@ export interface Factor {
 
 // Content-related interfaces
 export interface Comment {
-    id: string;
-    author: User;
-    content: string;
-    createdAt: string;
+  id: string;
+  author: User;
+  content: string;
+  createdAt: string;
 }
 
 export interface Post {
-    id: string;
-    author: UserMetadata;
-    title: string;
-    content: string;
-    image?: string;
-    likes: number;
-    deslikes: number;
-    comments: Comment[];
-    created_at: Date;
+  id: string;
+  author: UserMetadata;
+  title: string;
+  content: string;
+  image?: string;
+  likes: number;
+  deslikes: number;
+  comments: Comment[];
+  created_at: Date;
 }
