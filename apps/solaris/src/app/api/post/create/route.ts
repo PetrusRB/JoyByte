@@ -37,26 +37,6 @@ export async function POST(request: NextRequest) {
     }
     // Get body data
     const { title, content, image } = parsed.data;
-    // Verificar se já existe um post com mesmo título (ou slug se tiver)
-    const { data: existingPost, error: searchError } = await supabase
-      .from("posts")
-      .select("id")
-      .eq("title", title)
-      .maybeSingle();
-
-    if (searchError) {
-      console.error("Erro ao verificar post existente:", searchError);
-      return NextResponse.json(
-        { error: "Erro ao verificar post existente" },
-        { status: 500 },
-      );
-    }
-    if (existingPost) {
-      return NextResponse.json(
-        { error: "Post com esse título já existe." },
-        { status: 409 },
-      );
-    }
     // Create post
     const author = {
       id: currentUser.user.id,

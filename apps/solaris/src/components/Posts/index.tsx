@@ -9,6 +9,7 @@ import {
   ThumbsDown,
   MessageCircle,
   MoreVertical,
+  TrashIcon,
 } from "lucide-react";
 import { Dropdown } from "antd";
 import { useAuth } from "@/contexts/auth/AuthContext";
@@ -18,6 +19,7 @@ import { toast } from "sonner";
 import { Input } from "../ui/Input";
 import { RequestButton } from "../RequestButton";
 import type { MenuProps } from "antd";
+import DynamicPopup from "../DynamicPopup";
 
 // DynamicMedia Lazy
 const DynamicMedia = dynamic(() => import("../DynamicMedia"), { ssr: false });
@@ -37,6 +39,7 @@ const PostCard: React.FC<PostType> = memo(
   ({ id, title, content, created_at, image, author }) => {
     const { user } = useAuth();
     const router = useRouter();
+    const [deletePop, setDeletePop] = useState<boolean>(false);
     const [comments, setComments] = useState<string[]>([]);
     const [newComment, setNewComment] = useState("");
     const [showComments, setShowComments] = useState(false);
@@ -71,14 +74,12 @@ const PostCard: React.FC<PostType> = memo(
         {
           key: "delete",
           label: (
-            <RequestButton
-              url="/api/post/delete"
-              method="POST"
-              body={{ id: id }}
-              message="Deletado com sucesso, recarregue a página para visualizar as alterações."
-              label="Deletar"
-              className="w-full text-left px-4 py-2 dark:text-red-600 text-red-600"
-            />
+            <button
+              className="w-full text-left px-4 py-2 text-red-600"
+              onClick={() => setDeletePop(true)}
+            >
+              Deletar
+            </button>
           ),
         },
       ],
@@ -148,6 +149,32 @@ const PostCard: React.FC<PostType> = memo(
           <p className="text-sm leading-relaxed text-gray-700 dark:text-gray-300 mb-2 line-clamp-4">
             {content}
           </p>
+          <DynamicPopup
+            isOpen={deletePop}
+            onClose={() => setDeletePop(false)}
+            size="sm"
+          >
+            <div className="text-center space-y-6 p-6">
+              <div className="flex justify-center items-center">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-3 flex items-center justify-center gap-1">
+                  Quer mesmo <span className="text-red-500">Deletar?</span>
+                </h2>
+              </div>
+              <div className="flex flex-wrap gap-3 justify-center">
+                <RequestButton
+                  url="/api/post/delete"
+                  method="POST"
+                  body={{ id: id }}
+                  onSuccess={() => setDeletePop(false)}
+                  message="Deletado com sucesso, recarregue a página para visualizar as alterações."
+                  label="Deletar"
+                  className="flex flex-row-reverse text-left px-4 py-2 dark:text-red-600 text-red-600"
+                >
+                  <TrashIcon color="white" />
+                </RequestButton>
+              </div>
+            </div>
+          </DynamicPopup>
         </div>
 
         <footer className="px-5 py-3 bg-gray-50 dark:bg-zinc-900 flex items-center justify-between">
@@ -196,8 +223,8 @@ const PostCard: React.FC<PostType> = memo(
               <Input
                 value={newComment}
                 onChange={(e) => setNewComment(e.target.value)}
-                placeholder="Adicionar comentário..."
-                className="flex-grow"
+                placeholder="🎨 Deixe sua criatividade fluir..."
+                className="flex-grow bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-md ring-transparent focus:bg-zinc-800 placeholder:text-zinc-500"
                 required
               />
               <button
