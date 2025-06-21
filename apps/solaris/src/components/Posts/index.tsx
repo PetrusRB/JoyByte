@@ -2,16 +2,15 @@
 
 import React, { useState, useCallback, memo, useMemo, Suspense } from "react";
 import dynamic from "next/dynamic";
-import { formatRelativeTime, getUserSlug } from "@/libs/utils";
-import { Post as PostType } from "@/types";
 import {
-  ThumbsUp,
-  ThumbsDown,
-  MessageCircle,
-  MoreVertical,
-  TrashIcon,
-} from "lucide-react";
-import { Dropdown } from "antd";
+  DEFAULT_AVATAR,
+  formatNumber,
+  formatRelativeTime,
+  getUserSlug,
+} from "@/libs/utils";
+import { Post as PostType } from "@/types";
+import { ThumbsUp, MessageCircle, MoreVertical, TrashIcon } from "lucide-react";
+import { Dropdown, Skeleton } from "antd";
 import { useAuth } from "@/contexts/auth/AuthContext";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
@@ -21,13 +20,17 @@ import { RequestButton } from "../RequestButton";
 import type { MenuProps } from "antd";
 import DynamicPopup from "../DynamicPopup";
 
-// DynamicMedia Lazy
+// Lazy loading components
 const DynamicMedia = dynamic(() => import("../DynamicMedia"), { ssr: false });
 const DynamicMediaSkeleton = () => (
   <div className="animate-pulse bg-gray-200 dark:bg-zinc-800 h-60 w-full rounded-lg" />
 );
-
-const DEFAULT_AVATAR = "/user.png";
+const ContentPreview = dynamic(() => import("../ContentPreview"), {
+  ssr: false,
+  loading: () => (
+    <Skeleton className="h-64 w-full rounded-lg bg-zinc-700 animate-pulse" />
+  ),
+});
 
 type PostGridProps = {
   data: PostType[];
@@ -36,7 +39,7 @@ type PostGridProps = {
 };
 
 const PostCard: React.FC<PostType> = memo(
-  ({ id, title, content, created_at, image, author }) => {
+  ({ id, title, content, created_at, likes, image, author }) => {
     const { user } = useAuth();
     const router = useRouter();
     const [deletePop, setDeletePop] = useState<boolean>(false);
@@ -65,9 +68,9 @@ const PostCard: React.FC<PostType> = memo(
           label: (
             <button
               className="w-full text-left px-4 py-2"
-              onClick={() => toast("Editar em construção")}
+              onClick={() => toast("Privado em construção")}
             >
-              Editar
+              Privado
             </button>
           ),
         },
@@ -87,13 +90,13 @@ const PostCard: React.FC<PostType> = memo(
     );
 
     return (
-      <article className="bg-white dark:bg-zinc-950 text-gray-900 dark:text-white rounded-2xl shadow-lg hover:shadow-xl transition-all overflow-hidden flex flex-col">
+      <article className="bg-white dark:bg-zinc-950 text-gray-900 dark:text-white rounded-2xl shadow-lg hover:shadow-xl transition overflow-hidden flex flex-col">
         <header className="flex items-center justify-between px-5 py-3 bg-gray-50 dark:bg-zinc-900">
           <div className="flex items-center gap-3">
             <button
               onClick={handleAvatarClick}
               aria-label="Ver perfil"
-              className="flex-shrink-0 w-10 h-10 rounded-full ring-2 ring-blue-500 focus:outline-none focus:ring-4"
+              className="flex-shrink-0 w-10 h-10 rounded-full ring-1 ring-orange-500 hover:ring-orange-400 focus:outline-none focus:ring-4"
             >
               <Image
                 src={author?.picture || DEFAULT_AVATAR}
@@ -146,9 +149,9 @@ const PostCard: React.FC<PostType> = memo(
               />
             </Suspense>
           )}
-          <p className="text-sm leading-relaxed text-gray-700 dark:text-gray-300 mb-2 line-clamp-4">
-            {content}
-          </p>
+
+          <ContentPreview text={content} />
+
           <DynamicPopup
             isOpen={deletePop}
             onClose={() => setDeletePop(false)}
@@ -183,13 +186,8 @@ const PostCard: React.FC<PostType> = memo(
               className="flex items-center space-x-1 p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-zinc-800 focus:outline-none transition"
               aria-label="Curtir"
             >
-              <ThumbsUp size={18} /> <span className="text-sm">Like</span>
-            </button>
-            <button
-              className="flex items-center space-x-1 p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-zinc-800 focus:outline-none transition"
-              aria-label="Deslike"
-            >
-              <ThumbsDown size={18} /> <span className="text-sm">Dislike</span>
+              <ThumbsUp size={18} />{" "}
+              <span className="text-sm">{formatNumber(likes)}</span>
             </button>
             <button
               onClick={() => setShowComments((v) => !v)}
@@ -217,6 +215,8 @@ const PostCard: React.FC<PostType> = memo(
                 width={32}
                 height={32}
                 className="rounded-full"
+                loading="lazy"
+                priority={false}
                 placeholder="blur"
                 blurDataURL={DEFAULT_AVATAR}
               />
@@ -224,7 +224,6 @@ const PostCard: React.FC<PostType> = memo(
                 value={newComment}
                 onChange={(e) => setNewComment(e.target.value)}
                 placeholder="🎨 Deixe sua criatividade fluir..."
-                className="flex-grow bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-md ring-transparent focus:bg-zinc-800 placeholder:text-zinc-500"
                 required
               />
               <button

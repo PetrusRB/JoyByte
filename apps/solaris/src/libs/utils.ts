@@ -1,6 +1,9 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 
+export const DEFAULT_AVATAR = "/user.png";
+export const DEFAULT_BANNER = "/placeholder.png";
+
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
@@ -8,6 +11,18 @@ export function cn(...inputs: ClassValue[]) {
 export function getUserSlug(name: string) {
   const slugProfile = slugToSearchQuery(name ?? "");
   return "/user/:user".replace(":user", slugProfile.replace(" ", "."));
+}
+
+export function getInitials(name: string) {
+  if (!name) return "";
+  const initials = name
+    ?.split(" ")
+    .map((n: string) => n[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+
+  return initials;
 }
 
 /**

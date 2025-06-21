@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
     } = await supabase
       .from("profiles")
       .select(
-        `id, raw_user_meta_data, created_at, banner, email, bio, badge, twitter, youtube, tiktok, kwai, linkedin, instagram, website, followers, following`,
+        `id, raw_user_meta_data, created_at, banner, email, bio, badge, twitter, youtube, tiktok, kwai, linkedin, instagram, website, followers, following, normalized_name`,
         { count: "exact" },
       )
       .ilike("raw_user_meta_data->>name", `%${searchQuery}%`) // Case-insensitive name search

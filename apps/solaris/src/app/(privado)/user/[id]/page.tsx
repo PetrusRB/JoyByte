@@ -16,19 +16,18 @@ import {
   Mail,
   Users,
 } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/Avatar";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { Skeleton } from "antd";
 import { Post, UserProfile } from "@/types";
 import { useCachedPosts } from "@/hooks/useCachedPosts";
 import { Loading } from "@/components/Loading";
-
-const default_banner =
-  "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=1200&h=400&fit=crop";
+import { Image as AntdImage } from "antd";
+import Image from "next/image";
+import { DEFAULT_AVATAR, DEFAULT_BANNER } from "@/libs/utils";
 
 interface MemoAvatarProps {
   user: UserProfile | null;
-  onClick: () => void;
+  onClick?: () => void;
 }
 interface MemoUserProps {
   posts: Post[] | undefined;
@@ -36,21 +35,10 @@ interface MemoUserProps {
 
 const MemoAvatar = React.memo<MemoAvatarProps>(({ user, onClick }) => (
   <div className="relative group cursor-pointer" onClick={onClick}>
-    <Avatar className="w-24 h-24 sm:w-32 sm:h-32 border-4 border-white shadow-lg">
-      <AvatarImage
-        src={user?.raw_user_meta_data?.picture}
-        alt={user?.raw_user_meta_data.name}
-      />
-      <AvatarFallback className="bg-gradient-to-br from-orange-400 to-yellow-400 text-white text-xl sm:text-2xl">
-        {user?.raw_user_meta_data.name
-          ?.split(" ")
-          .map((n: string) => n[0])
-          .join("")}
-      </AvatarFallback>
-    </Avatar>
-    <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity rounded-full flex items-center justify-center">
-      <Camera className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-    </div>
+    <AntdImage
+      src={user?.raw_user_meta_data.picture ?? DEFAULT_AVATAR}
+      className="w-24 h-24 sm:w-32 sm:h-32 rounded-full border-4 border-white shadow-lg"
+    />
   </div>
 ));
 const MemoUserPosts = React.memo<MemoUserProps>(({ posts }) => {
@@ -67,7 +55,10 @@ const MemoUserPosts = React.memo<MemoUserProps>(({ posts }) => {
   return (
     <div className="space-y-4">
       {posts.map((post) => (
-        <article key={post.id} className="p-4 border rounded-lg shadow-sm">
+        <article
+          key={post.id}
+          className="bg-white dark:bg-zinc-950 text-gray-900 dark:text-white border border-zinc-900 p-4 rounded-lg shadow-sm"
+        >
           <h3 className="text-xl font-semibold mb-2">{post.title}</h3>
           <time className="text-gray-500 text-sm block mb-2">
             {new Date(post.created_at).toLocaleString()}
@@ -94,7 +85,6 @@ interface ProfileProps {
 const Profile = React.memo<ProfileProps>(
   ({ user, posts, duplicates, loading, error, setUser, setDuplicates }) => {
     const [showBannerModal, setShowBannerModal] = useState(false);
-    const [showAvatarModal, setShowAvatarModal] = useState(false);
     const [activeTab, setActiveTab] = useState<"posts" | "media" | "likes">(
       "posts",
     );
@@ -161,12 +151,18 @@ const Profile = React.memo<ProfileProps>(
       <div className="dark:bg-black bg-orange-50 min-h-screen pb-8 dark:text-white text-orange-700">
         {/* Banner Section */}
         <div className="relative">
-          <div
-            className="h-48 sm:h-56 md:h-64 bg-zinc-800 dark:text-white text-orange-50 bg-center bg-cover cursor-pointer w-full"
-            style={{ backgroundImage: `url(${user.banner ?? default_banner})` }}
-            onClick={() => setShowBannerModal(true)}
-          >
+          <div className="h-48 sm:h-56 md:h-64 bg-zinc-800 dark:text-white text-orange-50 bg-center bg-cover cursor-pointer w-full">
             <div className="absolute inset-0 bg-black/20 transition-all" />
+            <Image
+              src={user.banner ?? DEFAULT_BANNER}
+              alt="User Banner"
+              onClick={() => setShowBannerModal(true)}
+              loading="lazy"
+              className="object-cover"
+              placeholder="blur"
+              blurDataURL={DEFAULT_BANNER}
+              fill
+            />
             <Button
               variant="ghost"
               size="icon"
@@ -178,7 +174,7 @@ const Profile = React.memo<ProfileProps>(
           </div>
           {/* Avatar positioned absolutely */}
           <div className="absolute -bottom-12 sm:-bottom-16 left-1/2 transform -translate-x-1/2">
-            <MemoAvatar user={user} onClick={() => setShowAvatarModal(true)} />
+            <MemoAvatar user={user} />
           </div>
         </div>
 
@@ -188,23 +184,29 @@ const Profile = React.memo<ProfileProps>(
           <div className="flex flex-col lg:flex-row lg:items-start gap-6">
             {/* Profile Info */}
             <div className="flex-1 text-center lg:text-left">
-              <div className="flex items-center justify-center lg:justify-start gap-2 mb-2">
-                <h1 className="text-xl sm:text-2xl font-bold">
-                  {user.raw_user_meta_data.name}
-                </h1>
-                {user.raw_user_meta_data.verified && (
-                  <Badge className="bg-zinc-700" />
-                )}
-              </div>
-              <p className="mb-4 dark:text-white text-orange-500">
-                @{user.raw_user_meta_data.name.toLowerCase()}
-              </p>
-
-              {user.raw_user_meta_data.bio && (
-                <p className="mb-4 leading-relaxed max-w-lg mx-auto lg:mx-0">
-                  {user.raw_user_meta_data.bio}
+              <Suspense
+                fallback={
+                  <Skeleton className="h-64 w-full rounded-lg bg-zinc-700 animate-pulse" />
+                }
+              >
+                <div className="flex items-center justify-center lg:justify-start gap-2 mb-2">
+                  <h1 className="text-xl sm:text-2xl font-bold">
+                    {user.raw_user_meta_data.name}
+                  </h1>
+                  {user.raw_user_meta_data.verified && (
+                    <Badge className="bg-zinc-700" />
+                  )}
+                </div>
+                <p className="mb-4 dark:text-white text-orange-500">
+                  @{user.normalized_name ?? "none"}
                 </p>
-              )}
+
+                {user?.bio && (
+                  <p className="mb-4 leading-relaxed max-w-lg mx-auto lg:mx-0">
+                    {user?.bio}
+                  </p>
+                )}
+              </Suspense>
 
               {/* Profile Details */}
               <div className="flex flex-col sm:flex-row sm:flex-wrap gap-2 sm:gap-4 text-sm mb-4 justify-center lg:justify-start">
@@ -251,9 +253,16 @@ const Profile = React.memo<ProfileProps>(
               {isCurrentUser ? (
                 <Button
                   onClick={() => navigate.push("/config")}
-                  className="bg-zinc-700 text-white rounded-full px-4 py-2 hover:bg-zinc-600 transition-colors"
+                  className="group inline-flex items-center gap-2 px-4 py-2 rounded-full border transition-all duration-200 ease-in-out
+                    border-orange-300 bg-orange-100 text-orange-900
+                    hover:bg-orange-200 hover:border-orange-400 hover:shadow-sm
+                    dark:border-orange-200/30 dark:bg-zinc-900 dark:text-orange-100
+                    dark:hover:bg-zinc-800 dark:hover:border-orange-200/50
+                    focus:outline-none focus:ring-2 focus:ring-orange-300 focus:ring-offset-2 dark:focus:ring-orange-400 dark:focus:ring-offset-zinc-900
+                    active:scale-95"
                 >
-                  <Edit3 className="w-4 h-4 mr-2" /> Editar Perfil
+                  <Edit3 className="w-4 h-4 transition-transform group-hover:scale-110" />
+                  Editar Perfil
                 </Button>
               ) : (
                 <div className="flex gap-2">
@@ -274,7 +283,7 @@ const Profile = React.memo<ProfileProps>(
         </div>
 
         {/* Tabs Section */}
-        <div className="border-b border-zinc-700 mt-8">
+        <div className="border-b border-orange-300 dark:border-zinc-700 mt-8">
           <div className="w-full max-w-4xl mx-auto px-4 sm:px-6">
             <div className="flex gap-2 sm:gap-6 justify-center overflow-x-auto">
               {(["posts", "media", "likes"] as const).map((tab) => (
@@ -283,7 +292,7 @@ const Profile = React.memo<ProfileProps>(
                   onClick={() => setActiveTab(tab)}
                   className={`py-3 px-3 sm:px-4 text-sm sm:text-base hover:text-orange-800 transition-colors whitespace-nowrap ${
                     activeTab === tab
-                      ? "text-orange-700 border-b-2 border-zinc-500"
+                      ? "text-orange-700 border-b-2 border-orange-300 dark:border-zinc-500"
                       : ""
                   }`}
                 >
@@ -336,30 +345,9 @@ const Profile = React.memo<ProfileProps>(
               }
             >
               <img
-                src={user.banner ?? default_banner}
+                src={user.banner ?? DEFAULT_BANNER}
                 alt="Banner"
                 className="w-full max-w-4xl h-auto rounded-lg object-cover"
-                loading="lazy"
-                onClick={(e) => e.stopPropagation()}
-              />
-            </Suspense>
-          </div>
-        )}
-
-        {showAvatarModal && (
-          <div
-            className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4"
-            onClick={() => setShowAvatarModal(false)}
-          >
-            <Suspense
-              fallback={
-                <Skeleton className="h-48 w-48 rounded-full animate-pulse" />
-              }
-            >
-              <img
-                src={user.raw_user_meta_data.picture}
-                alt="Avatar"
-                className="h-48 w-48 sm:h-64 sm:w-64 rounded-full object-cover"
                 loading="lazy"
                 onClick={(e) => e.stopPropagation()}
               />

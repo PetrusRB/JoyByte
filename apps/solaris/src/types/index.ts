@@ -48,6 +48,7 @@ export interface UserProfile {
   website?: string;
   followers?: number;
   following?: number;
+  normalized_name: string;
   posts: Post[];
 }
 
@@ -76,7 +77,6 @@ export interface Post {
   content: string;
   image?: string;
   likes: number;
-  deslikes: number;
   comments: Comment[];
   created_at: Date;
 }
