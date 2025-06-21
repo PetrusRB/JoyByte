@@ -8,7 +8,7 @@ import {
   Calendar,
 } from "lucide-react";
 import { Button } from "@/components/Button";
-import { cn, getInitials, getUserSlug, slugToSearchQuery } from "@/libs/utils";
+import { cn, getInitials, getUserSlug } from "@/libs/utils";
 import { useAuth } from "@/contexts/auth/AuthContext";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
