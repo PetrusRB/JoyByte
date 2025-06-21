@@ -2,7 +2,7 @@
 
 import { Camera, User, Palette, Save, ArrowLeft, DoorOpen } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState, useCallback, useMemo, Suspense, memo } from "react";
+import { useState, useCallback, Suspense, memo } from "react";
 import { Button } from "@/components/Button";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
