@@ -37,7 +37,9 @@ const MemoAvatar = React.memo<MemoAvatarProps>(({ user, onClick }) => (
   <div className="relative group cursor-pointer" onClick={onClick}>
     <AntdImage
       src={user?.raw_user_meta_data.picture ?? DEFAULT_AVATAR}
-      className="w-24 h-24 sm:w-32 sm:h-32 rounded-full border-4 border-white shadow-lg"
+      className="rounded-full border-4 border-white shadow-lg"
+      width={96}
+      height={96}
     />
   </div>
 ));
