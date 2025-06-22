@@ -41,7 +41,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         email: res.email,
         picture: res.picture || "/user.png",
         aud: res.aud || "authenticated",
-        created_at: res.created_at || new Date().toISOString(),
+        created_at: res.created_at,
         name: res.name || "Misterioso(a)",
       };
       if (!res) {
