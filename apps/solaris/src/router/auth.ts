@@ -5,6 +5,12 @@ import { retry } from "@/middlewares/retry";
 import { z } from "zod";
 import { ORPCError, os } from "@orpc/server";
 const TRUSTED_HOSTS = new Set(["localhost", process.env.NEXT_PUBLIC_BASE_URL]);
+const DetailedRedirectOutput = z.object({
+  status: z.literal(307),
+  headers: z.object({
+    location: z.string().url(),
+  }),
+});
 /**
  * Lidar com o callback de autenticação
  */
@@ -20,39 +26,28 @@ export const authCallback = os
   })
   .input(
     z.object({
-      code: z.string().min(1, "Código de autenticação ausente").max(36),
+      code: z.string().min(1).max(36),
       next: z
         .string()
         .optional()
         .default("/")
         .refine((val) => val.startsWith("/"), {
-          message:
-            "O parâmetro 'next' deve ser um caminho relativo começando com '/'",
+          message: "O parâmetro 'next' deve começar com '/'",
         }),
       forwardedHost: z.string().optional(),
     }),
   )
+  .output(DetailedRedirectOutput)
   .handler(async ({ input }) => {
     const { code, next, forwardedHost } = input;
-
-    // Log de entrada para depuração (evita logar código completo por segurança)
-    console.debug("Auth callback input:", {
-      code: code.replace("#_=_", ""),
-      next,
-      forwardedHost,
-      timestamp: new Date().toISOString(),
-    });
-
-    // Usa NEXT_PUBLIC_BASE_URL como URL base
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+
     if (!baseUrl) {
-      console.error("NEXT_PUBLIC_BASE_URL não configurado");
       throw new ORPCError("INTERNAL_SERVER_ERROR", {
-        message: "Configuração do servidor incompleta: URL base não definida",
+        message: "URL base não configurada",
       });
     }
 
-    // Valida baseUrl
     let originUrl: URL;
     try {
       originUrl = new URL(baseUrl);
@@ -63,45 +58,32 @@ export const authCallback = os
         !TRUSTED_HOSTS.has(originUrl.hostname) &&
         process.env.NODE_ENV !== "development"
       ) {
-        throw new Error("Domínio não confiável");
+        throw new Error("Host não confiável");
       }
-    } catch (error) {
-      console.error("Base URL inválida:", {
-        baseUrl,
-        error: (error as Error).message,
-        timestamp: new Date().toISOString(),
-      });
+    } catch (err) {
       throw new ORPCError("INTERNAL_SERVER_ERROR", {
-        message: "Configuração de URL base inválida",
+        message: "URL base inválida",
       });
     }
 
-    // Valida forwardedHost se fornecido
     if (forwardedHost && !TRUSTED_HOSTS.has(forwardedHost)) {
-      console.warn("ForwardedHost não confiável:", forwardedHost);
       throw new ORPCError("BAD_REQUEST", {
         message: "Host encaminhado não permitido",
       });
     }
 
-    // Troca o código OAuth por uma sessão
     const supabase = await createClient();
     const { error } = await supabase.auth.exchangeCodeForSession(code);
 
     if (error) {
-      console.error("Erro ao trocar código por sessão:", {
-        code: code.slice(0, 8) + "...",
-        error: error.message,
-        timestamp: new Date().toISOString(),
-      });
       return {
         status: 307,
-        headers: { location: `${originUrl.origin}/auth/auth-code-error` },
-        body: { success: true },
+        headers: {
+          location: `${originUrl.origin}/auth/auth-code-error`,
+        },
       };
     }
 
-    // Constrói a URL de redirecionamento
     const isLocalEnv = process.env.NODE_ENV === "development";
     const redirectHost = isLocalEnv
       ? originUrl.origin
@@ -111,31 +93,22 @@ export const authCallback = os
 
     const finalRedirect = `${redirectHost}${next}`;
 
-    // Valida a URL de redirecionamento final
     try {
       new URL(finalRedirect);
     } catch {
-      console.error("URL de redirecionamento inválida:", {
-        finalRedirect,
-        timestamp: new Date().toISOString(),
-      });
       return {
         status: 307,
-        headers: { location: `${originUrl.origin}/auth/auth-code-error` },
-        body: { success: true },
+        headers: {
+          location: `${originUrl.origin}/auth/auth-code-error`,
+        },
       };
     }
 
-    console.info("Redirecionando usuário após autenticação:", {
-      redirectUrl: finalRedirect,
-      timestamp: new Date().toISOString(),
-    });
-
-    // Retorna resposta de redirecionamento
     return {
       status: 307,
-      headers: { location: finalRedirect },
-      body: { success: true },
+      headers: {
+        location: finalRedirect,
+      },
     };
   });
 /**
