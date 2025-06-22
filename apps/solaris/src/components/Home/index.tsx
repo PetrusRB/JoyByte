@@ -4,7 +4,7 @@ import Sidebar from "../Sidebar";
 import CreatePost from "../CreatePost";
 import PostGrid from "../Posts";
 import ContactsList from "../ContactList";
-import { Post } from "@/types";
+import { Post } from "@/schemas/post";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { orpc } from "@/libs/orpc";
 
