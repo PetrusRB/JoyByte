@@ -188,8 +188,9 @@ const Settings = memo(() => {
 
             <Card className="dark:bg-zinc-950 bg-white/80 border-none dark:text-white text-orange-700 ring-1 ring-orange-200 dark:ring-zinc-800 hover:ring-orange-700">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <DoorOpen className="w-5 h-5" /> {ConfigTrans("Danger")}
+                <CardTitle className="flex items-center gap-2 text-red-600">
+                  <DoorOpen className="w-5 h-5 text-red-600" />{" "}
+                  {ConfigTrans("Danger")}
                 </CardTitle>
                 <CardDescription>Aqui terão botões perigosos</CardDescription>
               </CardHeader>
