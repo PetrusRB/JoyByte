@@ -4,7 +4,10 @@ import { createClient } from "@/db/server";
 import { retry } from "@/middlewares/retry";
 import { z } from "zod";
 import { ORPCError, os } from "@orpc/server";
-const TRUSTED_HOSTS = new Set(["localhost", process.env.NEXT_PUBLIC_BASE_URL]);
+const TRUSTED_HOSTS = new Set([
+  "localhost",
+  process.env.NEXT_PUBLIC_ALLOWED_ORIGIN,
+]);
 const DetailedRedirectOutput = z.object({
   status: z.literal(307),
   headers: z.object({
