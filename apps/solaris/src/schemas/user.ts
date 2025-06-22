@@ -33,8 +33,8 @@ export const UserProfileSchema = z.object({
 export const UserSchema = z.object({
   id: z.string(),
   name: z.string(),
-  email: z.string().email(),
+  email: z.string().email().optional(),
   aud: z.string().optional(),
-  created_at: z.date(),
-  picture: z.string(),
+  created_at: z.date().optional(),
+  picture: z.string().optional(),
 });

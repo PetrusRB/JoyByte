@@ -58,25 +58,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    let isMounted = true;
-
-    fetchUser();
-
-    // 🔁 Evento de login/logout do Supabase
-    supabase.auth.getSession().then(({ data }) => {
-      if (!isMounted) return;
-
-      if (data.session) {
-        fetchUser();
-        console.log("Fetched user");
-        router.refresh();
-      }
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async () => {
+      await fetchUser();
     });
 
     return () => {
-      isMounted = false;
+      subscription.unsubscribe();
     };
-  }, [router]);
+  }, []);
 
   const signIn = useCallback(async (provider: Provider) => {
     await login(provider); // redireciona, se sucesso

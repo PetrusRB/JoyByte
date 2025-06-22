@@ -1,11 +1,4 @@
-"use client"
-import AuthGate from '@/components/AuthGate';
-
-const Index = () => {
-  return (
-    <AuthGate />
-  )
+import ClientWrapper from "@/components/AuthGate";
+export default async function HomePage() {
+  return <ClientWrapper />;
 }
-
-
-export default Index;

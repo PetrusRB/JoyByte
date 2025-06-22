@@ -18,7 +18,6 @@ interface BasePost {
   title: string;
   content: string;
   image: string | null;
-  likes: number;
   comments: Comment | undefined;
   created_at: string;
 }
@@ -53,12 +52,150 @@ function transformPost(post: RawPost): TransformedPost {
       full_name: post.author.full_name,
       avatar_url: post.author.avatar_url,
     } as UserMetadata,
-    likes: post.likes,
     comments: post.comments || undefined,
     created_at: new Date(post.created_at),
   };
 }
+/**
+ * Liked Count Post
+ * @param id - ID of the post
+ * @returns Count number
+ */
+export const getPostLikeCount = authed
+  .route({
+    method: "GET",
+    path: "/post/like-count",
+    summary: "Conta quantos likes um post tem",
+    tags: ["Posts"],
+  })
+  .input(z.object({ id: z.number() }))
+  .output(z.object({ count: z.number() }))
+  .handler(async ({ input }) => {
+    const supabase = await createClient();
 
+    const { count } = await supabase
+      .from("post_likes")
+      .select("*", { count: "exact", head: true })
+      .eq("post_id", input.id);
+
+    return { count: count ?? 0 };
+  });
+/**
+ * Check if User Liked Post (Alternative route for frontend compatibility)
+ * @param postId - ID of the post
+ * @param userId - ID of the user
+ * @returns Liked Data
+ */
+export const checkUserLike = authed
+  .route({
+    method: "GET",
+    path: "/post/check-user-like",
+    summary: "Verifica se um usuário específico curtiu um post",
+    tags: ["Posts"],
+  })
+  .input(
+    z.object({
+      postId: z.number(),
+      userId: z.string().uuid(),
+    }),
+  )
+  .output(z.object({ liked: z.boolean() }))
+  .handler(async ({ input }) => {
+    const supabase = await createClient();
+
+    const { data } = await supabase
+      .from("post_likes")
+      .select("post_id")
+      .eq("post_id", input.postId)
+      .eq("user_id", input.userId)
+      .maybeSingle();
+
+    return { liked: !!data };
+  });
+
+/**
+ * User Liked Post
+ * @param id - ID of the post
+ * @returns Liked Data
+ */
+export const isPostLiked = authed
+  .route({
+    method: "GET",
+    path: "/post/is-liked",
+    summary: "Verifica se o usuário curtiu um post",
+    tags: ["Posts"],
+  })
+  .input(z.object({ id: z.number() })) // id do post
+  .output(z.object({ liked: z.boolean() }))
+  .handler(async ({ input, context }) => {
+    const supabase = await createClient();
+
+    const { data } = await supabase
+      .from("post_likes")
+      .select("post_id")
+      .eq("post_id", input.id)
+      .eq("user_id", context.user.id)
+      .maybeSingle();
+
+    return { liked: !!data };
+  });
+/**
+ * Like posts
+ * @param id - ID of the post
+ * @returns Liked status
+ */
+export const likePost = authed
+  .route({
+    method: "POST",
+    path: "/post/like",
+    summary: "Like post",
+    tags: ["Posts"],
+  })
+  .input(z.object({ id: z.number() })) // id é BIGINT
+  .output(z.object({ liked: z.boolean(), count: z.number() }))
+  .handler(async ({ input, context }) => {
+    const supabase = await createClient();
+
+    const { data: existing } = await supabase
+      .from("post_likes")
+      .select("post_id")
+      .eq("post_id", input.id)
+      .eq("user_id", context.user.id)
+      .maybeSingle(); // ou single() com try/catch
+
+    if (existing) {
+      // Deslike
+      const { error: deleteError, count } = await supabase
+        .from("post_likes")
+        .delete()
+        .eq("post_id", input.id)
+        .eq("user_id", context.user.id);
+
+      if (deleteError)
+        throw new ORPCError("INTERNAL_SERVER_ERROR", {
+          message: "Erro ao descurtir",
+          cause: deleteError,
+        });
+
+      return { liked: false, count: count ?? 0 };
+    } else {
+      // Like
+      const { error: insertError, count } = await supabase
+        .from("post_likes")
+        .insert({
+          post_id: input.id,
+          user_id: context.user.id,
+        });
+
+      if (insertError)
+        throw new ORPCError("INTERNAL_SERVER_ERROR", {
+          message: "Erro ao curtir",
+          cause: insertError,
+        });
+
+      return { liked: true, count: count ?? 0 };
+    }
+  });
 /**
  * Delete posts
  * @param post_id - ID of the post
@@ -258,7 +395,7 @@ export const getUserPosts = authed
 
     const { data: posts, error } = await supabase
       .from("posts")
-      .select("id, title, content, image, author, created_at, likes, comments")
+      .select("id, title, content, image, author, created_at, comments")
       .eq("author->>id", input.user_id)
       .order("created_at", { ascending: false })
       .range(input.offset, input.offset + input.limit - 1);

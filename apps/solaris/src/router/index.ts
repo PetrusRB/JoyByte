@@ -1,5 +1,14 @@
 import { authCallback, me } from "./auth";
-import { createPost, deletePost, getPosts, getUserPosts } from "./posts";
+import {
+  checkUserLike,
+  createPost,
+  deletePost,
+  getPostLikeCount,
+  getPosts,
+  getUserPosts,
+  isPostLiked,
+  likePost,
+} from "./posts";
 import { searchUsers } from "./search";
 
 export const router = {
@@ -8,6 +17,10 @@ export const router = {
     create: createPost,
     deletePost: deletePost,
     getUser: getUserPosts,
+    like: likePost,
+    hasLiked: isPostLiked,
+    likeCount: getPostLikeCount,
+    checkUserLike: checkUserLike,
   },
   search: {
     user: searchUsers,

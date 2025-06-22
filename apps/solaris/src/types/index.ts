@@ -1,3 +1,4 @@
+import { Post } from "@/schemas/post";
 import { UserMetadata } from "@supabase/supabase-js";
 
 // Types
@@ -68,15 +69,4 @@ export interface Comment {
   author: User;
   content: string;
   createdAt: Date;
-}
-
-export interface Post {
-  id: number;
-  author: UserMetadata;
-  title: string;
-  content: string;
-  image?: string;
-  likes: number;
-  comments: Comment[];
-  created_at: Date;
 }
