@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/Input";
 import { useAuth } from "@/contexts/auth/AuthContext";
 import { useTranslations } from "use-intl";
 import { useCallback, useRef, useState, useTransition } from "react";
-import ky from "ky";
+import { orpc } from "@/libs/orpc";
 
 export default function CreatePost() {
   const { user } = useAuth();
@@ -52,17 +52,12 @@ export default function CreatePost() {
 
     startTransition(async () => {
       try {
-        const res = await ky
-          .post("/api/post/create", {
-            json: {
-              title: trimmedTitle,
-              content: trimmedContent,
-            },
-            signal: controller.signal,
-          })
-          .json<{ data: any }>();
+        const res = await orpc.post.create.call({
+          title: trimmedTitle,
+          content: trimmedContent,
+        });
 
-        console.log("Post criado:", res.data);
+        console.log("Post criado:", res);
         setTitle("");
         setContent("");
         setSuccess(true);

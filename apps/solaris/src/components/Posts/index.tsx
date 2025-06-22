@@ -8,17 +8,19 @@ import {
   formatRelativeTime,
   getUserSlug,
 } from "@/libs/utils";
-import { Post as PostType } from "@/types";
+
 import { ThumbsUp, MessageCircle, MoreVertical, TrashIcon } from "lucide-react";
 import { Dropdown, Skeleton } from "antd";
+import { Button } from "@/components/Button";
 import { useAuth } from "@/contexts/auth/AuthContext";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { toast } from "sonner";
 import { Input } from "../ui/Input";
-import { RequestButton } from "../RequestButton";
 import type { MenuProps } from "antd";
 import DynamicPopup from "../DynamicPopup";
+import { orpc } from "@/libs/orpc";
+import { Post } from "@/schemas/post";
 
 // Lazy loading components
 const DynamicMedia = dynamic(() => import("../DynamicMedia"), { ssr: false });
@@ -33,25 +35,42 @@ const ContentPreview = dynamic(() => import("../ContentPreview"), {
 });
 
 type PostGridProps = {
-  data: PostType[];
+  data: Post[];
   loading: boolean;
   error: string | null;
 };
 
-const PostCard: React.FC<PostType> = memo(
+const PostCard: React.FC<Post> = memo(
   ({ id, title, content, created_at, likes, image, author }) => {
     const { user } = useAuth();
     const router = useRouter();
     const [deletePop, setDeletePop] = useState<boolean>(false);
     const [comments, setComments] = useState<string[]>([]);
     const [newComment, setNewComment] = useState("");
-    const [showComments, setShowComments] = useState(false);
+    const [showComments, setShowComments] = useState<boolean>(false);
+    const [deleteDisabled, setDisabledDelete] = useState<boolean>(false);
 
     const handleAddComment = useCallback(() => {
       if (!newComment.trim()) return;
       setComments((prev) => [...prev, newComment]);
       setNewComment("");
     }, [newComment]);
+    const handleDelete = useCallback(async () => {
+      setDisabledDelete(true);
+      const res = await orpc.post.deletePost.call({
+        post_id: id,
+      });
+      if (!res) {
+        toast("Falha ao deletar o post.");
+        setDisabledDelete(false);
+        return;
+      }
+      setDeletePop(false);
+      setDisabledDelete(false);
+      toast(
+        "O Post foi deletado, recarregue a pagina para visualizar as alterações",
+      );
+    }, [deleteDisabled]);
 
     const handleAvatarClick = useCallback(() => {
       if (!author) {
@@ -154,7 +173,9 @@ const PostCard: React.FC<PostType> = memo(
 
           <DynamicPopup
             isOpen={deletePop}
-            onClose={() => setDeletePop(false)}
+            onClose={() => {
+              setDeletePop(false);
+            }}
             size="sm"
           >
             <div className="text-center space-y-6 p-6">
@@ -164,17 +185,14 @@ const PostCard: React.FC<PostType> = memo(
                 </h2>
               </div>
               <div className="flex flex-wrap gap-3 justify-center">
-                <RequestButton
-                  url="/api/post/delete"
-                  method="POST"
-                  body={{ id: id }}
-                  onSuccess={() => setDeletePop(false)}
-                  message="Deletado com sucesso, recarregue a página para visualizar as alterações."
-                  label="Deletar"
-                  className="flex flex-row-reverse text-left px-4 py-2 dark:text-red-600 text-red-600"
+                <Button
+                  onClick={() => handleDelete()}
+                  disabled={deleteDisabled}
+                  className="flex text-left px-4 py-2 bg-orange-200 dark:bg-zinc-950 border border-orange-300 dark:border-zinc-800 dark:text-red-600 text-red-600"
                 >
-                  <TrashIcon color="white" />
-                </RequestButton>
+                  <TrashIcon className="text-red-600" />
+                  Deletar
+                </Button>
               </div>
             </div>
           </DynamicPopup>

@@ -64,7 +64,7 @@ const Sidebar = () => {
                 "w-full justify-start h-12 px-4 rounded-xl transition-all duration-200 bg-transparent hover:scale-[1.02]",
                 item.active
                   ? "bg-gradient-to-r from-orange-500 to-orange-700 hover:from-orange-600 hover:to-orange-700 text-white shadow-sm"
-                  : "text-orange-500 hover:bg-orange-100 hover:text-orange-800",
+                  : "hover:bg-orange-100 text-orange-500 hover:text-orange-800",
               )}
             >
               <item.icon

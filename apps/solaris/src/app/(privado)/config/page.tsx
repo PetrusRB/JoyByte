@@ -147,7 +147,6 @@ const Settings = memo(() => {
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="Seu nome completo"
-                    className="border-orange-200 bg-zinc-100 dark:bg-zinc-800"
                   />
                 </div>
                 <div className="space-y-2">
@@ -158,7 +157,6 @@ const Settings = memo(() => {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="jubiscleudon@email.com"
-                    className="border-orange-200 bg-zinc-100 dark:bg-zinc-800"
                   />
                 </div>
               </CardContent>

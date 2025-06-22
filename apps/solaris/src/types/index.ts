@@ -67,11 +67,11 @@ export interface Comment {
   id: string;
   author: User;
   content: string;
-  createdAt: string;
+  createdAt: Date;
 }
 
 export interface Post {
-  id: string;
+  id: number;
   author: UserMetadata;
   title: string;
   content: string;

@@ -1,16 +1,12 @@
-import { Post } from "@/types";
+import { Post } from "@/schemas/post";
 import { useQuery } from "@tanstack/react-query";
-import ky from "ky";
+import { orpc } from "@/libs/orpc"; // Certifique-se de que o orpc está configurado corretamente
 
 export const useCachedPosts = (userId: string) => {
   return useQuery<Post[]>({
     queryKey: ["cachedPosts", userId],
     queryFn: async () => {
-      const { posts } = await ky
-        .post("/api/post/user/get", {
-          json: { user_id: userId },
-        })
-        .json<{ posts: Post[] }>();
+      const posts = await orpc.post.getUser.call({ user_id: userId });
       return posts;
     },
     enabled: Boolean(userId),

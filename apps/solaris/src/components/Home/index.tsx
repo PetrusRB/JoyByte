@@ -6,7 +6,7 @@ import PostGrid from "../Posts";
 import ContactsList from "../ContactList";
 import { Post } from "@/types";
 import { useInfiniteQuery } from "@tanstack/react-query";
-import ky from "ky";
+import { orpc } from "@/libs/orpc";
 
 const contacts = [
   {
@@ -56,18 +56,18 @@ const contacts = [
   },
 ];
 
-// Simulação de uma API paginada
+// API paginada
 const fetchPage = async (
   page: number,
 ): Promise<{ posts: Post[]; nextPage: number | null }> => {
-  const res = await ky
-    .get("/api/post/get", { searchParams: { page, limit: 5 } })
-    .json<{ data: Post[] }>();
+  const PAGE_SIZE = 5;
+  const offset = (page - 1) * PAGE_SIZE;
 
-  // Simula o final da paginação
-  const hasMore = res.data.length === 5;
+  // Substituído ky por orpc
+  const posts = await orpc.post.get.call({ limit: PAGE_SIZE, offset });
+  const hasMore = posts.length === PAGE_SIZE;
   return {
-    posts: res.data,
+    posts,
     nextPage: hasMore ? page + 1 : null,
   };
 };

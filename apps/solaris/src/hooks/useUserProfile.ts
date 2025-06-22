@@ -1,86 +1,60 @@
-import { useEffect, useRef, useState } from "react";
-import { UserProfile } from "@/types";
-import ky from "ky";
+"use client";
 
-export function useUserProfile(rawUsername: string | undefined) {
-  const [user, setUser] = useState<UserProfile | null>(null);
-  const [duplicates, setDuplicates] = useState<UserProfile[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const cache = useRef<Record<string, UserProfile>>({});
-  const abortRef = useRef<AbortController | null>(null);
-  const lastFetchedUsername = useRef<string | undefined>(undefined);
+import { useQuery } from "@tanstack/react-query";
+import { orpc } from "@/libs/orpc";
+import { UserProfile } from "@/schemas/user";
 
-  useEffect(() => {
-    const username = rawUsername?.trim();
-    if (!username || username === lastFetchedUsername.current) return;
+export function useUserProfile(rawUsername?: string) {
+  const username = rawUsername?.trim();
 
-    // Se estiver em cache, resolve imediatamente
-    if (cache.current[username]) {
-      setUser(cache.current[username]);
-      setDuplicates([]);
-      setLoading(false);
-      setError(null);
-      lastFetchedUsername.current = username;
-      return;
-    }
-
-    setLoading(true);
-    setError(null);
-
-    // Cancela requisições antigas
-    const abortController = new AbortController();
-    abortRef.current?.abort();
-    abortRef.current = abortController;
-
-    const fetchUser = async () => {
-      try {
-        const response = await ky.get("/api/search/user", {
-          searchParams: { user: username },
-          signal: abortController.signal,
-        });
-
-        // Se status não ok, tentar extrair mensagem de erro
-        if (!response.ok) {
-          let msg = `Erro ${response.status}`;
-          try {
-            const data = await response.json() as any;
-            if (data && typeof data.error === "string") msg = data.error;
-          } catch (_) {
-            // não conseguiu parsear JSON
-          }
-          throw new Error(msg);
-        }
-
-        // parse JSON fora do try de status
-        const res = await response.json<{ data: { users: UserProfile[] } }>();
-        const users = res.data.users;
-        const primary = users[0] ?? null;
-
-        // Atualiza cache e estado
-        cache.current[username] = primary;
-        lastFetchedUsername.current = username;
-        setUser(primary);
-        setDuplicates(users.slice(1));
-      } catch (err: any) {
-        if (!abortController.signal.aborted) {
-          const message = err instanceof Error ? err.message : String(err);
-          console.error("[useUserProfile] ", message);
-          setError(message || "Erro ao buscar perfil");
-        }
-      } finally {
-        if (!abortController.signal.aborted) {
-          setLoading(false);
-        }
+  const query = useQuery({
+    queryKey: ["userProfile", username],
+    queryFn: async () => {
+      if (!username) {
+        return {
+          primary: null as UserProfile | null,
+          duplicates: [] as UserProfile[],
+        };
       }
-    };
+      const { users } = await orpc.search.user.call({ user: username });
 
-    fetchUser();
+      // Mapeia do Supabase para UserProfile, preenchendo todos os campos
+      const mapped: UserProfile[] = users.map((u) => ({
+        id: u.id,
+        name:
+          (u.raw_user_meta_data?.name as string) ||
+          u.normalized_name ||
+          "Sem nome",
+        email: u.email ?? "",
+        picture:
+          (u.raw_user_meta_data?.avatar_url as string) ||
+          u.banner ||
+          "/user.png",
+        bio: u.bio ?? "",
+        banner: u.banner ?? "",
+        created_at: u.created_at,
+        // Campos obrigatórios que faltavam
+        raw_user_meta_data: u.raw_user_meta_data ?? {},
+        normalized_name: u.normalized_name ?? "",
+        posts: u.posts ?? [],
+      }));
 
-    return () => {
-      abortController.abort();
-    };
-  }, [rawUsername]);
+      return {
+        primary: mapped[0] ?? null,
+        duplicates: mapped.slice(1),
+      };
+    },
+    enabled: Boolean(username),
+    staleTime: 1000 * 60 * 5, // 5 minutos
+    retry: 1,
+    refetchOnWindowFocus: false,
+  });
 
-  return { user, duplicates, loading, error, setUser, setDuplicates };
+  return {
+    user: query.data?.primary ?? null,
+    duplicates: query.data?.duplicates ?? [],
+    loading: query.isLoading,
+    error: query.isError ? (query.error as Error).message : null,
+    refetch: query.refetch,
+  };
 }

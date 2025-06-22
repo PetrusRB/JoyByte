@@ -1,6 +1,12 @@
 "use client";
 
-import React, { useCallback, useState, useMemo, Suspense } from "react";
+import React, {
+  useCallback,
+  useState,
+  useMemo,
+  Suspense,
+  useEffect,
+} from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/auth/AuthContext";
 import { Button } from "@/components/Button";
@@ -18,12 +24,14 @@ import {
 } from "lucide-react";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { Skeleton } from "antd";
-import { Post, UserProfile } from "@/types";
+
 import { useCachedPosts } from "@/hooks/useCachedPosts";
 import { Loading } from "@/components/Loading";
 import { Image as AntdImage } from "antd";
 import Image from "next/image";
 import { DEFAULT_AVATAR, DEFAULT_BANNER } from "@/libs/utils";
+import { UserProfile } from "@/schemas/user";
+import { Post } from "@/schemas/post";
 
 interface MemoAvatarProps {
   user: UserProfile | null;
@@ -36,7 +44,7 @@ interface MemoUserProps {
 const MemoAvatar = React.memo<MemoAvatarProps>(({ user, onClick }) => (
   <div className="relative group cursor-pointer" onClick={onClick}>
     <AntdImage
-      src={user?.raw_user_meta_data.picture ?? DEFAULT_AVATAR}
+      src={user?.raw_user_meta_data?.picture ?? DEFAULT_AVATAR}
       className="rounded-full border-4 border-white shadow-lg"
       width={96}
       height={96}
@@ -75,7 +83,7 @@ const MemoUserPosts = React.memo<MemoUserProps>(({ posts }) => {
 interface ProfileProps {
   user: UserProfile | null;
   posts: Post[] | undefined;
-  duplicates: UserProfile[];
+  duplicates: UserProfile[]; // Add this line
   loading: boolean;
   loadingPosts: boolean;
   failedPosts: boolean;
@@ -193,9 +201,9 @@ const Profile = React.memo<ProfileProps>(
               >
                 <div className="flex items-center justify-center lg:justify-start gap-2 mb-2">
                   <h1 className="text-xl sm:text-2xl font-bold">
-                    {user.raw_user_meta_data.name}
+                    {user?.raw_user_meta_data.name ?? "Misterioso(a)"}
                   </h1>
-                  {user.raw_user_meta_data.verified && (
+                  {user?.raw_user_meta_data.verified && (
                     <Badge className="bg-zinc-700" />
                   )}
                 </div>
@@ -268,13 +276,26 @@ const Profile = React.memo<ProfileProps>(
                 </Button>
               ) : (
                 <div className="flex gap-2">
-                  <Button className="bg-zinc-700 text-white rounded-full px-4 py-2 hover:bg-zinc-600 transition-colors">
+                  <Button
+                    className="group inline-flex items-center gap-2 px-4 py-2 rounded-full border transition-all duration-200 ease-in-out
+                      border-orange-300 bg-orange-100 text-orange-900
+                      hover:bg-orange-200 hover:border-orange-400 hover:shadow-sm
+                      dark:border-orange-200/30 dark:bg-zinc-900 dark:text-orange-100
+                      dark:hover:bg-zinc-800 dark:hover:border-orange-200/50
+                      focus:outline-none focus:ring-2 focus:ring-orange-300 focus:ring-offset-2 dark:focus:ring-orange-400 dark:focus:ring-offset-zinc-900
+                      active:scale-95"
+                  >
                     <Users className="w-4 h-4 mr-2" /> Seguir
                   </Button>
                   <Button
                     variant="outline"
                     size="icon"
-                    className="border-zinc-600 hover:bg-zinc-800 rounded-full"
+                    className="group inline-flex items-center rounded-full border transition-all duration-200 ease-in-out
+                      border-orange-300 bg-orange-100 text-orange-900
+                      hover:bg-orange-200 hover:border-orange-400 hover:shadow-sm
+                      dark:border-orange-200/30 dark:bg-zinc-900 dark:text-orange-100
+                      dark:hover:bg-zinc-800 dark:hover:border-orange-200/50
+                      focus:outline-none focus:ring-2 focus:ring-orange-300 focus:ring-offset-2 dark:focus:ring-orange-400 dark:focus:ring-offset-zinc-900"
                   >
                     <Mail className="w-4 h-4" />
                   </Button>
@@ -363,37 +384,52 @@ const Profile = React.memo<ProfileProps>(
 
 const ProfileData: React.FC = () => {
   const { id: username } = useParams<{ id: string }>();
-  const { user, duplicates, loading, error, setUser, setDuplicates } =
-    useUserProfile(username ?? "");
+  const {
+    user: queryUser,
+    duplicates: queryDuplicates,
+    loading,
+    error,
+  } = useUserProfile(username ?? "");
+  const [selectedUser, setSelectedUser] = useState<UserProfile | null>(
+    queryUser,
+  );
+  const [selectedDuplicates, setSelectedDuplicates] =
+    useState<UserProfile[]>(queryDuplicates);
 
-  // Chama sempre, mesmo que user ainda seja null
+  useEffect(() => {
+    if (queryUser && !selectedUser) {
+      setSelectedUser(queryUser);
+      setSelectedDuplicates(queryDuplicates);
+    }
+  }, [queryUser, queryDuplicates, selectedUser]);
+
   const {
     data: posts,
     isLoading: loadingPosts,
-    isError: errorPost,
-  } = useCachedPosts(user?.id ?? "");
+    isError: failedPosts,
+  } = useCachedPosts(selectedUser?.id ?? "");
 
   if (!username) return null;
   if (loading) return <Loading />;
   if (error) return <p>Erro ao carregar perfil</p>;
+  if (!selectedUser) return <p>Carregando...</p>;
 
   return (
     <Suspense
       fallback={<div className="p-6 text-center">Carregando perfil...</div>}
     >
       <Profile
-        user={user}
+        user={selectedUser}
         posts={posts}
-        duplicates={duplicates}
+        duplicates={selectedDuplicates}
         loadingPosts={loadingPosts}
         loading={loading}
         error={error}
-        failedPosts={errorPost}
-        setUser={setUser}
-        setDuplicates={setDuplicates}
+        failedPosts={failedPosts}
+        setUser={setSelectedUser}
+        setDuplicates={setSelectedDuplicates}
       />
     </Suspense>
   );
 };
-
 export default ProfileData;
