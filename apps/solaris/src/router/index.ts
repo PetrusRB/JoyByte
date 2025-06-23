@@ -1,9 +1,9 @@
 import { authCallback, me } from "./auth";
 import {
+  batchGetPostLikeData,
   checkUserLike,
   createPost,
   deletePost,
-  getPostLikeCount,
   getPosts,
   getUserPosts,
   isPostLiked,
@@ -19,7 +19,7 @@ export const router = {
     getUser: getUserPosts,
     like: likePost,
     hasLiked: isPostLiked,
-    likeCount: getPostLikeCount,
+    batchGetPostLikeData: batchGetPostLikeData,
     checkUserLike: checkUserLike,
   },
   search: {

@@ -7,7 +7,6 @@ import React, {
   useMemo,
   Suspense,
   useEffect,
-  useRef,
 } from "react";
 import dynamic from "next/dynamic";
 import {
@@ -16,11 +15,9 @@ import {
   formatRelativeTime,
   getUserSlug,
 } from "@/libs/utils";
-
 import { MessageCircle, MoreVertical, TrashIcon, Heart } from "lucide-react";
 import { Dropdown, Skeleton } from "antd";
 import { Button } from "@/components/Button";
-import { useAuth } from "@/contexts/auth/AuthContext";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { toast } from "sonner";
@@ -29,31 +26,40 @@ import type { MenuProps } from "antd";
 import DynamicPopup from "../DynamicPopup";
 import { orpc } from "@/libs/orpc";
 import { PostWithCount } from "@/schemas/post";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { User } from "@/types";
+import supabase from "@/db";
+import { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
+import { debounce } from "lodash"; // Ensure lodash is installed: `npm install lodash`
 
-// Lazy loading components
+interface PostLike {
+  post_id: number;
+  user_id: string;
+}
+
+const isPostLike = (obj: {} | PostLike): obj is PostLike => {
+  return "post_id" in obj && typeof obj.post_id === "number";
+};
+
 const DynamicMedia = dynamic(() => import("../DynamicMedia"), { ssr: false });
 const DynamicMediaSkeleton = () => (
-  <div className="animate-pulse bg-gray-200 dark:bg-zinc-800 h-60 w-full rounded-lg" />
+  <div className="bg-gray-200 dark:bg-zinc-800 h-60 w-full rounded-lg" />
 );
 const ContentPreview = dynamic(() => import("../ContentPreview"), {
   ssr: false,
-  loading: () => (
-    <Skeleton className="h-64 w-full rounded-lg bg-zinc-700 animate-pulse" />
-  ),
+  loading: () => <Skeleton className="h-64 w-full rounded-lg bg-zinc-700" />,
 });
 
 type PostGridProps = {
   data: PostWithCount[];
   loading: boolean;
   error: string | null;
+  user: User | null;
 };
 
 interface LikeState {
   count: number;
   liked: boolean;
-  isOptimistic: boolean;
   isLoading: boolean;
 }
 
@@ -74,140 +80,74 @@ const PostCard: React.FC<PostWithCount & { user: User | null }> = memo(
     const [newComment, setNewComment] = useState("");
     const [showComments, setShowComments] = useState(false);
     const [deleteDisabled, setDisabledDelete] = useState(false);
-    const likeAnimationRef = useRef<HTMLDivElement>(null);
 
-    // Estado consolidado para likes
+    // Initialize like state
     const [likeState, setLikeState] = useState<LikeState>({
       count: initialLikeCount,
       liked: false,
-      isOptimistic: false,
-      isLoading: false,
+      isLoading: !!user, // Loading true if user is logged in
     });
 
-    const queryClient = useQueryClient();
-
-    // Query para buscar dados de like do usuário e contagem
-    const { data: likeData } = useQuery({
-      queryKey: ["post-like-data", id, user?.id],
-      queryFn: async () => {
-        if (!user?.id) return { count: initialLikeCount, liked: false };
-
-        const [countResult, likeResult] = await Promise.all([
-          orpc.post.likeCount.call({ id }),
-          orpc.post.checkUserLike.call({ postId: id, userId: user.id }),
-        ]);
-
-        return {
-          count: countResult.count,
-          liked: likeResult.liked,
-        };
-      },
-      enabled: !!user,
-      staleTime: 1000 * 60 * 2, // 2 minutos
-      refetchOnWindowFocus: false,
-      refetchOnMount: false,
-    });
-
-    // Atualizar estado local quando dados reais chegam
+    // Listen for like updates via custom events
     useEffect(() => {
-      if (!likeState.isOptimistic && likeData) {
-        setLikeState((prev) => {
-          const safeCount =
-            likeData.count === 0 && prev.count > 0
-              ? prev.count
-              : likeData.count;
-
-          return {
-            ...prev,
-            count: safeCount,
-            liked: likeData.liked,
+      const handleLikeUpdate = (event: CustomEvent) => {
+        if (event.detail.postId === id) {
+          setLikeState({
+            count: event.detail.count,
+            liked: user ? event.detail.liked : false,
             isLoading: false,
-          };
-        });
-      }
-    }, [likeData, likeState.isOptimistic]);
+          });
+        }
+      };
 
-    // Mutation otimizada para toggle de like
-    const toggleLikeMutation = useMutation({
-      mutationFn: async () => {
-        const result = await orpc.post.like.call({ id });
-        return result;
-      },
+      window.addEventListener("likeUpdate", handleLikeUpdate as EventListener);
+      return () => {
+        window.removeEventListener(
+          "likeUpdate",
+          handleLikeUpdate as EventListener,
+        );
+      };
+    }, [id, user]);
+
+    const toggleLikeMutation = useMutation<
+      { liked: boolean; count: number },
+      unknown,
+      void,
+      { previousState: LikeState }
+    >({
+      mutationFn: () => orpc.post.like.call({ id }),
       onMutate: async () => {
         if (!user) {
           toast.error("Faça login para curtir posts");
           throw new Error("Not authenticated");
         }
 
-        // Cancelar queries em andamento
-        await queryClient.cancelQueries({
-          queryKey: ["post-like-data", id, user.id],
-        });
-
-        // Snapshot do estado anterior
-        const previousState = { ...likeState };
-
-        // Update otimista
-        const newCount = likeState.liked
-          ? Math.max(0, likeState.count - 1)
-          : likeState.count + 1;
-
+        const previousState = likeState;
         setLikeState((prev) => ({
           ...prev,
-          count: newCount,
+          count: prev.liked ? Math.max(0, prev.count - 1) : prev.count + 1,
           liked: !prev.liked,
-          isOptimistic: true,
           isLoading: true,
         }));
-
-        // Animação de like
-        if (likeAnimationRef.current && !likeState.liked) {
-          likeAnimationRef.current.style.transform = "scale(1.2)";
-          setTimeout(() => {
-            if (likeAnimationRef.current) {
-              likeAnimationRef.current.style.transform = "scale(1)";
-            }
-          }, 200);
-        }
-
         return { previousState };
       },
       onError: (error, variables, context) => {
-        // Reverter para estado anterior
-        if (context?.previousState) {
-          setLikeState(context.previousState);
-        }
-
-        console.error("Erro ao curtir post:", error);
+        setLikeState(context?.previousState || likeState);
         toast.error("Não foi possível curtir o post. Tente novamente.");
       },
       onSuccess: (data) => {
         setLikeState((prev) => ({
           ...prev,
-          count: data?.count ?? prev.count,
-          liked: data?.liked ?? prev.liked,
-          isOptimistic: false,
+          count: data.count,
+          liked: data.liked,
           isLoading: false,
         }));
       },
-      onSettled: () => {
-        setLikeState((prev) => ({ ...prev, isLoading: false }));
-
-        queryClient.refetchQueries({
-          queryKey: ["post-like-data", id, user?.id],
-          exact: true,
-        });
-      },
     });
-    const fallbackLikeCount = likeData?.count ?? initialLikeCount;
-    const handleToggleLike = useCallback(async () => {
-      if (toggleLikeMutation.isPending || likeState.isLoading) return;
 
-      try {
-        await toggleLikeMutation.mutateAsync();
-      } catch (error) {
-        // Erro já tratado no onError
-      }
+    const handleToggleLike = useCallback(() => {
+      if (toggleLikeMutation.isPending || likeState.isLoading) return;
+      toggleLikeMutation.mutate();
     }, [toggleLikeMutation, likeState.isLoading]);
 
     const handleAddComment = useCallback(() => {
@@ -238,16 +178,13 @@ const PostCard: React.FC<PostWithCount & { user: User | null }> = memo(
 
         setDeletePop(false);
         toast.success("Post deletado com sucesso!");
-
-        // Invalidar cache para atualizar a lista
-        queryClient.invalidateQueries({ queryKey: ["posts"] });
       } catch (error) {
         console.error("Erro ao deletar post:", error);
         toast.error("Falha ao deletar o post. Tente novamente.");
       } finally {
         setDisabledDelete(false);
       }
-    }, [id, user, author, queryClient]);
+    }, [id, user, author]);
 
     const handleAvatarClick = useCallback(() => {
       if (!author) {
@@ -283,14 +220,13 @@ const PostCard: React.FC<PostWithCount & { user: User | null }> = memo(
       [],
     );
 
-    // Componente LikeButton otimizado
     const LikeButton = useMemo(
       () => (
         <button
           onClick={handleToggleLike}
           disabled={likeState.isLoading || toggleLikeMutation.isPending}
           className={`
-            flex items-center space-x-2 p-2 rounded-lg transition-all duration-200
+            flex items-center space-x-2 p-2 rounded-lg
             focus:ring-2 focus:ring-orange-500 focus:outline-none
             ${
               likeState.liked
@@ -301,42 +237,13 @@ const PostCard: React.FC<PostWithCount & { user: User | null }> = memo(
           `}
           aria-label={likeState.liked ? "Descurtir post" : "Curtir post"}
         >
-          <div
-            ref={likeAnimationRef}
-            className="relative transition-transform duration-200"
-          >
-            {likeState.liked ? (
-              <Heart
-                size={18}
-                className="fill-current text-red-500 animate-pulse"
-              />
-            ) : (
-              <Heart
-                size={18}
-                className={likeState.isLoading ? "animate-pulse" : ""}
-              />
-            )}
-
-            {/* Indicador de estado otimista */}
-            {likeState.isOptimistic && (
-              <div className="absolute -top-1 -right-1 w-2 h-2 bg-orange-400 rounded-full animate-ping" />
-            )}
-          </div>
-
-          <span
-            className={`
-            font-medium text-sm transition-colors
-            ${likeState.isOptimistic ? "text-orange-500" : ""}
-            ${likeState.isLoading ? "animate-pulse" : ""}
-          `}
-          >
-            {formatNumber(fallbackLikeCount)}
+          <Heart
+            size={18}
+            className={likeState.liked ? "fill-current text-red-500" : ""}
+          />
+          <span className="font-medium text-sm">
+            {formatNumber(likeState.count)}
           </span>
-
-          {/* Loading spinner */}
-          {likeState.isLoading && (
-            <div className="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin opacity-60" />
-          )}
         </button>
       ),
       [handleToggleLike, likeState, toggleLikeMutation.isPending],
@@ -541,9 +448,80 @@ const PostCard: React.FC<PostWithCount & { user: User | null }> = memo(
 
 PostCard.displayName = "PostCard";
 
-const PostGrid: React.FC<PostGridProps> = ({ data, loading, error }) => {
+const PostGrid: React.FC<PostGridProps> = ({ data, loading, error, user }) => {
   const memoizedData = useMemo(() => data, [data]);
-  const { user } = useAuth();
+
+  useEffect(() => {
+    if (!user || !data.length) return;
+
+    const postIds = data.map((post) => post.id);
+    const pendingUpdates = new Set<number>();
+
+    // Initial batch fetch
+    orpc.post.batchGetPostLikeData
+      .call({ ids: postIds })
+      .then((results) => {
+        results.forEach(({ postId, liked, count }) => {
+          const event = new CustomEvent("likeUpdate", {
+            detail: { postId, liked, count },
+          });
+          window.dispatchEvent(event);
+        });
+      })
+      .catch((error) => {
+        console.error("Erro ao buscar dados de like em lote:", error);
+        toast.error("Falha ao carregar curtidas.");
+      });
+
+    // Debounced batch update for real-time changes
+    const debouncedUpdate = debounce(() => {
+      if (pendingUpdates.size === 0) return;
+      const ids = Array.from(pendingUpdates);
+      pendingUpdates.clear();
+      orpc.post.batchGetPostLikeData
+        .call({ ids })
+        .then((results) => {
+          results.forEach(({ postId, liked, count }) => {
+            const event = new CustomEvent("likeUpdate", {
+              detail: { postId, liked, count },
+            });
+            window.dispatchEvent(event);
+          });
+        })
+        .catch((error) => {
+          console.error("Erro ao atualizar curtidas em lote:", error);
+          toast.error("Falha ao atualizar curtidas.");
+        });
+    }, 300);
+
+    // Real-time subscription
+    const channel = supabase
+      .channel("post_likes")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "post_likes",
+          filter: `post_id=in.(${postIds.join(",")})`,
+        },
+        (payload: RealtimePostgresChangesPayload<PostLike>) => {
+          const postId = isPostLike(payload.new)
+            ? payload.new.post_id
+            : isPostLike(payload.old)
+              ? payload.old.post_id
+              : null;
+          if (!postId || !postIds.includes(postId)) return;
+          pendingUpdates.add(postId);
+          debouncedUpdate();
+        },
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [data, user]);
 
   if (loading) {
     return (
@@ -551,7 +529,7 @@ const PostGrid: React.FC<PostGridProps> = ({ data, loading, error }) => {
         {Array.from({ length: 6 }).map((_, i) => (
           <div
             key={`skeleton-${i}`}
-            className="animate-pulse bg-gray-200 dark:bg-zinc-800 h-60 rounded-2xl"
+            className="bg-gray-200 dark:bg-zinc-800 h-60 rounded-2xl"
           />
         ))}
       </div>

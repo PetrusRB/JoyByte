@@ -56,6 +56,87 @@ function transformPost(post: RawPost): TransformedPost {
     created_at: new Date(post.created_at),
   };
 }
+
+/**
+ * Batch Get Post Like Data
+ * @param ids - Array of post IDs
+ * @returns Like data for multiple posts
+ */
+export const batchGetPostLikeData = authed
+  .route({
+    method: "POST",
+    path: "/post/batch-like-data",
+    summary:
+      "Retorna curtidas do usuário + total de likes para múltiplos posts",
+    tags: ["Posts"],
+  })
+  .input(z.object({ ids: z.array(z.number()) }))
+  .output(
+    z.array(
+      z.object({ postId: z.number(), liked: z.boolean(), count: z.number() }),
+    ),
+  )
+  .handler(async ({ input, context }) => {
+    const supabase = await createClient();
+
+    const { data, error } = await supabase.rpc("batch_get_post_like_data", {
+      post_ids_input: input.ids,
+      user_id_input: context.user.id,
+    });
+
+    if (error || !data) {
+      console.error("Erro ao buscar dados de like em lote:", error);
+      throw new ORPCError("INTERNAL_SERVER_ERROR", {
+        message: "Erro ao buscar dados de curtida em lote",
+        cause: error,
+      });
+    }
+
+    return (Array.isArray(data) ? data : []).map((result: any) => ({
+      postId: Number(result.post_id),
+      liked: Boolean(result.liked),
+      count: Number(result.count ?? 0),
+    }));
+  });
+
+/**
+ * Like Post
+ * @param id - ID of the post
+ * @returns Liked status and updated count
+ */
+export const likePost = authed
+  .route({
+    method: "POST",
+    path: "/post/like",
+    summary: "Like post",
+    tags: ["Posts"],
+  })
+  .input(z.object({ id: z.number() }))
+  .output(z.object({ liked: z.boolean(), count: z.number() }))
+  .handler(async ({ input, context }) => {
+    const supabase = await createClient();
+
+    const { data, error } = await supabase.rpc("toggle_post_like", {
+      post_id_input: input.id,
+      user_id_input: context.user.id,
+    });
+
+    if (error || !data) {
+      console.error("Erro ao curtir/descurtir post:", error);
+      throw new ORPCError("INTERNAL_SERVER_ERROR", {
+        message: "Erro ao curtir/descurtir post",
+        cause: error,
+      });
+    }
+
+    const result = Array.isArray(data) ? data[0] : data;
+
+    return {
+      liked: Boolean(result.liked),
+      count: Number(result.count ?? 0),
+    };
+  });
+
 /**
  * Liked Count Post
  * @param id - ID of the post
@@ -80,8 +161,9 @@ export const getPostLikeCount = authed
 
     return { count: count ?? 0 };
   });
+
 /**
- * Check if User Liked Post (Alternative route for frontend compatibility)
+ * Check if User Liked Post
  * @param postId - ID of the post
  * @param userId - ID of the user
  * @returns Liked Data
@@ -125,7 +207,7 @@ export const isPostLiked = authed
     summary: "Verifica se o usuário curtiu um post",
     tags: ["Posts"],
   })
-  .input(z.object({ id: z.number() })) // id do post
+  .input(z.object({ id: z.number() }))
   .output(z.object({ liked: z.boolean() }))
   .handler(async ({ input, context }) => {
     const supabase = await createClient();
@@ -138,63 +220,6 @@ export const isPostLiked = authed
       .maybeSingle();
 
     return { liked: !!data };
-  });
-/**
- * Like posts
- * @param id - ID of the post
- * @returns Liked status
- */
-export const likePost = authed
-  .route({
-    method: "POST",
-    path: "/post/like",
-    summary: "Like post",
-    tags: ["Posts"],
-  })
-  .input(z.object({ id: z.number() })) // id é BIGINT
-  .output(z.object({ liked: z.boolean(), count: z.number() }))
-  .handler(async ({ input, context }) => {
-    const supabase = await createClient();
-
-    const { data: existing } = await supabase
-      .from("post_likes")
-      .select("post_id")
-      .eq("post_id", input.id)
-      .eq("user_id", context.user.id)
-      .maybeSingle(); // ou single() com try/catch
-
-    if (existing) {
-      // Deslike
-      const { error: deleteError, count } = await supabase
-        .from("post_likes")
-        .delete()
-        .eq("post_id", input.id)
-        .eq("user_id", context.user.id);
-
-      if (deleteError)
-        throw new ORPCError("INTERNAL_SERVER_ERROR", {
-          message: "Erro ao descurtir",
-          cause: deleteError,
-        });
-
-      return { liked: false, count: count ?? 0 };
-    } else {
-      // Like
-      const { error: insertError, count } = await supabase
-        .from("post_likes")
-        .insert({
-          post_id: input.id,
-          user_id: context.user.id,
-        });
-
-      if (insertError)
-        throw new ORPCError("INTERNAL_SERVER_ERROR", {
-          message: "Erro ao curtir",
-          cause: insertError,
-        });
-
-      return { liked: true, count: count ?? 0 };
-    }
   });
 /**
  * Delete posts

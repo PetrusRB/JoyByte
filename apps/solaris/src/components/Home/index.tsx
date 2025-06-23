@@ -37,7 +37,7 @@ const contacts: Contact[] = [
   },
 ];
 
-type HomeProps = {
+type HomeFormProps = {
   initialPages?: { posts: PostWithCount[]; nextPage: number | null }[];
 };
 
@@ -50,26 +50,21 @@ const fetchPage = async (
 
   const posts: Post[] = await orpc.post.get.call({ limit: PAGE_SIZE, offset });
 
-  const postsWithCounts: PostWithCount[] = await Promise.all(
-    posts.map(async (post) => {
-      const { count } = await orpc.post.likeCount.call({
-        id: post.id as number,
-      });
-      return {
-        ...post,
-        likeCount: count,
-        initialLikeCount: count,
-        user: null, // será sobrescrito pelo PostGrid
-      };
-    }),
-  );
+  // Map posts to PostWithCount, setting initialLikeCount to 0
+  // Like data will be fetched by PostGrid's useEffect
+  const postsWithCounts: PostWithCount[] = posts.map((post) => ({
+    ...post,
+    likeCount: 0, // Placeholder, updated by PostGrid
+    initialLikeCount: 0, // Placeholder, updated by PostGrid
+    user: null, // Will be set by PostGrid
+  }));
 
   const hasMore = posts.length === PAGE_SIZE;
   return { posts: postsWithCounts, nextPage: hasMore ? page + 1 : null };
 };
 
-export default function HomeForm({ initialPages }: HomeProps) {
-  const { isAuthenticated } = useAuth();
+export default function HomeForm({ initialPages }: HomeFormProps) {
+  const { isAuthenticated, user } = useAuth();
 
   const {
     data,
@@ -84,6 +79,9 @@ export default function HomeForm({ initialPages }: HomeProps) {
     initialPageParam: 1,
     getNextPageParam: (lastPage) => lastPage.nextPage,
     enabled: isAuthenticated,
+    initialData: initialPages
+      ? { pages: initialPages, pageParams: [1] }
+      : undefined,
   });
 
   const allPosts: PostWithCount[] = data
@@ -105,6 +103,7 @@ export default function HomeForm({ initialPages }: HomeProps) {
             <PostGrid
               data={allPosts}
               loading={isFetching && !data}
+              user={user}
               error={error?.message ?? null}
             />
             {hasNextPage && (
