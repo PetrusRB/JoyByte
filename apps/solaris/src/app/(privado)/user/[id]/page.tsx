@@ -32,6 +32,7 @@ import Image from "next/image";
 import { DEFAULT_AVATAR, DEFAULT_BANNER } from "@/libs/utils";
 import { UserProfile } from "@/schemas/user";
 import { Post } from "@/schemas/post";
+import ErrorDisplay from "@/components/ErrorDisplay";
 
 interface MemoAvatarProps {
   user: UserProfile | null;
@@ -413,8 +414,17 @@ const ProfileData: React.FC = () => {
 
   if (!username) return null;
   if (loading) return <Loading />;
-  if (error) return <p>Erro ao carregar perfil</p>;
-  if (!selectedUser) return <p>Carregando...</p>;
+  if (!selectedUser)
+    return (
+      <ErrorDisplay
+        error="user_not_found"
+        onRetry={() => window.history.back()}
+      />
+    );
+  if (error)
+    return (
+      <ErrorDisplay error={error} onRetry={() => window.location.reload()} />
+    );
 
   return (
     <Suspense
@@ -426,7 +436,7 @@ const ProfileData: React.FC = () => {
         duplicates={selectedDuplicates}
         loadingPosts={loadingPosts}
         loading={loading}
-        error={error}
+        error={error ? String(error) : null}
         failedPosts={failedPosts}
         setUser={setSelectedUser}
         setDuplicates={setSelectedDuplicates}

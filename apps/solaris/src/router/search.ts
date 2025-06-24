@@ -106,6 +106,11 @@ export const searchUsers = authed
 
     // Valida os dados retornados
     const safeData = z.array(UserProfileSchema).parse(userDetails ?? []);
+    if (!safeData.length) {
+      throw new ORPCError("NOT_FOUND", {
+        message: `Nenhum usuário encontrado para a busca: "${user}"`,
+      });
+    }
 
     // Cache do totalCount com TTL menor
     const totalCount = await getOrSet(

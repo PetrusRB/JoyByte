@@ -33,6 +33,9 @@ interface RawPost extends BasePost {
     full_name: string;
     avatar_url: string;
   };
+  profiles?: {
+    normalized_name: string;
+  };
 }
 
 // Transformed post matching PostSchema
@@ -52,6 +55,7 @@ function transformPost(post: RawPost): TransformedPost {
       nickname: post.author.nickname ?? "",
       full_name: post.author.full_name ?? "",
       avatar_url: post.author.avatar_url ?? "",
+      normalized_name: post.profiles?.normalized_name ?? "",
     },
     comments: post.comments ?? undefined,
     created_at: new Date(post.created_at),
@@ -378,31 +382,71 @@ export const getPosts = authed
     const offset = input?.offset ?? DEFAULT_OFFSET;
     const cacheKey = getCacheKey(`posts:${limit}:${offset}`);
 
-    // NOTE: aqui T = TransformedPost[]
+    // Usa cache
     const posts = await getOrSet<TransformedPost[]>(
       cacheKey,
       async () => {
         const supabase = await createClient();
-        const { data, error } = await supabase
+
+        // 1) Busca posts
+        const { data: postsData, error: postsError } = await supabase
           .from("posts")
-          .select("id, title, content, image, author, created_at, comments")
+          .select(
+            `
+             id,
+             title,
+             content,
+             image,
+             created_at,
+             comments,
+             author
+           `,
+          )
           .order("created_at", { ascending: false })
           .range(offset, offset + limit - 1);
 
-        if (error || !data) {
-          console.error("Erro ao buscar posts:", error);
+        if (postsError || !postsData) {
+          console.error("Erro ao buscar posts:", postsError);
           throw new ORPCError("INTERNAL_SERVER_ERROR", {
             message: "Erro ao buscar posts",
           });
         }
 
-        // transformPost já retorna TransformedPost (com Date em created_at)
-        return data.map(transformPost);
+        // 2) Extrai author IDs únicos
+        const authorIds = [...new Set(postsData.map((p) => p.author.id))];
+
+        // 3) Busca normalized_name nos perfis
+        const { data: profilesData, error: profilesError } = await supabase
+          .from("profiles")
+          .select("id, normalized_name")
+          .in("id", authorIds);
+
+        if (profilesError) {
+          console.error("Erro ao buscar profiles:", profilesError);
+          throw new ORPCError("INTERNAL_SERVER_ERROR", {
+            message: "Erro ao buscar perfis de usuários",
+          });
+        }
+
+        // 4) Mapeia normalized_name por userId
+        const profilesMap = Object.fromEntries(
+          (profilesData ?? []).map((p) => [p.id, p.normalized_name]),
+        );
+
+        // 5) Transforma os posts e injeta normalized_name
+        return postsData.map((post) => {
+          // Injeta normalized_name na propriedade profiles para o transformPost usar
+          return transformPost({
+            ...post,
+            profiles: {
+              normalized_name: profilesMap[post.author.id] ?? "",
+            },
+          });
+        });
       },
-      30,
+      30, // cache TTL em segundos
     );
 
-    // Revalida via Zod antes de enviar
     return z.array(PostSchema).parse(posts);
   });
 

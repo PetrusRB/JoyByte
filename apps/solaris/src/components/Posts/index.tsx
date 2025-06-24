@@ -194,7 +194,7 @@ const PostCard: React.FC<PostWithCount & { user: User | null }> = memo(
         toast.error("Usuário não encontrado");
         return;
       }
-      router.push(getUserSlug(author.normalized_name));
+      router.push(getUserSlug(author?.normalized_name ?? "/"));
     }, [author, router]);
 
     const menuItems: MenuProps["items"] = useMemo(

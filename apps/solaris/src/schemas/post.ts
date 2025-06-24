@@ -4,12 +4,15 @@ import { Comment } from "@/types";
 import { User } from "./user";
 
 // Define PostSchema first since it's referenced by the Post type
+export interface CustomUserMetadata extends UserMetadata {
+  normalized_name?: string;
+}
 export const PostSchema = z.object({
   id: z.number(),
   title: z.string(),
   content: z.string(),
   image: z.string().url().optional(),
-  author: z.custom<UserMetadata>(),
+  author: z.custom<CustomUserMetadata>(),
   created_at: z.date(),
   comments: z.custom<Comment>().optional(),
 });
