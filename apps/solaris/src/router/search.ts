@@ -57,9 +57,9 @@ export const searchUsers = authed
         const { data, error } = await supabase
           .from("profiles")
           .select("id")
-          .ilike("raw_user_meta_data->>name", `%${searchQuery}%`)
+          .ilike("normalized_name", `%${searchQuery}%`)
           .order("id", { ascending: true })
-          .range(offset, offset + limit - offset - limit + 1);
+          .range(offset, offset + limit - 1);
 
         if (error) {
           console.error("Erro ao buscar IDs de usuários:", error);
@@ -119,7 +119,7 @@ export const searchUsers = authed
         const { count, error: countError } = await supabase
           .from("profiles")
           .select("id", { count: "exact", head: true })
-          .ilike("raw_user_meta_data->>name", `%${searchQuery}%`);
+          .ilike("normalized_name", `%${searchQuery}%`);
 
         if (countError) {
           console.error("Erro ao buscar contagem de usuários:", countError);

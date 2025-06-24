@@ -9,10 +9,13 @@ import { useAuth } from "@/contexts/auth/AuthContext";
 import { useTranslations } from "use-intl";
 import { useCallback, useRef, useState, useTransition } from "react";
 import { orpc } from "@/libs/orpc";
+import { useRouter } from "next/navigation";
+import { getUserSlug } from "@/libs/utils";
 
 export default function CreatePost() {
   const { user } = useAuth();
   const t = useTranslations("Post");
+  const router = useRouter();
 
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
@@ -104,7 +107,10 @@ export default function CreatePost() {
           <img
             src={user?.picture ?? "/user.png"}
             alt="Seu perfil"
-            className="w-12 h-12 rounded-full border-2 border-blue-200"
+            onClick={() =>
+              router.push(getUserSlug(user?.normalized_name ?? ""))
+            }
+            className="w-12 h-12 rounded-full cursor-pointer border-2 border-blue-200"
             loading="lazy"
           />
           <div className="flex-1 space-y-3">

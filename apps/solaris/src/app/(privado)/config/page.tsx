@@ -64,218 +64,6 @@ const Settings = memo(() => {
     { key: "female", icon: <Venus />, label: "Female" },
     { key: "binary", icon: <NonBinary />, label: "Binary" },
     {
-      key: "non-binary",
-      icon: (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-          <circle
-            cx="12"
-            cy="12"
-            r="10"
-            stroke="currentColor"
-            strokeWidth="2"
-          />
-          <path d="M4 12h16M12 4v16" stroke="currentColor" strokeWidth="2" />
-        </svg>
-      ),
-      label: "Non-Binary",
-    },
-    {
-      key: "genderqueer",
-      icon: (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-          <path
-            d="M12 2v20M4 6h16M4 18h16"
-            stroke="currentColor"
-            strokeWidth="2"
-          />
-        </svg>
-      ),
-      label: "Genderqueer",
-    },
-    {
-      key: "agender",
-      icon: (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-          <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2" />
-          <path d="M9 12h6" stroke="currentColor" strokeWidth="2" />
-        </svg>
-      ),
-      label: "Agender",
-    },
-    {
-      key: "bigender",
-      icon: (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-          <circle cx="9" cy="9" r="3" stroke="currentColor" strokeWidth="2" />
-          <circle cx="15" cy="15" r="3" stroke="currentColor" strokeWidth="2" />
-        </svg>
-      ),
-      label: "Bigender",
-    },
-    {
-      key: "genderfluid",
-      icon: (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-          <path
-            d="M4 12c2-4 6 4 8 0s6 4 8 0"
-            stroke="currentColor"
-            strokeWidth="2"
-          />
-        </svg>
-      ),
-      label: "Genderfluid",
-    },
-    {
-      key: "demiboy",
-      icon: (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-          <circle cx="12" cy="12" r="4" stroke="currentColor" strokeWidth="2" />
-          <path d="M12 8v-6M12 16v6" stroke="currentColor" strokeWidth="2" />
-        </svg>
-      ),
-      label: "Demiboy",
-    },
-    {
-      key: "demigirl",
-      icon: (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-          <circle cx="12" cy="12" r="4" stroke="currentColor" strokeWidth="2" />
-          <path d="M8 12h-6M16 12h6" stroke="currentColor" strokeWidth="2" />
-        </svg>
-      ),
-      label: "Demigirl",
-    },
-    {
-      key: "two-spirit",
-      icon: (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-          <path
-            d="M12 2l3 4h-2v4h-2V6h-2l3-4z"
-            stroke="currentColor"
-            strokeWidth="2"
-          />
-          <circle cx="12" cy="16" r="4" stroke="currentColor" strokeWidth="2" />
-        </svg>
-      ),
-      label: "Two-Spirit",
-    },
-    {
-      key: "transgender",
-      icon: (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-          <path
-            d="M12 2v20M5 5l4 4M19 5l-4 4"
-            stroke="currentColor"
-            strokeWidth="2"
-          />
-        </svg>
-      ),
-      label: "Transgender",
-    },
-    {
-      key: "transmasc",
-      icon: (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-          <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" />
-          <path d="M12 2v4M12 18v4" stroke="currentColor" strokeWidth="2" />
-        </svg>
-      ),
-      label: "Transmasc",
-    },
-    {
-      key: "transfem",
-      icon: (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-          <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" />
-          <path d="M6 12h12" stroke="currentColor" strokeWidth="2" />
-        </svg>
-      ),
-      label: "Transfem",
-    },
-    {
-      key: "androgyne",
-      icon: (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-          <path d="M12 4v16M4 12h16" stroke="currentColor" strokeWidth="2" />
-        </svg>
-      ),
-      label: "Androgyne",
-    },
-    {
-      key: "neutrois",
-      icon: (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-          <rect
-            x="8"
-            y="8"
-            width="8"
-            height="8"
-            stroke="currentColor"
-            strokeWidth="2"
-          />
-        </svg>
-      ),
-      label: "Neutrois",
-    },
-    {
-      key: "intergender",
-      icon: (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-          <ellipse
-            cx="12"
-            cy="12"
-            rx="6"
-            ry="3"
-            stroke="currentColor"
-            strokeWidth="2"
-          />
-        </svg>
-      ),
-      label: "Intergender",
-    },
-    {
-      key: "maverique",
-      icon: (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-          <path d="M12 2L2 22h20L12 2z" stroke="currentColor" strokeWidth="2" />
-        </svg>
-      ),
-      label: "Maverique",
-    },
-    {
-      key: "polygender",
-      icon: (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-          <circle cx="6" cy="12" r="2" stroke="currentColor" strokeWidth="2" />
-          <circle cx="12" cy="12" r="2" stroke="currentColor" strokeWidth="2" />
-          <circle cx="18" cy="12" r="2" stroke="currentColor" strokeWidth="2" />
-        </svg>
-      ),
-      label: "Polygender",
-    },
-    {
-      key: "pangender",
-      icon: (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-          <path d="M3 3h18v18H3V3z" stroke="currentColor" strokeWidth="2" />
-        </svg>
-      ),
-      label: "Pangender",
-    },
-    {
-      key: "questioning",
-      icon: (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-          <path
-            d="M12 18h0M12 12a3 3 0 1 0-3-3"
-            stroke="currentColor"
-            strokeWidth="2"
-          />
-        </svg>
-      ),
-      label: "Questioning",
-    },
-    {
       key: "other",
       icon: (
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
@@ -286,15 +74,7 @@ const Settings = memo(() => {
     },
     {
       key: "prefer_not_to_say",
-      icon: (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-          <path
-            d="M4 4l16 16M20 4L4 20"
-            stroke="currentColor"
-            strokeWidth="2"
-          />
-        </svg>
-      ),
+      icon: <p>🙊</p>,
       label: "Prefer not to say",
     },
   ];
@@ -334,9 +114,13 @@ const Settings = memo(() => {
       toast.success(
         "Perfil atualizado com sucesso, recarregue a pagina para ver as alterações",
       );
-    } catch (error) {
+    } catch (error: any) {
       console.error("Erro ao atualizar perfil:", error);
-      toast.error("Falha ao atualizar o perfil. Tente novamente.");
+
+      const message =
+        error?.data?.message || error?.message || "Erro desconhecido";
+
+      toast.error(`Erro ao salvar perfil: ${message}`);
     } finally {
       setIsLoading(false);
     }

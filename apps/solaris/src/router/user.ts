@@ -130,6 +130,15 @@ export const updateCurrentUserProfile = authed
     if (Math.random() < 0.01) {
       cleanupRateLimits(now);
     }
+    // Verificar se o nome já existe (se estiver sendo atualizado)
+    if (input.name) {
+      const nameExists = await checkNameExists(input.name, userId);
+      if (nameExists) {
+        throw new ORPCError("CONFLICT", {
+          message: "Este nome já está sendo usado por outro usuário",
+        });
+      }
+    }
 
     // Separar campos por destino
     const { profileFields, authFields } = sanitizeFields(input);
@@ -329,7 +338,49 @@ function sanitizeFields(input: z.infer<typeof EditableUserFieldsSchema>) {
 
   return { profileFields, authFields };
 }
+function normalizeName(name: string): string {
+  const accents =
+    "áàâãäåāăąÁÀÂÃÄÅĀĂĄéèêëēĕėęěÉÈÊËĒĔĖĘĚíìîïīĭįİÍÌÎÏĪĬĮıóòôõöøōŏőÓÒÔÕÖØŌŎŐúùûüūŭůűųÚÙÛÜŪŬŮŰŲñÑçćčçÇĆČđÐĐģĞğĢħĦıĲĳĸĶĺļľłŁĹĻĽńņňÑŃŅŇŕŗřŔŖŘśşšŚŞŠţťŧŢŤŦýÿÝŸžźżŽŹŻœŒæÆ";
+  const replacements =
+    "aaaaaaaaaAAAAAAAAAeeeeeeeeeeEEEEEEEEEiiiiiiiiIIIIIIIIiooooooooOOOOOOOOOuuuuuuuuuUUUUUUUUUnNc3cCCCCdDDDgGgGhHiiijkKlllLLLnnnNNNrrrRRRsssSSStttTTTyyYYzzzZZZooaaAA";
 
+  const unaccented = name
+    .split("")
+    .map((char) => {
+      const index = accents.indexOf(char);
+      return index !== -1 ? replacements[index] : char;
+    })
+    .join("");
+
+  return unaccented
+    .toLowerCase()
+    .trim()
+    .replace(/[\s._\-]+/g, "."); // igual ao SQL: substitui espaços, pontos, underlines e hífens por "."
+}
+/**
+ * Verifica se existe outro usuário com o mesmo nome
+ */
+async function checkNameExists(name: string, currentUserId: string) {
+  const supabase = await createClient();
+
+  // Normalizar o nome para comparação (remover espaços extras, lowercase)
+  const normalized_name = normalizeName(name);
+
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("id")
+    .ilike("normalized_name", normalized_name)
+    .neq("id", currentUserId)
+    .limit(1);
+
+  if (error) {
+    throw new ORPCError("INTERNAL_SERVER_ERROR", {
+      message: "Erro ao verificar nome",
+    });
+  }
+
+  return data && data.length > 0;
+}
 /**
  * Merge dados atuais com atualizações
  */

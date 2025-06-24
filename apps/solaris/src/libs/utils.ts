@@ -15,8 +15,7 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function getUserSlug(name: string) {
-  const slugProfile = slugToSearchQuery(name ?? "");
-  return "/user/:user".replace(":user", slugProfile.replace(" ", "."));
+  return "/user/:user".replace(":user", name.replace(" ", "."));
 }
 
 export function getInitials(name: string) {
@@ -33,39 +32,25 @@ export function getInitials(name: string) {
 
 /**
  * Transforma um slug ou nome de usuário em uma string de busca normalizada.
- * Garante que qualquer combinação de maiúsculas/minúsculas ou separadores funcione.
+ * Remove acentos e caracteres especiais, mantendo letras, números e separadores comuns.
+ * Garante compatibilidade com buscas feitas no campo `normalized_name`.
  *
- * Ex: "PeDrO--_ " => "pedro"
+ * Exemplo:
+ *  Input:  "PeDrO--_22335 "
+ *  Output: "pedro.22335"
  *
- * @param username - Nome de usuário bruto
- * @returns String pronta para busca no banco (compatível com normalized_name)
+ * @param username - Nome de usuário bruto inserido na busca
+ * @returns String normalizada e pronta para consulta no banco
  */
-export const slugToSearchQuery = (username: string): string => {
+export function slugToSearchQuery(username: string): string {
   return username
-    .normalize("NFKC") // Normaliza Unicode (acentos, espaços invisíveis)
-    .replace(/[\.\_\-\s]+/g, " ") // Substitui pontuação e separadores por espaço
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "") // remove acentos
+    .replace(/[^a-zA-Z0-9\s._-]/g, "") // remove tudo que não seja alfanumérico ou separadores
+    .toLowerCase()
     .trim()
-    .toLowerCase(); // Insensível a maiúsculas/minúsculas
-};
-/**
- * Formata o slug para um nome de exibição amigável (capitalizado).
- * Ex: "john_doe" => "John Doe"
- *
- * @param username - Nome de usuário bruto
- * @returns Nome de exibição bonitinho
- */
-export const slugToDisplayName = (username: string): string => {
-  return username
-    .normalize("NFKC")
-    .replace(/[\.\_\-\s]+/g, " ")
-    .trim()
-    .split(/\s+/)
-    .map(
-      (part) =>
-        part.charAt(0).toLocaleUpperCase() + part.slice(1).toLocaleLowerCase(),
-    )
-    .join(" ");
-};
+    .replace(/[\s._-]+/g, "."); // substitui múltiplos separadores por ponto
+}
 
 // Format Numbers, Dates and Relative Times.
 export function formatNumber(value: number): string {
