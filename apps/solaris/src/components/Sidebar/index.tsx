@@ -8,7 +8,7 @@ import {
   Calendar,
 } from "lucide-react";
 import { Button } from "@/components/Button";
-import { cn, getInitials, getUserSlug } from "@/libs/utils";
+import { cn, getInitials } from "@/libs/utils";
 import { useAuth } from "@/contexts/auth/AuthContext";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
@@ -46,7 +46,10 @@ const Sidebar = () => {
                 {user?.name ?? "Misterioso(a)"}
               </h3>
               <Link
-                href={getUserSlug(user?.normalized_name ?? "Misterioso(a)")}
+                href={"/user/:user".replace(
+                  ":user",
+                  user?.normalized_name ?? "",
+                )}
               >
                 <p className="text-sm text-slate-500 cursor-pointer">
                   Ver seu perfil.
