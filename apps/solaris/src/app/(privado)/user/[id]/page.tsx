@@ -44,7 +44,7 @@ interface MemoUserProps {
 const MemoAvatar = React.memo<MemoAvatarProps>(({ user, onClick }) => (
   <div className="relative group cursor-pointer" onClick={onClick}>
     <AntdImage
-      src={user?.raw_user_meta_data?.picture ?? DEFAULT_AVATAR}
+      src={user?.raw_user_meta_data.picture ?? DEFAULT_AVATAR}
       className="rounded-full border-4 border-white shadow-lg"
       width={96}
       height={96}
@@ -220,16 +220,18 @@ const Profile = React.memo<ProfileProps>(
 
               {/* Profile Details */}
               <div className="flex flex-col sm:flex-row sm:flex-wrap gap-2 sm:gap-4 text-sm mb-4 justify-center lg:justify-start">
-                {user.website && (
+                {user.social_media?.website && (
                   <a
-                    href={user.website}
                     target="_blank"
+                    onClick={() =>
+                      navigate.push(user.social_media?.website ?? "/")
+                    }
                     rel="noopener noreferrer"
                     className="flex items-center gap-1 hover:text-zinc-100 transition-colors justify-center lg:justify-start"
                   >
                     <Link2 className="w-4 h-4" />
                     <span className="truncate">
-                      {user.website.replace("https://", "")}
+                      {user.social_media?.website.replace("https://", "")}
                     </span>
                   </a>
                 )}

@@ -5,7 +5,7 @@ import { retry } from "@/middlewares/retry";
 import { createClient } from "@/db/server";
 import { PostSchema } from "@/schemas/post";
 import { Comment } from "@/types";
-import { UserMetadata } from "@supabase/supabase-js";
+import { delByPattern, getOrSet } from "@/libs/redis";
 
 // Define cooldown (ms)
 const COOLDOWN_MS = 300000; // 5 minutes
@@ -43,16 +43,16 @@ function transformPost(post: RawPost): TransformedPost {
     id: post.id,
     title: post.title,
     content: post.content,
-    image: post.image || undefined,
+    image: post.image ?? undefined,
     author: {
       id: post.author.id,
       name: post.author.name,
-      picture: post.author.picture,
-      nickname: post.author.nickname,
-      full_name: post.author.full_name,
-      avatar_url: post.author.avatar_url,
-    } as UserMetadata,
-    comments: post.comments || undefined,
+      picture: post.author.picture ?? "",
+      nickname: post.author.nickname ?? "",
+      full_name: post.author.full_name ?? "",
+      avatar_url: post.author.avatar_url ?? "",
+    },
+    comments: post.comments ?? undefined,
     created_at: new Date(post.created_at),
   };
 }
@@ -234,11 +234,7 @@ export const deletePost = authed
     summary: "Delete post",
     tags: ["Posts"],
   })
-  .input(
-    z.object({
-      post_id: z.number(),
-    }),
-  )
+  .input(z.object({ post_id: z.number() }))
   .output(z.object({ success: z.boolean() }))
   .handler(async ({ input, context }) => {
     const supabase = await createClient();
@@ -250,9 +246,7 @@ export const deletePost = authed
       .single();
 
     if (fetchError || !post) {
-      throw new ORPCError("NOT_FOUND", {
-        message: "Post not found",
-      });
+      throw new ORPCError("NOT_FOUND", { message: "Post not found" });
     }
 
     const { data: deleteData, error: deleteError } = await supabase
@@ -263,22 +257,22 @@ export const deletePost = authed
       .select("id");
 
     if (deleteError) {
-      console.error("Error deleting post:", deleteError);
       throw new ORPCError("INTERNAL_SERVER_ERROR", {
         message: "Error deleting post",
         cause: deleteError,
       });
     }
 
-    if (!deleteData) {
+    if (!deleteData?.length) {
       throw new ORPCError("NOT_FOUND", {
-        message: "Post not found or you don't have permission to delete it",
+        message: "Post not found or unauthorized",
       });
     }
 
+    await delByPattern("posts:*");
+
     return { success: true };
   });
-
 /**
  * Create posts
  * @returns Created post
@@ -301,7 +295,6 @@ export const createPost = authed
   .output(PostSchema)
   .handler(async ({ input, context }) => {
     const supabase = await createClient();
-    const { title, content, image } = input;
 
     const { data: lastPosts, error: fetchError } = await supabase
       .from("posts")
@@ -311,7 +304,6 @@ export const createPost = authed
       .limit(1);
 
     if (fetchError) {
-      console.error("Error checking cooldown:", fetchError);
       throw new ORPCError("INTERNAL_SERVER_ERROR", {
         message: "Error checking cooldown",
       });
@@ -322,7 +314,7 @@ export const createPost = authed
       const now = Date.now();
       if (now - lastTime < COOLDOWN_MS) {
         throw new ORPCError("TOO_MANY_REQUESTS", {
-          message: `Wait ${Math.ceil((COOLDOWN_MS - (now - lastTime)) / 1000)}s before creating another post.`,
+          message: `Wait ${Math.ceil((COOLDOWN_MS - (now - lastTime)) / 1000)}s to post again.`,
         });
       }
     }
@@ -334,16 +326,25 @@ export const createPost = authed
 
     const { data: postData, error: insertError } = await supabase
       .from("posts")
-      .insert([{ title, content, image, author }])
+      .insert([
+        {
+          title: input.title,
+          content: input.content,
+          image: input.image,
+          author,
+        },
+      ])
       .select()
       .single();
 
-    if (insertError) {
-      console.error("Error saving to database:", insertError);
+    if (insertError || !postData) {
       throw new ORPCError("INTERNAL_SERVER_ERROR", {
         message: "Error saving to database",
+        cause: insertError,
       });
     }
+
+    await delByPattern("posts:*");
 
     return transformPost(postData as RawPost);
   });
@@ -372,24 +373,36 @@ export const getPosts = authed
   )
   .output(z.array(PostSchema))
   .handler(async ({ input }) => {
-    const { limit = DEFAULT_LIMIT, offset = DEFAULT_OFFSET } = input || {};
-    const supabase = await createClient();
+    const limit = input?.limit ?? DEFAULT_LIMIT;
+    const offset = input?.offset ?? DEFAULT_OFFSET;
+    const cacheKey = `posts:${limit}:${offset}`;
 
-    const { data: posts, error } = await supabase
-      .from("posts")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .range(offset, offset + limit - 1);
+    // NOTE: aqui T = TransformedPost[]
+    const posts = await getOrSet<TransformedPost[]>(
+      cacheKey,
+      async () => {
+        const supabase = await createClient();
+        const { data, error } = await supabase
+          .from("posts")
+          .select("id, title, content, image, author, created_at, comments")
+          .order("created_at", { ascending: false })
+          .range(offset, offset + limit - 1);
 
-    if (error) {
-      console.error("Error fetching posts:", error);
-      throw new ORPCError("INTERNAL_SERVER_ERROR", {
-        message: "Error fetching posts",
-        cause: error,
-      });
-    }
+        if (error || !data) {
+          console.error("Erro ao buscar posts:", error);
+          throw new ORPCError("INTERNAL_SERVER_ERROR", {
+            message: "Erro ao buscar posts",
+          });
+        }
 
-    return (posts || []).map(transformPost);
+        // transformPost já retorna TransformedPost (com Date em created_at)
+        return data.map(transformPost);
+      },
+      30,
+    );
+
+    // Revalida via Zod antes de enviar
+    return z.array(PostSchema).parse(posts);
   });
 
 /**

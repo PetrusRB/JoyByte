@@ -45,7 +45,13 @@
     "Danger": "Perigoso",
     "How people see you": "Como os outros te veem",
     "Pessoal Information": "Informações Pessoais",
-    "Update your basic data": "Atualize seus dados básicos"
+    "Update your basic data": "Atualize seus dados básicos",
+    "Genre": "Genero",
+    "Biography": "Biografia",
+    "SelectGenre": "Selecione um genero",
+    "Man": "Homem",
+    "Woman": "Mulher",
+    "Binary": "Binario"
   },
   "Sidebar": {
     "Home": "Inicio",

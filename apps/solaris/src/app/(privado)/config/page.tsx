@@ -1,6 +1,16 @@
 "use client";
 
-import { Camera, User, Palette, Save, ArrowLeft, DoorOpen } from "lucide-react";
+import {
+  Camera,
+  User,
+  Palette,
+  Save,
+  ArrowLeft,
+  DoorOpen,
+  Mars,
+  Venus,
+  NonBinary,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useCallback, Suspense, memo } from "react";
 import { Button } from "@/components/Button";
@@ -22,6 +32,17 @@ import ThemeSwitch from "@/components/Toggles/theme";
 import { useTheme } from "next-themes";
 import { Skeleton } from "antd";
 import { DEFAULT_AVATAR, getInitials } from "@/libs/utils";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/Select";
+import { Textarea } from "@/components/ui/TextArea";
+import { orpc } from "@/libs/orpc";
 
 const Settings = memo(() => {
   const { user, signOut } = useAuth();
@@ -32,10 +53,18 @@ const Settings = memo(() => {
   const { theme } = useTheme();
   const [name, setName] = useState(user?.name ?? "Desconhecido");
   const [exitPop, setExitPop] = useState<boolean>(false);
-  const [email, setEmail] = useState(user?.email ?? "Email Desconhecido");
+  const [bio, setBio] = useState(user?.bio ?? "");
+  const [genre, setGenre] = useState(user?.genre ?? "");
   const [profileImage, setProfileImage] = useState(
     user?.picture ?? "/user.png",
   );
+
+  const genres = [
+    { key: "man", icon: <Mars />, label: "Man" },
+    { key: "woman", icon: <Venus />, label: "Woman" },
+    { key: "binary", icon: <NonBinary />, label: "Binary" },
+  ];
+
   const [isLoading, setIsLoading] = useState(false);
 
   const handleImageUpload = useCallback(
@@ -56,10 +85,28 @@ const Settings = memo(() => {
 
   const handleSave = useCallback(async () => {
     setIsLoading(true);
-    await new Promise((res) => setTimeout(res, 1000));
-    toast.success("Configurações salvas!");
-    setIsLoading(false);
-  }, []);
+
+    try {
+      const res = await orpc.user.updateCurrentProfile.call({
+        name: name,
+        bio: bio,
+        genre: genre,
+      });
+      if (!res) {
+        throw new Error("Falha ao atualizar perfil");
+      }
+
+      setIsLoading(false);
+      toast.success(
+        "Perfil atualizado com sucesso, recarregue a pagina para ver as alterações",
+      );
+    } catch (error) {
+      console.error("Erro ao atualizar perfil:", error);
+      toast.error("Falha ao atualizar o perfil. Tente novamente.");
+    } finally {
+      setIsLoading(false);
+    }
+  }, [name, bio, genre]);
 
   return (
     <div className="min-h-screen bg-orange-50 dark:bg-black dark:text-white text-orange-700">
@@ -124,7 +171,7 @@ const Settings = memo(() => {
                 </div>
                 <div>
                   <h3 className="font-semibold text-lg">{name}</h3>
-                  <p className="text-sm opacity-70">{email}</p>
+                  <p className="text-sm opacity-70">{bio}</p>
                 </div>
               </CardContent>
             </Card>
@@ -137,7 +184,9 @@ const Settings = memo(() => {
                   <User className="w-5 h-5" />{" "}
                   {ConfigTrans("Pessoal Information")}
                 </CardTitle>
-                <CardDescription>Atualize seus dados básicos</CardDescription>
+                <CardDescription>
+                  {ConfigTrans("Update your basic data")}
+                </CardDescription>
               </CardHeader>
               <CardContent className="grid sm:grid-cols-2 gap-6">
                 <div className="space-y-2">
@@ -150,14 +199,45 @@ const Settings = memo(() => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="email">{AuthTrans("Email")}</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="jubiscleudon@email.com"
+                  <Label htmlFor="bio">{ConfigTrans("Biography")}</Label>
+                  <Textarea
+                    id="bio"
+                    value={bio ?? ""}
+                    maxLength={500}
+                    onChange={(e) => setBio(e.target.value)}
+                    placeholder="Eu sou programador"
                   />
+                </div>
+                <div className="space-y-2">
+                  <Select
+                    onValueChange={(value) => setGenre(value)}
+                    defaultValue={user?.genre || "binary"}
+                  >
+                    <SelectTrigger className="w-full min-w-[200px] max-w-[280px]">
+                      <SelectValue placeholder={ConfigTrans("SelectGenre")} />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-[300px]">
+                      <SelectGroup>
+                        <SelectLabel>{ConfigTrans("Genre")}</SelectLabel>
+                        {genres.map((genre) => (
+                          <SelectItem
+                            key={genre.key}
+                            value={genre.key}
+                            className="cursor-pointer"
+                          >
+                            <div className="flex items-center gap-3 w-full">
+                              <span className="flex-shrink-0 text-orange-500 dark:text-orange-400">
+                                {genre.icon}
+                              </span>
+                              <span className="flex-1 text-left font-medium">
+                                {ConfigTrans(genre.label)}
+                              </span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
                 </div>
               </CardContent>
             </Card>

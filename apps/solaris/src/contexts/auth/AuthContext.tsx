@@ -12,10 +12,11 @@ import React, {
 import { Loading } from "@/components/Loading";
 import { login } from "@/db/actions/login";
 import { signout } from "@/db/actions/signout";
-import { Provider, User } from "@/types";
-import supabase from "@/db"; // o client do supabase (importa do client, não do server)
+import { Provider } from "@/types";
+import supabase from "@/db";
 import { useRouter } from "next/navigation";
 import { client } from "@/libs/orpc";
+import { User } from "@/schemas/user";
 
 interface AuthContextType {
   user: User | null;
@@ -32,22 +33,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
-  // Função para carregar o usuário atual
   const fetchUser = async () => {
     try {
-      const res = await client.auth.me();
-      const parsedUser: User = {
-        id: res.id,
-        email: res.email,
-        picture: res.picture || "/user.png",
-        aud: res.aud || "authenticated",
-        created_at: res.created_at,
-        name: res.name || "Misterioso(a)",
-      };
-      if (!res) {
+      // Primeiro tenta pegar sessão localmente
+      const session = await supabase.auth.getSession();
+      const authUser = session.data.session?.user;
+
+      if (!authUser) {
         setUser(null);
-        console.log("Não esta logado");
+        return;
       }
+
+      // Agora sim, usa o auth.me() + profile
+      const [authRes, profileRes] = await Promise.all([
+        client.auth.me(),
+        client.user.me(),
+      ]);
+
+      const parsedUser: User = {
+        id: authRes.id,
+        email: authRes.email,
+        name: authRes.name,
+        genre: profileRes.user.genre || "",
+        picture: authRes.picture,
+        aud: authRes.aud || "authenticated",
+        created_at: authRes.created_at,
+        bio: profileRes.user.bio || null,
+        normalized_name: profileRes.user.normalized_name || null,
+      };
+
       setUser(parsedUser);
     } catch (error) {
       console.error("Erro ao buscar usuário:", error);
@@ -58,10 +72,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
+    fetchUser(); // Apenas uma vez no mount
+
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async () => {
-      await fetchUser();
+    } = supabase.auth.onAuthStateChange((_event, _session) => {
+      fetchUser(); // Atualiza quando login/logout ocorre
     });
 
     return () => {
@@ -70,13 +86,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signIn = useCallback(async (provider: Provider) => {
-    await login(provider); // redireciona, se sucesso
+    await login(provider);
   }, []);
 
   const signOut = useCallback(async () => {
-    await signout(); // <- já faz logout no server
-    await supabase.auth.signOut(); // <- client logout
-    setUser(null); // <- OK manter isso aqui
+    await signout();
+    await supabase.auth.signOut();
+    setUser(null);
     router.refresh();
   }, [router]);
 

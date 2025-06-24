@@ -21,18 +21,12 @@ export function useUserProfile(rawUsername?: string) {
       // Mapeia do Supabase para UserProfile, preenchendo todos os campos
       const mapped: UserProfile[] = users.map((u) => ({
         id: u.id,
-        name:
-          (u.raw_user_meta_data?.name as string) ||
-          u.normalized_name ||
-          "Sem nome",
         email: u.email ?? "",
-        picture:
-          (u.raw_user_meta_data?.avatar_url as string) ||
-          u.banner ||
-          "/user.png",
         bio: u.bio ?? "",
         banner: u.banner ?? "",
+        social_media: u.social_media || {},
         created_at: u.created_at,
+        preferences: u.preferences || {},
         // Campos obrigatórios que faltavam
         raw_user_meta_data: u.raw_user_meta_data ?? {},
         normalized_name: u.normalized_name ?? "",

@@ -1,7 +1,6 @@
 import { Post } from "@/schemas/post";
 import { useQuery } from "@tanstack/react-query";
-import { orpc } from "@/libs/orpc"; // Certifique-se de que o orpc está configurado corretamente
-
+import { orpc } from "@/libs/orpc";
 export const useCachedPosts = (userId: string) => {
   return useQuery<Post[]>({
     queryKey: ["cachedPosts", userId],

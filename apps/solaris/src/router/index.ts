@@ -10,6 +10,7 @@ import {
   likePost,
 } from "./posts";
 import { searchUsers } from "./search";
+import { getCurrentUserProfile, updateCurrentUserProfile } from "./user";
 
 export const router = {
   post: {
@@ -24,6 +25,10 @@ export const router = {
   },
   search: {
     user: searchUsers,
+  },
+  user: {
+    me: getCurrentUserProfile,
+    updateCurrentProfile: updateCurrentUserProfile,
   },
   auth: {
     me: me,

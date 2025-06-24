@@ -45,7 +45,9 @@ const Sidebar = () => {
               <h3 className="font-semibold dark:text-white">
                 {user?.name ?? "Misterioso(a)"}
               </h3>
-              <Link href={getUserSlug(user?.name ?? "Misterioso(a)")}>
+              <Link
+                href={getUserSlug(user?.normalized_name ?? "Misterioso(a)")}
+              >
                 <p className="text-sm text-slate-500 cursor-pointer">
                   Ver seu perfil.
                 </p>

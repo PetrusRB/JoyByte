@@ -4,6 +4,7 @@ import { createClient } from "@/db/server";
 import { retry } from "@/middlewares/retry";
 import { z } from "zod";
 import { ORPCError, os } from "@orpc/server";
+import { slugToSearchQuery } from "@/libs/utils";
 const TRUSTED_HOSTS = new Set([
   "localhost",
   process.env.NEXT_PUBLIC_ALLOWED_ORIGIN,
@@ -140,5 +141,8 @@ export const me = authed
       picture: user.user_metadata?.picture ?? "/user.png",
       created_at: new Date(user.created_at),
       aud: user.aud,
+      normalized_name: slugToSearchQuery(user.user_metadata?.name),
+      preferences: {},
+      social_media: {},
     };
   });

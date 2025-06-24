@@ -6,9 +6,9 @@ import CreatePost from "../CreatePost";
 import PostGrid from "../Posts";
 import ContactsList from "../ContactList";
 import { Post, PostWithCount } from "@/schemas/post";
-import { useInfiniteQuery } from "@tanstack/react-query";
-import { orpc } from "@/libs/orpc";
 import { useAuth } from "@/contexts/auth/AuthContext";
+import { orpc } from "@/libs/orpc";
+import { useInfiniteQuery } from "@tanstack/react-query";
 
 interface Contact {
   name: string;

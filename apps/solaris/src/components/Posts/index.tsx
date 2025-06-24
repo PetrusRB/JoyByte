@@ -27,10 +27,11 @@ import DynamicPopup from "../DynamicPopup";
 import { orpc } from "@/libs/orpc";
 import { PostWithCount } from "@/schemas/post";
 import { useMutation } from "@tanstack/react-query";
-import { User } from "@/types";
+
 import supabase from "@/db";
 import { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
 import { debounce } from "lodash"; // Ensure lodash is installed: `npm install lodash`
+import { User } from "@/schemas/user";
 
 interface PostLike {
   post_id: number;
@@ -177,7 +178,9 @@ const PostCard: React.FC<PostWithCount & { user: User | null }> = memo(
         }
 
         setDeletePop(false);
-        toast.success("Post deletado com sucesso!");
+        toast.success(
+          "Post deletado com sucesso, recarregue a pagina para ver as alterações",
+        );
       } catch (error) {
         console.error("Erro ao deletar post:", error);
         toast.error("Falha ao deletar o post. Tente novamente.");
@@ -191,7 +194,7 @@ const PostCard: React.FC<PostWithCount & { user: User | null }> = memo(
         toast.error("Usuário não encontrado");
         return;
       }
-      router.push(getUserSlug(author.name));
+      router.push(getUserSlug(author.normalized_name));
     }, [author, router]);
 
     const menuItems: MenuProps["items"] = useMemo(
