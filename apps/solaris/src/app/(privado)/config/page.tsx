@@ -9,7 +9,6 @@ import {
   DoorOpen,
   Mars,
   Venus,
-  NonBinary,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useCallback, Suspense, memo } from "react";
@@ -62,7 +61,6 @@ const Settings = memo(() => {
   const genres = [
     { key: "man", icon: <Mars />, label: "Man" },
     { key: "female", icon: <Venus />, label: "Female" },
-    { key: "binary", icon: <NonBinary />, label: "Binary" },
     {
       key: "other",
       icon: (
@@ -229,7 +227,7 @@ const Settings = memo(() => {
                 <div className="space-y-2">
                   <Select
                     onValueChange={(value) => setGenre(value)}
-                    defaultValue={user?.genre || "binary"}
+                    defaultValue={user?.genre || "prefer_not_to_say"}
                   >
                     <SelectTrigger className="w-full min-w-[200px] max-w-[280px]">
                       <SelectValue placeholder={ConfigTrans("SelectGenre")} />
