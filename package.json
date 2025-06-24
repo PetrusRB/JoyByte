@@ -3,11 +3,11 @@
   "version": "0.0.0",
   "license": "MIT",
   "scripts": {
-    "run:web": "cd apps/solaris && next dev",
-    "run:prebuild": "cd apps/joy-mob && expo prebuild --clean",
-    "run:mob": "cd apps/joy-mob && expo start --tunnel",
-    "run:mobbuild": "cd apps/joy-mob && eas build --platform android",
-    "run:build": "cd apps/solaris && next build"
+    "web": "cd apps/solaris && next dev",
+    "prebuild": "cd apps/joy-mob && expo prebuild --clean",
+    "mob": "cd apps/joy-mob && expo start --tunnel",
+    "mobbuild": "cd apps/joy-mob && eas build --platform android",
+    "build": "cd apps/solaris && next build"
   },
   "private": true,
   "dependencies": {

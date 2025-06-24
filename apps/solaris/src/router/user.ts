@@ -32,8 +32,8 @@ const EditableUserFieldsSchema = z
       .strict()
       .optional(),
 
-    // Gêneros (Homem, Mulher, Gay e etc...)
-    genre: z.string().min(3).max(5).trim().optional(),
+    // Gêneros (Homem, Mulher, Binario e etc...)
+    genre: z.string().min(3).max(17).trim().optional(),
 
     // Configurações de privacidade
     preferences: z
