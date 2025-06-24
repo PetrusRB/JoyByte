@@ -236,7 +236,7 @@ export const updateCurrentUserProfile = authed
       }
 
       // Invalidar cache do usuário após atualização
-      await delByPattern(`user:profile:${userId}`);
+      await delByPattern(getCacheKey(`user:profile:${userId}`));
 
       return {
         user,

@@ -1,5 +1,4 @@
 import { Redis } from "@upstash/redis";
-import { getCacheKey } from "./utils";
 
 export const redis = Redis.fromEnv();
 
@@ -47,7 +46,7 @@ export async function getOrSet<T>(
  * ⚠️ Usar com cautela. `pattern` pode ser algo como "posts:*"
  */
 export async function delByPattern(pattern: string): Promise<void> {
-  const keys = await redis.keys(getCacheKey(pattern));
+  const keys = await redis.keys(pattern);
   if (keys.length > 0) {
     await redis.del(...keys);
   }

@@ -36,8 +36,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const fetchUser = async () => {
     try {
       // Primeiro tenta pegar sessão localmente
-      const session = await supabase.auth.getSession();
-      const authUser = session.data.session?.user;
+      const session = await supabase.auth.getUser();
+      const authUser = session.data?.user;
 
       if (!authUser) {
         setUser(null);
