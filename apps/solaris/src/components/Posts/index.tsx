@@ -9,12 +9,7 @@ import React, {
   useEffect,
 } from "react";
 import dynamic from "next/dynamic";
-import {
-  DEFAULT_AVATAR,
-  formatNumber,
-  formatRelativeTime,
-  getUserSlug,
-} from "@/libs/utils";
+import { DEFAULT_AVATAR, formatNumber, formatRelativeTime } from "@/libs/utils";
 import { MessageCircle, MoreVertical, TrashIcon, Heart } from "lucide-react";
 import { Dropdown, Skeleton } from "antd";
 import { Button } from "@/components/Button";
@@ -194,7 +189,9 @@ const PostCard: React.FC<PostWithCount & { user: User | null }> = memo(
         toast.error("Usuário não encontrado");
         return;
       }
-      router.push(getUserSlug(author?.normalized_name ?? "/"));
+      router.push(
+        "/user/:user".replace(":user", author?.normalized_name ?? ""),
+      );
     }, [author, router]);
 
     const menuItems: MenuProps["items"] = useMemo(
