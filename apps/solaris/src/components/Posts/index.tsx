@@ -473,7 +473,6 @@ const PostGrid: React.FC<PostGridProps> = ({ data, loading, error, user }) => {
       })
       .catch((error) => {
         console.error("Erro ao buscar dados de like em lote:", error);
-        toast.error("Falha ao carregar curtidas.");
       });
 
     // Debounced batch update for real-time changes
@@ -493,7 +492,6 @@ const PostGrid: React.FC<PostGridProps> = ({ data, loading, error, user }) => {
         })
         .catch((error) => {
           console.error("Erro ao atualizar curtidas em lote:", error);
-          toast.error("Falha ao atualizar curtidas.");
         });
     }, 300);
 

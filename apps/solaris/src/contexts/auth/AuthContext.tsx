@@ -53,9 +53,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const parsedUser: User = {
         id: authRes.id,
         email: authRes.email,
-        name: authRes.name,
+        name: profileRes.user.raw_user_meta_data.name,
         genre: profileRes.user.genre || "",
-        picture: authRes.picture,
+        picture: profileRes.user.raw_user_meta_data.picture || "/user.png",
         aud: authRes.aud || "authenticated",
         created_at: authRes.created_at,
         bio: profileRes.user.bio || null,

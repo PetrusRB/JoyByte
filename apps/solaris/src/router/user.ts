@@ -50,11 +50,6 @@ const EditableUserFieldsSchema = z
   })
   .passthrough(); // Permite campos extras mas os ignora
 
-// Rate limiting em memória
-const rateLimits = new Map<string, number>();
-const RATE_LIMIT_WINDOW = 60000; // 1 minuto
-const RATE_LIMIT_MAX = 5; // 5 requests por minuto
-
 // Cache TTL em segundos
 const USER_PROFILE_CACHE_TTL = 300; // 5 minutos
 /**
@@ -111,25 +106,32 @@ export const updateCurrentUserProfile = authed
   )
   .handler(async ({ input, context }) => {
     const userId = context.user.id;
+    const supabase = await createClient();
+    // Cooldown de 7 dias baseado em updated_at
+    const { data: updatedInfo, error: fetchError } = await supabase
+      .from("profiles")
+      .select("updated_at")
+      .eq("id", userId)
+      .single();
 
-    // Rate limiting
-    const now = Date.now();
-    const windowStart = Math.floor(now / RATE_LIMIT_WINDOW) * RATE_LIMIT_WINDOW;
-    const key = `${userId}:${windowStart}`;
-
-    const currentCount = rateLimits.get(key) || 0;
-    if (currentCount >= RATE_LIMIT_MAX) {
-      throw new ORPCError("TOO_MANY_REQUESTS", {
-        message: "Muitas atualizações. Aguarde 1 minuto.",
+    if (fetchError || !updatedInfo) {
+      throw new ORPCError("INTERNAL_SERVER_ERROR", {
+        message: "Erro ao verificar o tempo da última atualização.",
       });
     }
 
-    rateLimits.set(key, currentCount + 1);
+    const updatedAt = new Date(updatedInfo.updated_at).getTime();
+    const now = Date.now();
+    const SEVEN_DAYS = 7 * 24 * 60 * 60 * 1000;
 
-    // Cleanup periódico
-    if (Math.random() < 0.01) {
-      cleanupRateLimits(now);
+    if (now - updatedAt < SEVEN_DAYS) {
+      const diffMs = SEVEN_DAYS - (now - updatedAt);
+      const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+      throw new ORPCError("TOO_MANY_REQUESTS", {
+        message: `Você só pode atualizar seu perfil novamente em ${diffDays} dia(s).`,
+      });
     }
+
     // Verificar se o nome já existe (se estiver sendo atualizado)
     if (input.name) {
       const nameExists = await checkNameExists(input.name, userId);
@@ -151,8 +153,6 @@ export const updateCurrentUserProfile = authed
         message: "Nenhum campo para atualizar",
       });
     }
-
-    const supabase = await createClient();
 
     try {
       // Buscar dados atuais apenas se necessário para merge
@@ -249,7 +249,7 @@ export const updateCurrentUserProfile = authed
 
       return {
         user,
-        rateLimitRemaining: RATE_LIMIT_MAX - (currentCount + 1),
+        rateLimitRemaining: 0,
       };
     } catch (error) {
       if (error instanceof ORPCError) throw error;
@@ -410,18 +410,4 @@ function mergeData(current: any, updates: any) {
   }
 
   return merged;
-}
-
-/**
- * Cleanup do rate limiting
- */
-function cleanupRateLimits(now: number) {
-  const cutoff = now - RATE_LIMIT_WINDOW;
-
-  for (const [key] of rateLimits) {
-    const timestamp = parseInt(key.split(":")[1]);
-    if (timestamp < cutoff) {
-      rateLimits.delete(key);
-    }
-  }
 }
