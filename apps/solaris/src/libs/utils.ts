@@ -3,6 +3,11 @@ import { twMerge } from "tailwind-merge";
 
 export const DEFAULT_AVATAR = "/user.png";
 export const DEFAULT_BANNER = "/placeholder.png";
+const ENV_PREFIX = process.env.NODE_ENV === "production" ? "prod" : "dev";
+
+export function getCacheKey(base: string): string {
+  return `${ENV_PREFIX}:${base}`;
+}
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));

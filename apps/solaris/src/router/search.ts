@@ -6,6 +6,7 @@ import { createClient } from "@/db/server";
 import { usernameSlugSchema, UserProfileSchema } from "@/schemas/user";
 import { slugToSearchQuery } from "@/libs/utils";
 import { getOrSet, redis } from "@/libs/redis";
+import { getCacheKey } from "@/libs/utils";
 
 export const searchUsers = authed
   .use(retry({ times: 3 }))
@@ -39,8 +40,10 @@ export const searchUsers = authed
     const supabase = await createClient();
     const { user, limit, offset } = input;
     const searchQuery = slugToSearchQuery(user).toLowerCase();
-    const cacheKey = `searchUsers:${searchQuery}:${limit}:${offset}`;
-    const popularityKey = `searchPopularity:${searchQuery}`;
+    const cacheKey = getCacheKey(
+      `searchUsers:${searchQuery}:${limit}:${offset}`,
+    );
+    const popularityKey = getCacheKey(`searchPopularity:${searchQuery}`);
 
     // Determina TTL dinâmico baseado na popularidade
     const popularity = await redis.incr(popularityKey);

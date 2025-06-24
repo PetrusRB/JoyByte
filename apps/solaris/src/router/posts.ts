@@ -6,6 +6,7 @@ import { createClient } from "@/db/server";
 import { PostSchema } from "@/schemas/post";
 import { Comment } from "@/types";
 import { delByPattern, getOrSet } from "@/libs/redis";
+import { getCacheKey } from "@/libs/utils";
 
 // Define cooldown (ms)
 const COOLDOWN_MS = 300000; // 5 minutes
@@ -375,7 +376,7 @@ export const getPosts = authed
   .handler(async ({ input }) => {
     const limit = input?.limit ?? DEFAULT_LIMIT;
     const offset = input?.offset ?? DEFAULT_OFFSET;
-    const cacheKey = `posts:${limit}:${offset}`;
+    const cacheKey = getCacheKey(`posts:${limit}:${offset}`);
 
     // NOTE: aqui T = TransformedPost[]
     const posts = await getOrSet<TransformedPost[]>(

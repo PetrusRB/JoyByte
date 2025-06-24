@@ -5,6 +5,7 @@ import { retry } from "@/middlewares/retry";
 import { getOrSet, delByPattern } from "@/libs/redis";
 import { z } from "zod";
 import { ORPCError } from "@orpc/server";
+import { getCacheKey } from "@/libs/utils";
 
 // Schema para campos editáveis do usuário atual
 const EditableUserFieldsSchema = z
@@ -56,12 +57,11 @@ const RATE_LIMIT_MAX = 5; // 5 requests por minuto
 
 // Cache TTL em segundos
 const USER_PROFILE_CACHE_TTL = 300; // 5 minutos
-
 /**
  * Gera chave do cache para perfil do usuário
  */
 function getUserProfileCacheKey(userId: string): string {
-  return `user:profile:${userId}`;
+  return getCacheKey(`user:profile:${userId}`);
 }
 
 /**
@@ -236,7 +236,7 @@ export const updateCurrentUserProfile = authed
       }
 
       // Invalidar cache do usuário após atualização
-      await delByPattern(getUserProfileCacheKey(userId));
+      await delByPattern(`user:profile:${userId}`);
 
       return {
         user,
