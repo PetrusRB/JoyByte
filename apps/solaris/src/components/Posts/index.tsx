@@ -21,17 +21,17 @@ import { Button } from "@/components/Button";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { toast } from "sonner";
-import { Input } from "../ui/Input";
 import type { MenuProps } from "antd";
 import DynamicPopup from "../DynamicPopup";
 import { orpc } from "@/libs/orpc";
-import { PostWithCount } from "@/schemas/post";
+import { Comment as CommentSchema, PostWithCount } from "@/schemas/post";
 import { useMutation } from "@tanstack/react-query";
 
 import supabase from "@/db";
 import { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
 import { debounce } from "lodash"; // Ensure lodash is installed: `npm install lodash`
 import { User } from "@/schemas/user";
+import { Comment } from "../Comment";
 
 interface PostLike {
   post_id: number;
@@ -77,7 +77,35 @@ const PostCard: React.FC<PostWithCount & { user: User | null }> = memo(
   }) => {
     const router = useRouter();
     const [deletePop, setDeletePop] = useState(false);
-    const [comments, setComments] = useState<string[]>([]);
+    const [comments, setComments] = useState<CommentSchema[]>([
+      {
+        id: 1,
+        author: {
+          name: "Marina Silva",
+          avatar:
+            "https://images.unsplash.com/photo-1494790108755-2616b9c8c0a4?w=100&h=100&fit=crop&crop=face",
+          isVerified: true,
+        },
+        content:
+          "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        timestamp: new Date(Date.now()).toISOString(),
+        likes: 12,
+        replies: [
+          {
+            id: "1-1",
+            author: "João Santos",
+            avatar:
+              "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150",
+            content:
+              "Concordo totalmente! A experiência no mobile é excepcional.",
+            timestamp: new Date("2024-06-24T11:15:00"),
+            likes: 3,
+            isLiked: true,
+          },
+        ],
+        isLiked: false,
+      },
+    ]);
     const [newComment, setNewComment] = useState("");
     const [showComments, setShowComments] = useState(false);
     const [deleteDisabled, setDisabledDelete] = useState(false);
@@ -158,7 +186,20 @@ const PostCard: React.FC<PostWithCount & { user: User | null }> = memo(
         return;
       }
 
-      setComments((prev) => [...prev, newComment.trim()]);
+      const comment = {
+        id: comments.length + 1,
+        author: {
+          ...user,
+          normalized_name: user.normalized_name || undefined,
+        },
+        content: newComment,
+        timestamp: new Date(Date.now()).toISOString(),
+        likes: 0,
+        replies: [],
+        isLiked: false,
+      };
+
+      setComments([comment, ...comments]);
       setNewComment("");
       toast.success("Comentário adicionado!");
     }, [newComment, user]);
@@ -376,68 +417,14 @@ const PostCard: React.FC<PostWithCount & { user: User | null }> = memo(
         </footer>
 
         {showComments && (
-          <div className="p-4 bg-white dark:bg-zinc-950 border-t border-gray-200 dark:border-gray-700 space-y-3">
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                handleAddComment();
-              }}
-              className="flex items-center space-x-3 mb-4"
-            >
-              <Image
-                src={user?.picture || DEFAULT_AVATAR}
-                alt="Seu avatar"
-                width={32}
-                height={32}
-                className="rounded-full flex-shrink-0"
-                loading="lazy"
-                priority={false}
-                placeholder="blur"
-                blurDataURL={DEFAULT_AVATAR}
-              />
-              <Input
-                value={newComment}
-                onChange={(e) => setNewComment(e.target.value)}
-                placeholder="🎨 Deixe sua criatividade fluir..."
-                className="flex-1"
-                maxLength={500}
-                required
-              />
-              <button
-                type="submit"
-                disabled={!newComment.trim() || !user}
-                className="px-4 py-2 bg-orange-500 hover:bg-orange-600 disabled:bg-zinc-950 disabled:cursor-not-allowed text-white rounded-full font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500"
-              >
-                Enviar
-              </button>
-            </form>
-
-            {comments.length > 0 && (
-              <div className="max-h-40 overflow-y-auto scrollbar-thin scrollbar-thumb-zinc-600 scrollbar-track-zinc-800 space-y-3">
-                {comments.map((comment, index) => (
-                  <div
-                    key={`${id}-comment-${index}`}
-                    className="flex items-start space-x-3"
-                  >
-                    <Image
-                      src={user?.picture || DEFAULT_AVATAR}
-                      alt="Avatar do comentário"
-                      width={24}
-                      height={24}
-                      className="rounded-full flex-shrink-0"
-                      placeholder="blur"
-                      blurDataURL={DEFAULT_AVATAR}
-                    />
-                    <div className="bg-gray-100 dark:bg-zinc-800 rounded-lg px-3 py-2 flex-1">
-                      <p className="text-sm break-words text-gray-900 dark:text-gray-100">
-                        {comment}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+          <Comment.Section
+            comments={comments}
+            setComments={setComments}
+            user={user}
+            contentComment={newComment}
+            setContentComment={setNewComment}
+            handleAddComment={handleAddComment}
+          />
         )}
       </article>
     );

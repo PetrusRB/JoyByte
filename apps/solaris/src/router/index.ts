@@ -1,4 +1,4 @@
-import { authCallback, me } from "./auth";
+import { authCallback, me } from "./auth.router";
 import {
   batchGetPostLikeData,
   checkUserLike,
@@ -8,9 +8,9 @@ import {
   getUserPosts,
   isPostLiked,
   likePost,
-} from "./posts";
-import { searchUsers } from "./search";
-import { getCurrentUserProfile, updateCurrentUserProfile } from "./user";
+} from "./posts.router";
+import { searchUsers } from "./search.router";
+import { getCurrentUserProfile, updateCurrentUserProfile } from "./user.router";
 
 export const router = {
   post: {

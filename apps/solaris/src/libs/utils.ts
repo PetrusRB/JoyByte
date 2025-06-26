@@ -4,6 +4,7 @@ import { twMerge } from "tailwind-merge";
 export const DEFAULT_AVATAR =
   "https://fwtmxmanjjkhrdvhpref.supabase.co/storage/v1/object/public/assets//user.png";
 export const DEFAULT_BANNER = "/placeholder.png";
+export const DEFAULT_NAME = "Misterioso(a)";
 export const DEFAULT_BIO = "🎮️♥️";
 const ENV_PREFIX = process.env.NODE_ENV === "production" ? "prod" : "dev";
 

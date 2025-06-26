@@ -1,6 +1,5 @@
 import { z } from "zod";
 import { UserMetadata } from "@supabase/supabase-js";
-import { Comment } from "@/types";
 import { User } from "./user";
 
 // Define PostSchema first since it's referenced by the Post type
@@ -16,6 +15,25 @@ export const PostSchema = z.object({
   created_at: z.date(),
   comments: z.custom<Comment>().optional(),
 });
+export const ReplySchema = z.object({
+  id: z.string(),
+  author: z.string(),
+  avatar: z.string(),
+  content: z.string(),
+  timestamp: z.date().optional(),
+  likes: z.number(),
+  isLiked: z.boolean(),
+});
+
+export const CommentSchema = z.object({
+  id: z.number().min(1, "Id inválido (comprimento minimo de 1 numero)"),
+  author: z.custom<CustomUserMetadata>(),
+  content: z.string(),
+  timestamp: z.string().optional(),
+  likes: z.number(),
+  replies: z.array(ReplySchema),
+  isLiked: z.boolean(),
+});
 export const PostWithCountSchema = PostSchema.extend({
   likeCount: z.number().default(0),
   user: z.custom<User>().nullable(),
@@ -23,7 +41,9 @@ export const PostWithCountSchema = PostSchema.extend({
 });
 
 // Export types for TypeScript
+export type Comment = z.infer<typeof CommentSchema>;
 export type Post = z.infer<typeof PostSchema>;
+export type Reply = z.infer<typeof ReplySchema>;
 export type PostWithCount = z.infer<typeof PostWithCountSchema>;
 export type Page = { posts: PostWithCount[]; nextPage: number | null };
 
