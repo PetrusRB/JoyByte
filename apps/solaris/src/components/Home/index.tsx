@@ -7,7 +7,6 @@ import PostGrid from "../Posts";
 import ContactsList from "../ContactList";
 import { Post, PostWithCount } from "@/schemas/post";
 import { useAuth } from "@/contexts/auth/AuthContext";
-import { orpc } from "@/libs/orpc";
 import { useInfiniteQuery } from "@tanstack/react-query";
 
 interface Contact {
@@ -48,18 +47,22 @@ const fetchPage = async (
   const PAGE_SIZE = 5;
   const offset = (page - 1) * PAGE_SIZE;
 
-  const posts: Post[] = await orpc.post.get.call({ limit: PAGE_SIZE, offset });
+  const res = await fetch(`/api/post/get?limit=${PAGE_SIZE}&offset=${offset}`);
+  if (!res.ok) {
+    throw new Error("Erro ao buscar posts");
+  }
+  const json: Post[] = await res.json();
 
   // Map posts to PostWithCount, setting initialLikeCount to 0
   // Like data will be fetched by PostGrid's useEffect
-  const postsWithCounts: PostWithCount[] = posts.map((post) => ({
+  const postsWithCounts: PostWithCount[] = json.map((post) => ({
     ...post,
     likeCount: 0, // Placeholder, updated by PostGrid
     initialLikeCount: 0, // Placeholder, updated by PostGrid
     user: null, // Will be set by PostGrid
   }));
 
-  const hasMore = posts.length === PAGE_SIZE;
+  const hasMore = json.length === PAGE_SIZE;
   return { posts: postsWithCounts, nextPage: hasMore ? page + 1 : null };
 };
 

@@ -1,17 +1,19 @@
 "use client";
+import dynamic from "next/dynamic";
 
-import {
-  Camera,
-  User,
-  Palette,
-  Save,
-  ArrowLeft,
-  DoorOpen,
-  Mars,
-  Venus,
-} from "lucide-react";
+const Camera = dynamic(() => import("lucide-react").then((m) => m.Camera));
+const User = dynamic(() => import("lucide-react").then((m) => m.User));
+const Palette = dynamic(() => import("lucide-react").then((m) => m.Palette));
+const Save = dynamic(() => import("lucide-react").then((m) => m.Save));
+const ArrowLeft = dynamic(() =>
+  import("lucide-react").then((m) => m.ArrowLeft),
+);
+const DoorOpen = dynamic(() => import("lucide-react").then((m) => m.DoorOpen));
+const Mars = dynamic(() => import("lucide-react").then((m) => m.Mars));
+const Venus = dynamic(() => import("lucide-react").then((m) => m.Venus));
+
 import { useRouter } from "next/navigation";
-import { useState, useCallback, Suspense, memo } from "react";
+import { useState, useCallback, memo } from "react";
 import { Button } from "@/components/Button";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
@@ -22,15 +24,17 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/Card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/Avatar";
+const DynamicPopup = dynamic(() => import("@/components/DynamicPopup"), {
+  ssr: false,
+});
+import { Toggles } from "@/components/Toggles";
+
 import { useAuth } from "@/contexts/auth/AuthContext";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
-import DynamicPopup from "@/components/DynamicPopup";
-import ThemeSwitch from "@/components/Toggles/theme";
+
 import { useTheme } from "next-themes";
-import { Skeleton } from "antd";
-import { DEFAULT_AVATAR, DEFAULT_BIO, getInitials } from "@/libs/utils";
+import { DEFAULT_AVATAR, DEFAULT_BIO } from "@/libs/utils";
 import {
   Select,
   SelectContent,
@@ -41,7 +45,8 @@ import {
   SelectValue,
 } from "@/components/ui/Select";
 import { Textarea } from "@/components/ui/TextArea";
-import { orpc } from "@/libs/orpc";
+import Image from "next/image";
+import { getPlaceholder } from "@/libs/blur";
 
 const Settings = memo(() => {
   const { user, signOut } = useAuth();
@@ -49,6 +54,7 @@ const Settings = memo(() => {
   const ConfigTrans = useTranslations("Config");
   const AuthTrans = useTranslations("Auth");
   const router = useRouter();
+  const [errors, setErrors] = useState<string[] | null>(null);
   const { theme } = useTheme();
   const [name, setName] = useState(user?.name);
   const [exitPop, setExitPop] = useState<boolean>(false);
@@ -71,14 +77,12 @@ const Settings = memo(() => {
       label: "Other",
     },
     {
-      key: "prefer_not_to_say",
+      key: "prefernottosay",
       icon: <p>🙊</p>,
       label: "Prefer not to say",
     },
   ];
-
   const [isLoading, setIsLoading] = useState(false);
-
   const handleImageUpload = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
@@ -99,26 +103,63 @@ const Settings = memo(() => {
     setIsLoading(true);
 
     try {
-      const res = await orpc.user.updateCurrentProfile.call({
-        name: name,
-        bio: bio,
-        genre: genre,
+      const res = await fetch("/api/user/profile", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name,
+          bio,
+          genre,
+        }),
       });
       if (!res) {
-        throw new Error("Falha ao atualizar perfil");
+        throw new Error("Falha ao atualizar perfil: Não obteve resposta");
+      }
+      if (!res.ok) {
+        throw new Error(
+          "Falha ao atualizar perfil: Obteve Resposta, mas não é das boas.",
+        );
       }
 
       setIsLoading(false);
       toast.success(
         "Perfil atualizado com sucesso, recarregue a pagina para ver as alterações",
       );
-    } catch (error: any) {
-      console.error("Erro ao atualizar perfil:", error);
+    } catch (err: any) {
+      const newErrors: string[] = [];
+      // tenta extrair JSON de erro
+      let errJson: any = null;
+      try {
+        errJson = await err.response.json();
+      } catch {
+        /* não era JSON */
+      }
 
-      const message =
-        error?.data?.message || error?.message || "Erro desconhecido";
+      // Erros de validação do Zod
+      if (errJson?.details?.fieldErrors) {
+        for (const [field, msgs] of Object.entries<string[]>(
+          errJson.details.fieldErrors,
+        )) {
+          msgs.forEach((msg) => newErrors.push(`${field}: ${msg}`));
+        }
+      }
 
-      toast.error(`Erro ao salvar perfil: ${message}`);
+      // Mensagem geral
+      if (errJson?.error) {
+        newErrors.push(errJson.error);
+      } else if (err.message) {
+        newErrors.push(err.message);
+      } else {
+        newErrors.push("Erro inesperado ao tentar atualizar o perfil.");
+      }
+
+      setErrors(newErrors);
+      toast.error(
+        `Erro ao tentar atualizar o perfil: ${err.message ?? "Desconhecido"}`,
+      );
+      console.error("[Update Profile error]", errJson ?? err);
     } finally {
       setIsLoading(false);
     }
@@ -141,7 +182,7 @@ const Settings = memo(() => {
               {t("Settings")}
             </h1>
             <p className="text-sm text-orange-600/70 dark:text-orange-300/70">
-              Personalize sua experiência
+              {ConfigTrans("Personalize your Experience")}
             </p>
           </div>
         </div>
@@ -159,16 +200,16 @@ const Settings = memo(() => {
               </CardHeader>
               <CardContent className="text-center space-y-4">
                 <div className="relative inline-block">
-                  <Avatar className="w-24 h-24">
-                    <AvatarImage
-                      src={profileImage ?? DEFAULT_AVATAR}
-                      alt="Profile"
-                      loading="lazy"
-                    />
-                    <AvatarFallback className="bg-orange-500 text-white text-xl">
-                      {getInitials(user?.name ?? "Misterioso(a)")}
-                    </AvatarFallback>
-                  </Avatar>
+                  <Image
+                    src={profileImage ?? DEFAULT_AVATAR}
+                    className="rounded-full ring-1 ring-orange-500 dark:ring-white"
+                    alt="Seu Avatar"
+                    width={98}
+                    height={98}
+                    loading="lazy"
+                    placeholder="blur"
+                    blurDataURL={`data:image/png;base64,${getPlaceholder(user?.picture || "/user.png")}`}
+                  />
                   <label
                     htmlFor="profileUpload"
                     className="absolute -bottom-1 -right-1 cursor-pointer"
@@ -277,7 +318,7 @@ const Settings = memo(() => {
                       {theme === "dark" ? "Ativado" : "Desativado"}
                     </p>
                   </div>
-                  <ThemeSwitch />
+                  <Toggles.Theme />
                 </div>
               </CardContent>
             </Card>
@@ -303,6 +344,7 @@ const Settings = memo(() => {
             </Card>
 
             <div className="flex justify-end">
+              {errors && <p className="text-red-500 text-sm">{errors}</p>}
               <Button
                 onClick={handleSave}
                 disabled={isLoading}
@@ -350,14 +392,4 @@ const Settings = memo(() => {
   );
 });
 
-const PerfomantSettings = () => {
-  return (
-    <>
-      <Suspense fallback={<Skeleton />}>
-        <Settings />
-      </Suspense>
-    </>
-  );
-};
-
-export default PerfomantSettings;
+export default Settings;

@@ -23,7 +23,6 @@ import Image from "next/image";
 import { toast } from "sonner";
 import type { MenuProps } from "antd";
 import DynamicPopup from "../DynamicPopup";
-import { orpc } from "@/libs/orpc";
 import { Comment as CommentSchema, PostWithCount } from "@/schemas/post";
 import { useMutation } from "@tanstack/react-query";
 
@@ -32,6 +31,8 @@ import { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
 import { debounce } from "lodash"; // Ensure lodash is installed: `npm install lodash`
 import { User } from "@/schemas/user";
 import { Comment } from "../Comment";
+import { LikeData } from "@/routes/post/posts.router";
+import { getPlaceholder } from "@/libs/blur";
 
 interface PostLike {
   post_id: number;
@@ -144,7 +145,23 @@ const PostCard: React.FC<PostWithCount & { user: User | null }> = memo(
       void,
       { previousState: LikeState }
     >({
-      mutationFn: () => orpc.post.like.call({ id }),
+      mutationFn: async () => {
+        const response = await fetch("/api/post/like", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            id: id,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error("Falha ao tentar curtir este post.");
+        }
+
+        return await response.json();
+      },
       onMutate: async () => {
         if (!user) {
           toast.error("Faça login para curtir posts");
@@ -213,7 +230,15 @@ const PostCard: React.FC<PostWithCount & { user: User | null }> = memo(
       setDisabledDelete(true);
 
       try {
-        const res = await orpc.post.deletePost.call({ post_id: id });
+        const res = await fetch("/api/post/delete", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            post_id: id,
+          }),
+        });
         if (!res) {
           throw new Error("Falha ao deletar");
         }
@@ -274,7 +299,7 @@ const PostCard: React.FC<PostWithCount & { user: User | null }> = memo(
             focus:ring-2 focus:ring-orange-500 focus:outline-none
             ${
               likeState.liked
-                ? "bg-orange-100 dark:bg-orange-900/30 text-orange-600 shadow-sm"
+                ? "bg-orange-100 dark:bg-orange-900/30 text-orange-600 "
                 : "hover:bg-gray-100 dark:hover:bg-zinc-800 text-gray-600 dark:text-gray-400"
             }
             ${likeState.isLoading ? "opacity-70 cursor-not-allowed" : ""}
@@ -294,7 +319,7 @@ const PostCard: React.FC<PostWithCount & { user: User | null }> = memo(
     );
 
     return (
-      <article className="bg-white dark:bg-zinc-950 rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden flex flex-col">
+      <article className="bg-white dark:bg-zinc-950 rounded-2xl duration-300 overflow-hidden flex flex-col">
         <header className="flex items-center justify-between p-4 bg-gray-50 dark:bg-zinc-900">
           <div className="flex items-center space-x-3">
             <button
@@ -307,8 +332,9 @@ const PostCard: React.FC<PostWithCount & { user: User | null }> = memo(
                 width={40}
                 height={40}
                 className="rounded-full object-cover"
+                loading="lazy"
                 placeholder="blur"
-                blurDataURL={DEFAULT_AVATAR}
+                blurDataURL={`data:image/png;base64,${getPlaceholder(author?.picture || "/user.png")}`}
               />
             </button>
             <div className="overflow-hidden">
@@ -337,7 +363,6 @@ const PostCard: React.FC<PostWithCount & { user: User | null }> = memo(
             </Dropdown>
           )}
         </header>
-
         <div className="flex-grow p-4">
           <h3
             className="text-lg font-bold mb-2 truncate text-gray-900 dark:text-gray-100"
@@ -353,7 +378,7 @@ const PostCard: React.FC<PostWithCount & { user: User | null }> = memo(
                 alt={title}
                 width={600}
                 height={400}
-                className="w-full h-auto rounded-lg mb-3 shadow-sm"
+                className="w-full h-auto rounded-lg mb-3 "
               />
             </Suspense>
           )}
@@ -400,7 +425,6 @@ const PostCard: React.FC<PostWithCount & { user: User | null }> = memo(
             </div>
           </DynamicPopup>
         </div>
-
         <footer className="flex items-center justify-between p-4 bg-gray-50 dark:bg-zinc-900 border-t border-gray-200 dark:border-zinc-800">
           <div className="flex space-x-4">
             {LikeButton}
@@ -415,7 +439,6 @@ const PostCard: React.FC<PostWithCount & { user: User | null }> = memo(
             </button>
           </div>
         </footer>
-
         {showComments && (
           <Comment.Section
             comments={comments}
@@ -448,8 +471,20 @@ const PostGrid: React.FC<PostGridProps> = ({ data, loading, error, user }) => {
     const pendingUpdates = new Set<number>();
 
     // Initial batch fetch
-    orpc.post.batchGetPostLikeData
-      .call({ ids: postIds })
+    fetch("/api/post/batch-like-data", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ ids: postIds }),
+    })
+      .then(async (res): Promise<LikeData[]> => {
+        if (!res.ok) {
+          const error = await res.json();
+          throw new Error(error.message || "Erro ao buscar dados de curtida");
+        }
+        return res.json();
+      })
       .then((results) => {
         results.forEach(({ postId, liked, count }) => {
           const event = new CustomEvent("likeUpdate", {
@@ -467,8 +502,20 @@ const PostGrid: React.FC<PostGridProps> = ({ data, loading, error, user }) => {
       if (pendingUpdates.size === 0) return;
       const ids = Array.from(pendingUpdates);
       pendingUpdates.clear();
-      orpc.post.batchGetPostLikeData
-        .call({ ids })
+      fetch("/api/post/batch-like-data", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ ids: ids }),
+      })
+        .then(async (res): Promise<LikeData[]> => {
+          if (!res.ok) {
+            const error = await res.json();
+            throw new Error(error.message || "Erro ao buscar dados de curtida");
+          }
+          return res.json();
+        })
         .then((results) => {
           results.forEach(({ postId, liked, count }) => {
             const event = new CustomEvent("likeUpdate", {
@@ -478,7 +525,7 @@ const PostGrid: React.FC<PostGridProps> = ({ data, loading, error, user }) => {
           });
         })
         .catch((error) => {
-          console.error("Erro ao atualizar curtidas em lote:", error);
+          console.error("Erro ao buscar dados de like em lote:", error);
         });
     }, 300);
 

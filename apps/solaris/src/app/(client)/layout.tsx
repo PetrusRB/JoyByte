@@ -8,7 +8,7 @@ import Navbar from "@/components/Navbar";
 import React from "react";
 import { Toaster } from "@/components/ui/Toast";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import NextTopLoader from "nextjs-toploader";
+import { Loader } from "@/components/Loader";
 
 type LayoutClientProps = {
   children: React.ReactNode;
@@ -22,7 +22,7 @@ const LayoutClient: React.FC<LayoutClientProps> = ({ children }) => {
       <ThemeProvider attribute="class" defaultTheme="system">
         <QueryClientProvider client={queryClient}>
           <AuthProvider>
-            <NextTopLoader />
+            <Loader.Progress />
             {/* Navbar sempre visível, dentro do AuthContext */}
             <Navbar />
 

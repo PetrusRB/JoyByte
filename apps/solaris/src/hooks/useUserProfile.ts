@@ -1,7 +1,6 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { orpc } from "@/libs/orpc";
 import { UserProfile } from "@/schemas/user";
 
 export function useUserProfile(rawUsername?: string) {
@@ -16,10 +15,18 @@ export function useUserProfile(rawUsername?: string) {
           duplicates: [] as UserProfile[],
         };
       }
-      const { users } = await orpc.search.user.call({ user: username });
 
-      // Mapeia do Supabase para UserProfile, preenchendo todos os campos
-      const mapped: UserProfile[] = users.map((u) => ({
+      const res = await fetch(`/api/search/user?user=${username}`, {
+        method: "GET",
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to search user");
+      }
+
+      const json = await res.json();
+
+      const users: UserProfile[] = json.users.map((u: any) => ({
         id: u.id,
         email: u.email ?? "",
         bio: u.bio ?? "",
@@ -27,15 +34,14 @@ export function useUserProfile(rawUsername?: string) {
         social_media: u.social_media || {},
         created_at: u.created_at,
         preferences: u.preferences || {},
-        // Campos obrigatórios que faltavam
         raw_user_meta_data: u.raw_user_meta_data ?? {},
         normalized_name: u.normalized_name ?? "",
         posts: u.posts ?? [],
       }));
 
       return {
-        primary: mapped[0] ?? null,
-        duplicates: mapped.slice(1),
+        primary: users[0] ?? null,
+        duplicates: users.slice(1),
       };
     },
     enabled: Boolean(username),

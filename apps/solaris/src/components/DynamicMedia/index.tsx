@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
-import Image from "next/image";
-import { Loading } from "../Loading";
+import NextImage from "next/image";
+import { Loader } from "../Loader";
+import { getPlaceholder } from "@/libs/blur";
 
 // Lazy load do react-player
 // const ReactPlayer = dynamic(() => import('react-player'), { ssr: false });
@@ -14,8 +15,10 @@ const VideoPlayer = dynamic(() => import("@/components/VideoPlayer"), {
 type MediaDisplayProps = {
   url: string;
   className?: string;
-  width: number;
-  height: number;
+  fill?: boolean;
+  onClick?: () => void;
+  width?: number;
+  height?: number;
   alt?: string;
   autoPlay?: boolean;
 };
@@ -48,6 +51,8 @@ export default function DynamicMedia({
   url,
   autoPlay = false,
   alt = "Mídia detectada",
+  onClick,
+  fill,
   width,
   height,
   className,
@@ -81,21 +86,22 @@ export default function DynamicMedia({
   }, [url]);
 
   if (loading) {
-    return <Loading text="Carregando mídia..." />;
+    return <Loader.Spinner text="Carregando mídia..." />;
   }
 
   if (mediaType === "image") {
     return (
-      <Image
+      <NextImage
         src={url}
+        className={className}
         width={width}
+        onClick={onClick}
         height={height}
         alt={alt}
-        loading={"lazy"}
-        className={className}
-        priority={false}
+        loading="lazy"
         placeholder="blur"
-        blurDataURL={url}
+        fill={fill}
+        blurDataURL={`data:image/png;base64,${getPlaceholder(url)}`}
       />
     );
   }

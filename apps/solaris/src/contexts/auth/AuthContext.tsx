@@ -9,13 +9,12 @@ import React, {
   ReactNode,
   useCallback,
 } from "react";
-import { Loading } from "@/components/Loading";
+import { Loader } from "@/components/Loader";
 import { login } from "@/db/actions/login";
 import { signout } from "@/db/actions/signout";
 import { Provider } from "@/types";
 import supabase from "@/db";
 import { useRouter } from "next/navigation";
-import { client } from "@/libs/orpc";
 import { User } from "@/schemas/user";
 
 interface AuthContextType {
@@ -44,22 +43,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return;
       }
 
-      // Agora sim, usa o auth.me() + profile
+      // Faz os dois fetches em paralelo
       const [authRes, profileRes] = await Promise.all([
-        client.auth.me(),
-        client.user.me(),
+        fetch("/api/auth/me", {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+        }),
+        fetch("/api/user/profile", {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+        }),
       ]);
 
+      if (!authRes.ok)
+        throw new Error("Erro ao buscar dados do usuário (/auth/me)");
+      if (!profileRes.ok)
+        throw new Error("Erro ao buscar perfil do usuário (/user/profile)");
+
+      const authData = await authRes.json();
+      const profileData = await profileRes.json();
+      // Mapeia para User conforme esperado
       const parsedUser: User = {
-        id: authRes.id,
-        email: authRes.email,
-        name: profileRes.user.raw_user_meta_data.name,
-        genre: profileRes.user.genre || "",
-        picture: profileRes.user.raw_user_meta_data.picture || "/user.png",
-        aud: authRes.aud || "authenticated",
-        created_at: authRes.created_at,
-        bio: profileRes.user.bio || null,
-        normalized_name: profileRes.user.normalized_name || null,
+        id: authData.id,
+        email: authData.email,
+        name: profileData.user?.raw_user_meta_data.name,
+        genre: profileData.user?.genre || "",
+        picture: profileData.user?.raw_user_meta_data.picture,
+        user_metadata: profileData.user?.raw_user_meta_data || {},
+        aud: authData.aud || "authenticated",
+        created_at: new Date(authData.created_at),
+        bio: profileData.user?.bio || null,
+        normalized_name: profileData.user?.normalized_name || null,
       };
 
       setUser(parsedUser);
@@ -109,7 +123,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider value={value}>
-      {isLoading ? <Loading /> : children}
+      {isLoading ? <Loader.Spinner /> : children}
     </AuthContext.Provider>
   );
 }

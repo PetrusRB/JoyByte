@@ -1,14 +1,21 @@
 import type { Metadata } from "next";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
-import localFont from "next/font/local";
+import { Ubuntu } from "next/font/google";
 import "./global.css";
+import "@mantine/core/styles.css";
+import "@mantine/nprogress/styles.css";
+import {
+  ColorSchemeScript,
+  MantineProvider,
+  mantineHtmlProps,
+} from "@mantine/core";
+
 import LayoutClient from "./(client)/layout";
 
-const poppins = localFont({
-  src: "../../public/fonts/poppins.ttf",
-  variable: "--font-geist-sans",
-  weight: "100 900",
+const ubuntu = Ubuntu({
+  subsets: ["latin"],
+  weight: "400",
 });
 
 export const metadata: Metadata = {
@@ -27,11 +34,18 @@ export default async function RootLayout({
   // side is the easiest way to get started
   const messages = await getMessages();
   return (
-    <html lang={locale} suppressHydrationWarning>
+    <html lang={locale} {...mantineHtmlProps} suppressHydrationWarning>
+      <head>
+        <ColorSchemeScript />
+      </head>
       <body
-        className={`${poppins.variable} dark:bg-black bg-orange-50 antialiased`}
+        className={`${ubuntu.className} dark:bg-black bg-orange-50 antialiased`}
       >
-        <NextIntlClientProvider messages={messages}><LayoutClient>{children}</LayoutClient></NextIntlClientProvider>
+        <NextIntlClientProvider messages={messages}>
+          <MantineProvider>
+            <LayoutClient>{children}</LayoutClient>
+          </MantineProvider>
+        </NextIntlClientProvider>
       </body>
     </html>
   );

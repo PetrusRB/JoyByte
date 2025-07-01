@@ -1,5 +1,5 @@
 "use client";
-
+import dynamic from "next/dynamic";
 import React, {
   useCallback,
   useState,
@@ -26,14 +26,18 @@ import { useUserProfile } from "@/hooks/useUserProfile";
 import { Skeleton } from "antd";
 
 import { useCachedPosts } from "@/hooks/useCachedPosts";
-import { Loading } from "@/components/Loading";
+import { Loader } from "@/components/Loader";
 import { Image as AntdImage } from "antd";
-import Image from "next/image";
 import { DEFAULT_AVATAR, DEFAULT_BANNER } from "@/libs/utils";
 import { UserProfile } from "@/schemas/user";
 import { Post } from "@/schemas/post";
-import ErrorDisplay from "@/components/ErrorDisplay";
-
+import DynamicMedia from "@/components/DynamicMedia";
+const ErrorDisplay = dynamic(() => import("@/components/ErrorDisplay"), {
+  ssr: false,
+});
+const DynamicMediaSkeleton = () => (
+  <div className="bg-gray-200 dark:bg-zinc-800 h-60 w-full rounded-lg" />
+);
 interface MemoAvatarProps {
   user: UserProfile | null;
   onClick?: () => void;
@@ -164,16 +168,15 @@ const Profile = React.memo<ProfileProps>(
         <div className="relative">
           <div className="h-48 sm:h-56 md:h-64 bg-zinc-800 dark:text-white text-orange-50 bg-center bg-cover cursor-pointer w-full">
             <div className="absolute inset-0 bg-black/20 transition-all" />
-            <Image
-              src={user.banner ?? DEFAULT_BANNER}
-              alt="User Banner"
-              onClick={() => setShowBannerModal(true)}
-              loading="lazy"
-              className="object-cover"
-              placeholder="blur"
-              blurDataURL={DEFAULT_BANNER}
-              fill
-            />
+            <Suspense fallback={<DynamicMediaSkeleton />}>
+              <DynamicMedia
+                url={user.banner ?? DEFAULT_BANNER}
+                alt="User banner"
+                onClick={() => setShowBannerModal(true)}
+                fill
+                className="w-full h-auto rounded-lg mb-3 "
+              />
+            </Suspense>
             <Button
               variant="ghost"
               size="icon"
@@ -413,7 +416,7 @@ const ProfileData: React.FC = () => {
   } = useCachedPosts(selectedUser?.id ?? "");
 
   if (!username) return null;
-  if (loading) return <Loading />;
+  if (loading) return <Loader.Spinner />;
   if (!selectedUser)
     return (
       <ErrorDisplay
@@ -427,9 +430,7 @@ const ProfileData: React.FC = () => {
     );
 
   return (
-    <Suspense
-      fallback={<div className="p-6 text-center">Carregando perfil...</div>}
-    >
+    <Suspense fallback={<Skeleton avatar round />}>
       <Profile
         user={selectedUser}
         posts={posts}

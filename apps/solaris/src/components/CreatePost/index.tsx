@@ -1,16 +1,18 @@
 "use client";
 
-import { Image, Video, Smile } from "lucide-react";
+import { Image as ImageIcon, Video, Smile } from "lucide-react";
 import { Button } from "@/components/Button";
+import Image from "next/image";
 import { Card, CardContent } from "@/components/ui/Card";
 import { Textarea } from "@/components/ui/TextArea";
 import { Input } from "@/components/ui/Input";
 import { useAuth } from "@/contexts/auth/AuthContext";
 import { useTranslations } from "use-intl";
 import { useCallback, useRef, useState, useTransition } from "react";
-import { orpc } from "@/libs/orpc";
 import { useRouter } from "next/navigation";
 import { getUserSlug } from "@/libs/utils";
+import { toast } from "sonner";
+import { getPlaceholder } from "@/libs/blur";
 
 export default function CreatePost() {
   const { user } = useAuth();
@@ -55,10 +57,23 @@ export default function CreatePost() {
 
     startTransition(async () => {
       try {
-        const res = await orpc.post.create.call({
-          title: trimmedTitle,
-          content: trimmedContent,
+        const res = await fetch("/api/post/create", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            title: trimmedTitle,
+            content: trimmedContent,
+          }),
         });
+
+        if (!res)
+          throw new Error("Falha ao criar este Post: Não obteve resposta.");
+        if (!res.ok)
+          throw new Error(
+            "Falha ao criar este Post: Resposta não bem sucedida.",
+          );
 
         console.log("Post criado:", res);
         setTitle("");
@@ -95,6 +110,7 @@ export default function CreatePost() {
         }
 
         setErrors(newErrors);
+        toast.error(`Erro ao criar o post: ${err.message ?? "Desconhecido"}`);
         console.error("[CreatePost error]", errJson ?? err);
       }
     });
@@ -104,14 +120,18 @@ export default function CreatePost() {
     <Card className="dark:bg-black bg-white dark:text-white border-0 shadow-lg rounded-2xl overflow-hidden">
       <CardContent className="p-6 space-y-4">
         <div className="flex items-start space-x-4">
-          <img
-            src={user?.picture ?? "/user.png"}
+          <Image
+            src={user?.picture || "/user.png"}
             alt="Seu perfil"
             onClick={() =>
-              router.push(getUserSlug(user?.normalized_name ?? ""))
+              router.push(getUserSlug(user?.normalized_name || ""))
             }
             className="w-12 h-12 rounded-full cursor-pointer border-2 border-blue-200"
             loading="lazy"
+            width={48}
+            height={48}
+            placeholder="blur"
+            blurDataURL={`data:image/png;base64,${getPlaceholder(user?.picture || "/user.png")}`}
           />
           <div className="flex-1 space-y-3">
             {/* Título criativo */}
@@ -150,7 +170,7 @@ export default function CreatePost() {
               label={t("Go Live")}
             />
             <PostAction
-              icon={<Image className="w-4 h-4 mr-1" />}
+              icon={<ImageIcon className="w-4 h-4 mr-1" />}
               label={t("Photo/Video")}
             />
             <PostAction

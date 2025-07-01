@@ -8,11 +8,12 @@ import {
   Calendar,
 } from "lucide-react";
 import { Button } from "@/components/Button";
-import { cn, getInitials, getUserSlug } from "@/libs/utils";
+import { cn, getUserSlug } from "@/libs/utils";
 import { useAuth } from "@/contexts/auth/AuthContext";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
-import { Image } from "antd";
+import Image from "next/image";
+import { getPlaceholder } from "@/libs/blur";
 
 const Sidebar = () => {
   const SidebarTrans = useTranslations("Sidebar");
@@ -31,14 +32,16 @@ const Sidebar = () => {
     <div className="p-4 h-full dark:text-white">
       <div className="space-y-2">
         {/* Profile Section */}
-        <div className="p-4 dark:bg-black bg-white dark:text-white rounded-2xl shadow-sm mb-6">
+        <div className="p-4 dark:bg-zinc-950 bg-white dark:text-white rounded-2xl shadow-sm mb-6">
           <div className="flex items-center space-x-3">
             <Image
               src={user?.picture ?? "/user.png"}
               alt={user?.name ?? "Misterioso(a)"}
               className="rounded-full ring-1 ring-orange-500 hover:ring-orange-400 transition-all duration-300"
               width={48}
-              fallback={getInitials(user?.name ?? "Misterioso(a)")}
+              loading="lazy"
+              placeholder="blur"
+              blurDataURL={`data:image/png;base64,${getPlaceholder(user?.picture || "/user.png")}`}
               height={48}
             />
             <div>

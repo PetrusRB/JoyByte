@@ -1,12 +1,25 @@
 import { Post } from "@/schemas/post";
 import { useQuery } from "@tanstack/react-query";
-import { orpc } from "@/libs/orpc";
+
 export const useCachedPosts = (userId: string) => {
   return useQuery<Post[]>({
     queryKey: ["cachedPosts", userId],
     queryFn: async () => {
-      const posts = await orpc.post.getUser.call({ user_id: userId });
-      return posts;
+      const res = await fetch("/api/post/user", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          user_id: userId,
+        }),
+      });
+
+      if (!res.ok) {
+        throw new Error("Erro ao buscar posts do usuário");
+      }
+
+      return res.json();
     },
     enabled: Boolean(userId),
     staleTime: 1000 * 60 * 3, // 3 minutos

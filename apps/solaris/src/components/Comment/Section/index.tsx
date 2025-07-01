@@ -85,6 +85,7 @@ export class CommentSection extends Component<Props> {
             <div className="max-h-96 overflow-y-auto">
               {this.props.comments.map((comment, index) => (
                 <Comment.Card
+                  key={index}
                   author={comment.author}
                   comment={comment}
                   index={index}

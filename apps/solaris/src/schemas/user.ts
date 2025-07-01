@@ -89,6 +89,7 @@ export const UserSchema = z.object({
   email: z.string().email().optional(),
   aud: z.string().optional(),
   created_at: z.date().optional(),
+  user_metadata: z.record(z.any()),
   genre: z.string().optional(),
   picture: z.string().optional(),
   bio: z.string().nullable().optional(),

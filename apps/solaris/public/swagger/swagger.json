@@ -1,0 +1,290 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "JoyByte API",
+    "version": "1.0.0",
+    "description": "API de perfil de usuário"
+  },
+  "servers": [
+    {
+      "url": "/api",
+      "description": "API endpoint"
+    }
+  ],
+  "paths": {
+    "/profile": {
+      "get": {
+        "summary": "Busca o perfil do usuário autenticado",
+        "tags": [
+          "Usuário"
+        ],
+        "responses": {
+          "200": {
+            "description": "Perfil buscado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserProfileResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Não autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Erro ao buscar perfil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "summary": "Atualiza os campos editáveis do usuário",
+        "tags": [
+          "Usuário"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EditableUserFields"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Perfil atualizado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserProfileResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Nenhum campo para atualizar",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Nome já em uso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Limite de atualização atingido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Erro ao atualizar perfil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "EditableUserFields": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "picture": {
+            "type": "string",
+            "format": "uri"
+          },
+          "bio": {
+            "type": "string",
+            "maxLength": 500
+          },
+          "banner": {
+            "type": "string",
+            "format": "uri"
+          },
+          "social_media": {
+            "type": "object",
+            "properties": {
+              "twitter": {
+                "type": "string",
+                "format": "uri"
+              },
+              "instagram": {
+                "type": "string",
+                "format": "uri"
+              },
+              "linkedin": {
+                "type": "string",
+                "format": "uri"
+              },
+              "github": {
+                "type": "string",
+                "format": "uri"
+              },
+              "website": {
+                "type": "string",
+                "format": "uri"
+              }
+            },
+            "additionalProperties": false
+          },
+          "genre": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 17
+          },
+          "preferences": {
+            "type": "object",
+            "properties": {
+              "privacy": {
+                "type": "object",
+                "properties": {
+                  "profile_visibility": {
+                    "type": "string",
+                    "enum": [
+                      "public",
+                      "private"
+                    ]
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": true
+      },
+      "UserProfileResponse": {
+        "type": "object",
+        "properties": {
+          "user": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "raw_user_meta_data": {
+                "type": "object"
+              },
+              "created_at": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "updated_at": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "banner": {
+                "type": "string",
+                "format": "uri",
+                "nullable": true
+              },
+              "email": {
+                "type": "string",
+                "format": "email",
+                "nullable": true
+              },
+              "bio": {
+                "type": "string",
+                "nullable": true
+              },
+              "badge": {
+                "type": "string",
+                "nullable": true
+              },
+              "social_media": {
+                "type": "object"
+              },
+              "genre": {
+                "type": "string",
+                "nullable": true
+              },
+              "followers": {
+                "type": "integer",
+                "nullable": true
+              },
+              "following": {
+                "type": "integer",
+                "nullable": true
+              },
+              "normalized_name": {
+                "type": "string",
+                "nullable": true
+              },
+              "preferences": {
+                "type": "object"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          },
+          "rateLimitRemaining": {
+            "type": "integer"
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "cause": {
+            "type": [
+              "string",
+              "object"
+            ],
+            "nullable": true
+          }
+        },
+        "required": [
+          "message"
+        ]
+      }
+    }
+  }
+}
