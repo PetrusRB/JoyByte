@@ -15,17 +15,15 @@ export const PostSchema = z.object({
   created_at: z.date(),
   comments: z.custom<Comment[]>().optional(),
 });
-export const ReplySchema = z
-  .object({
-    id: z.string(),
-    author: z.string(),
-    avatar: z.string(),
-    content: z.string(),
-    timestamp: z.date().optional(),
-    likes: z.number(),
-    isLiked: z.boolean(),
-  })
-  .optional();
+export const ReplySchema = z.object({
+  id: z.string(),
+  author: z.string(),
+  avatar: z.string(),
+  content: z.string(),
+  timestamp: z.date().optional(),
+  likes: z.number(),
+  isLiked: z.boolean(),
+});
 
 export const CommentSchema = z.object({
   id: z.number().min(1, "Id inválido (comprimento minimo de 1 numero)"),
