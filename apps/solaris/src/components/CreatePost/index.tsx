@@ -70,9 +70,11 @@ export default function CreatePost() {
 
         if (!res)
           throw new Error("Falha ao criar este Post: Não obteve resposta.");
+        const json = await res.json();
+
         if (!res.ok)
           throw new Error(
-            "Falha ao criar este Post: Resposta não bem sucedida.",
+            `Falha ao criar este Post: ${json?.message ?? "Erro desconhecido"}`,
           );
 
         console.log("Post criado:", res);
@@ -126,7 +128,7 @@ export default function CreatePost() {
             onClick={() =>
               router.push(getUserSlug(user?.normalized_name || ""))
             }
-            className="w-12 h-12 rounded-full cursor-pointer border-2 border-blue-200"
+            className="w-12 h-12 rounded-full cursor-pointer ring-1 ring-orange-500"
             loading="lazy"
             width={48}
             height={48}

@@ -66,20 +66,34 @@ const Sidebar = () => {
               className={cn(
                 "w-full justify-start h-12 px-4 rounded-xl transition-all duration-200 bg-transparent hover:scale-[1.02]",
                 item.active
-                  ? "bg-gradient-to-r from-orange-500 to-orange-700 hover:from-orange-600 hover:to-orange-700 text-white shadow-sm"
-                  : "hover:bg-orange-100 text-orange-500 hover:text-orange-800",
+                  ? cn(
+                      "bg-gradient-to-r",
+                      "light:from-orange-500 light:to-orange-600",
+                      "dark:from-orange-400 dark:to-orange-500",
+                      "shadow-sm",
+                    )
+                  : cn(
+                      "light:hover:bg-orange-50 dark:hover:bg-orange-950/30",
+                      "light:text-orange-500 light:hover:text-orange-700",
+                      "dark:text-orange-300 dark:hover:text-orange-400",
+                    ),
               )}
             >
               <item.icon
                 className={cn(
-                  "w-5 h-5 mr-3 text-orange-500",
-                  item.active && "text-white",
+                  "w-5 h-5 mr-3",
+                  item.active
+                    ? "light:text-white dark:text-black"
+                    : "light:text-orange-500 dark:text-orange-400",
                 )}
               />
               <span className="font-medium">{item.label}</span>
               {item.count && (
                 <span
-                  className={`ml-auto bg-red-500 text-white text-xs rounded-full px-2 py-0.5`}
+                  className={cn(
+                    "ml-auto text-xs rounded-full px-2 py-0.5",
+                    "bg-red-500 text-white",
+                  )}
                 >
                   {item.count}
                 </span>

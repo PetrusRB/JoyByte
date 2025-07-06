@@ -66,11 +66,11 @@ const Navbar = () => {
           {/* Center - Search Bar (Hidden on mobile) */}
           <div className="hidden md:flex flex-1 max-w-md mx-4">
             <div className="relative w-full">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-500" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-orange-500 dark:text-slate-500" />
               <Input
                 type="text"
                 placeholder="Pesquisar..."
-                className="w-full pl-10 pr-4 py-2 rounded-full"
+                className="w-full pl-10 pr-4 py-2 rounded-lg"
               />
             </div>
           </div>
@@ -118,7 +118,7 @@ const Navbar = () => {
                   variant="ghost"
                   size="icon"
                   onClick={onClick}
-                  className="hidden sm:flex rounded-full bg-gradient-to-br hover:from-orange-500 hover:to-orange-700 relative"
+                  className="hidden sm:flex rounded-full bg-orange-50 hover:bg-orange-200 dark:bg-zinc-950 dark:hover:bg-zinc-800 relative"
                   title={tooltip}
                 >
                   <Icon className="w-5 h-5 dark:text-white text-orange-800" />

@@ -29,12 +29,13 @@ export function useUserProfile(rawUsername?: string) {
       const users: UserProfile[] = json.users.map((u: any) => ({
         id: u.id,
         email: u.email ?? "",
+        name: u.name ?? "Sem Nome",
+        picture: u.picture ?? "/user.png",
         bio: u.bio ?? "",
         banner: u.banner ?? "",
         social_media: u.social_media || {},
         created_at: u.created_at,
         preferences: u.preferences || {},
-        raw_user_meta_data: u.raw_user_meta_data ?? {},
         normalized_name: u.normalized_name ?? "",
         posts: u.posts ?? [],
       }));

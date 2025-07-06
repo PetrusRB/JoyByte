@@ -11,7 +11,7 @@ const buttonVariants = cva(
       variant: {
         default: `
         group inline-flex items-center gap-2 px-4 py-2 rounded-full border transition-all duration-200 ease-in-out
-          border-orange-300 bg-orange-100 text-orange-900
+          border-orange-300 bg-orange-100 text-orange-500
           hover:bg-orange-200 hover:border-orange-400 hover:shadow-sm
           dark:border-orange-200/30 dark:bg-zinc-900 dark:text-orange-100
           dark:hover:bg-zinc-800 dark:hover:border-orange-200/50

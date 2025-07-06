@@ -62,11 +62,12 @@ export const SocialMediaSchemaRecord = z
   )
   .default({});
 export const UserProfileSchema = z.object({
-  id: z.string().uuid(),
-  raw_user_meta_data: z.record(z.any()),
-  created_at: z.string().optional(),
-  updated_at: z.string().optional(),
+  id: z.string(),
+  created_at: z.date().optional(),
+  updated_at: z.date().optional(),
   banner: z.string().nullable().optional(),
+  name: z.string().nullable().optional(),
+  picture: z.string().url().nullable().optional(),
   email: z.string().email().nullable().optional(),
   bio: z
     .string()
@@ -75,7 +76,6 @@ export const UserProfileSchema = z.object({
     .optional(),
   badge: z.string().nullable().optional(),
   social_media: SocialMediaSchema,
-  picture: z.string().url().nullable().optional(),
   followers: z.number().nullable().optional(),
   following: z.number().nullable().optional(),
   genre: z.string().nullable().optional(),
@@ -87,9 +87,7 @@ export const UserSchema = z.object({
   id: z.string(),
   name: z.string().optional(),
   email: z.string().email().optional(),
-  aud: z.string().optional(),
   created_at: z.date().optional(),
-  user_metadata: z.record(z.any()),
   genre: z.string().optional(),
   picture: z.string().optional(),
   bio: z.string().nullable().optional(),

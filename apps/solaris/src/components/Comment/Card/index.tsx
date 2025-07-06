@@ -106,13 +106,13 @@ export class CommentCard extends Component<Props, State> {
               </div>
 
               <div className="mb-4">
-                <p className="text-foreground/90 leading-relaxed break-words whitespace-pre-wrap">
+                <p className="text-orange-500 leading-relaxed break-words whitespace-pre-wrap">
                   {displayContent}
                 </p>
                 {shouldTruncate && (
                   <Button
                     onClick={this.handleToggleExpanded}
-                    className="h-auto p-0 px-1 py-1 mt-2 text-sm text-primary hover:text-primary/80"
+                    className="h-auto p-0 px-1 py-1 mt-2 text-sm"
                   >
                     {isExpanded ? (
                       <>
@@ -134,7 +134,7 @@ export class CommentCard extends Component<Props, State> {
                   className={`h-9 px-4 transition-all duration-200 ${
                     isLiked
                       ? "text-red-500 bg-red-50 hover:bg-red-100"
-                      : "text-muted-foreground hover:text-red-500 hover:bg-red-50"
+                      : "hover:text-red-500 hover:bg-red-50"
                   }`}
                 >
                   <Heart
@@ -145,7 +145,7 @@ export class CommentCard extends Component<Props, State> {
 
                 <Button
                   onClick={this.handleToggleReplyForm}
-                  className="h-9 px-4 text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
+                  className="h-9 px-4 hover:bg-primary/10 transition-colors"
                 >
                   <ReplyIcon className="h-4 w-4 mr-2" />
                   Responder
@@ -154,7 +154,7 @@ export class CommentCard extends Component<Props, State> {
                 {commentReplies.length > 0 && (
                   <Button
                     onClick={this.handleToggleReplies}
-                    className="h-9 px-4 text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
+                    className="h-9 px-4 hover:bg-primary/10 transition-colors"
                   >
                     <MessageCircle className="h-4 w-4 mr-2" />
                     {showReplies ? "Ocultar" : "Ver"} {commentReplies.length}{" "}

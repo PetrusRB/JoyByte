@@ -52,14 +52,13 @@ const Settings = memo(() => {
   const { user, signOut } = useAuth();
   const t = useTranslations("User");
   const ConfigTrans = useTranslations("Config");
-  const AuthTrans = useTranslations("Auth");
   const router = useRouter();
   const [errors, setErrors] = useState<string[] | null>(null);
   const { theme } = useTheme();
   const [name, setName] = useState(user?.name);
   const [exitPop, setExitPop] = useState<boolean>(false);
   const [bio, setBio] = useState(user?.bio ?? DEFAULT_BIO);
-  const [genre, setGenre] = useState(user?.genre);
+  const [genre, setGenre] = useState(user?.genre ?? "prefernottosay");
   const [profileImage, setProfileImage] = useState(
     user?.picture ?? "/user.png",
   );
@@ -167,7 +166,7 @@ const Settings = memo(() => {
 
   return (
     <div className="min-h-screen bg-orange-50 dark:bg-black dark:text-white text-orange-700">
-      <header className="sticky top-0 z-30 bg-white/80 dark:bg-black ring-1 dark:ring-zinc-800 ring-orange-200/40 backdrop-blur">
+      <header className="sticky top-0 z-30 bg-orange-50 dark:bg-black ring-1 dark:ring-zinc-800 ring-orange-200/40 backdrop-blur">
         <div className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center gap-4">
           <Button
             variant="ghost"
@@ -247,7 +246,7 @@ const Settings = memo(() => {
               </CardHeader>
               <CardContent className="grid sm:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <Label htmlFor="name">{AuthTrans("Username")}</Label>
+                  <Label htmlFor="name">{ConfigTrans("Username")}</Label>
                   <Input
                     id="name"
                     value={name}

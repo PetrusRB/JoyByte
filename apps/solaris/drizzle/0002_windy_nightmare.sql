@@ -1,0 +1,1 @@
+ALTER TABLE "profiles" ALTER COLUMN "preferences" SET DEFAULT '{"privacy":{"profile_visibility":"public"}}'::jsonb;

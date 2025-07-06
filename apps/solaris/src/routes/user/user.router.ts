@@ -1,28 +1,21 @@
-import { createClient } from "@/db/server";
 import { getOrSet, delByPattern } from "@/libs/redis";
 import { z } from "zod";
 import { getCacheKey } from "@/libs/utils";
 import { HTTPException } from "hono/http-exception";
 import { createRouter } from "@/utils/router.utils";
-import { withAuth } from "@/middlewares/withAuth";
 import { zValidator } from "@hono/zod-validator";
+import { profiles } from "@/db/drizzle/schema";
+import { db } from "@/db/drizzle";
+import { and, eq, ilike, ne } from "drizzle-orm";
 
-const router = createRouter(); // Criar roteador hono
+const router = createRouter();
 
-// Schema para campos editáveis do usuário atual
 const EditableUserFieldsSchema = z
   .object({
-    // Informações básicas
     name: z.string().min(1).max(100).trim().optional(),
     picture: z.string().url().optional(),
-    bio: z
-      .string()
-      .max(500, "Passou do limite de caracterias")
-      .trim()
-      .optional(),
+    bio: z.string().max(500).trim().optional(),
     banner: z.string().url().optional(),
-
-    // Redes sociais
     social_media: z
       .object({
         twitter: z.string().url().optional().or(z.literal("")),
@@ -33,11 +26,7 @@ const EditableUserFieldsSchema = z
       })
       .strict()
       .optional(),
-
-    // Gêneros (Homem, Mulher, Binario e etc...)
     genre: z.string().min(3).max(17).trim().optional(),
-
-    // Configurações de privacidade
     preferences: z
       .object({
         privacy: z
@@ -50,327 +39,157 @@ const EditableUserFieldsSchema = z
       .strict()
       .optional(),
   })
-  .passthrough(); // Permite campos extras mas os ignora
+  .passthrough();
 
-// Cache TTL em segundos
-const USER_PROFILE_CACHE_TTL = 300; // 5 minutos
-/**
- * Gera chave do cache para perfil do usuário
- */
+const USER_PROFILE_CACHE_TTL = 300;
+
 function getUserProfileCacheKey(userId: string): string {
   return getCacheKey(`user:profile:${userId}`);
 }
 
-/**
- * Busca perfil do usuário no banco de dados
- */
 async function fetchUserProfileFromDB(userId: string) {
-  const supabase = await createClient();
+  const user = await db
+    .select()
+    .from(profiles)
+    .where(eq(profiles.id, userId))
+    .limit(1)
+    .then((res) => res[0]);
 
-  const { data: user, error } = await supabase
-    .from("profiles")
-    .select(
-      `
-      id, raw_user_meta_data, created_at, updated_at,
-      banner, email, bio, badge, social_media, genre,
-      followers, following, normalized_name, preferences
-    `,
-    )
-    .eq("id", userId)
-    .single();
-
-  if (error) {
-    throw new HTTPException(500, {
-      message: "Erro ao buscar perfil",
-    });
-  }
-
+  if (!user) throw new HTTPException(500, { message: "Perfil não encontrado" });
   return user;
 }
-
-/**
- * Atualizar perfil do usuário atual
- */
+// Atualizar perfil de usuário
 router.patch(
   "/profile",
-  withAuth,
   zValidator("json", EditableUserFieldsSchema),
   async (c) => {
     const input = c.req.valid("json");
-    const user = c.get("user");
-    const userId = user.id;
-    const supabase = await createClient();
-    // Cooldown de 7 dias baseado em updated_at
-    const { data: updatedInfo, error: fetchError } = await supabase
-      .from("profiles")
-      .select("updated_at")
-      .eq("id", userId)
-      .single();
+    const userId = c.get("user").id;
 
-    if (fetchError || !updatedInfo) {
-      throw new HTTPException(500, {
-        message: "Erro ao verificar o tempo da última atualização.",
-      });
-    }
+    // Verificar implementação de throttling
+    const lastUpdate = await db
+      .select({ updated_at: profiles.updated_at })
+      .from(profiles)
+      .where(eq(profiles.id, userId))
+      .limit(1)
+      .then((res) => res[0]?.updated_at);
+    if (!lastUpdate)
+      throw new HTTPException(500, { message: "Erro ao verificar data" });
 
-    const updatedAt = new Date(updatedInfo.updated_at).getTime();
-    const now = Date.now();
+    const diff = Date.now() - new Date(lastUpdate).getTime();
     const SEVEN_DAYS = 7 * 24 * 60 * 60 * 1000;
-
-    if (now - updatedAt < SEVEN_DAYS) {
-      const diffMs = SEVEN_DAYS - (now - updatedAt);
-      const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+    if (diff < SEVEN_DAYS) {
+      const days = Math.ceil((SEVEN_DAYS - diff) / (1000 * 60 * 60 * 24));
       throw new HTTPException(429, {
-        message: `Você só pode atualizar seu perfil novamente em ${diffDays} dia(s).`,
+        message: `Você só pode atualizar novamente em ${days} dia(s).`,
       });
     }
 
-    // Verificar se o nome já existe (se estiver sendo atualizado)
     if (input.name) {
-      const nameExists = await checkNameExists(input.name, userId);
-      if (nameExists) {
-        throw new HTTPException(409, {
-          message: "Este nome já está sendo usado por outro usuário",
-        });
+      const normalized = `%${normalizeName(input.name)}%`;
+      const exists = await db
+        .select()
+        .from(profiles)
+        .where(
+          and(
+            ilike(profiles.normalized_name, normalized),
+            ne(profiles.id, userId),
+          ),
+        )
+        .limit(1)
+        .then((r) => r.length > 0);
+
+      if (exists) {
+        throw new HTTPException(409, { message: "Este nome já está em uso" });
       }
     }
 
-    // Separar campos por destino
-    const { profileFields, authFields } = sanitizeFields(input);
+    const { profileFields } = sanitizeFields(input);
+    if (Object.keys(profileFields).length === 0)
+      throw new HTTPException(400, { message: "Nenhum campo para atualizar" });
+    let current = await db
+      .select({
+        preferences: profiles.preferences,
+        social_media: profiles.social_media,
+      })
+      .from(profiles)
+      .where(eq(profiles.id, userId))
+      .limit(1)
+      .then((res) => res[0] ?? {});
 
-    if (
-      Object.keys(profileFields).length === 0 &&
-      Object.keys(authFields).length === 0
-    ) {
-      throw new HTTPException(400, {
-        message: "Nenhum campo para atualizar",
-      });
-    }
+    // Merge manual fica igual
+    const merged = mergeData(current, profileFields);
+    merged.updated_at = new Date();
 
-    try {
-      // Buscar dados atuais apenas se necessário para merge
-      let currentData = null;
-      if (profileFields.preferences || profileFields.social_media) {
-        const { data, error } = await supabase
-          .from("profiles")
-          .select("preferences, social_media, raw_user_meta_data")
-          .eq("id", userId)
-          .single();
+    const [userUpdated] = await db
+      .update(profiles)
+      .set(merged)
+      .where(eq(profiles.id, userId))
+      .returning();
 
-        if (error) throw error;
-        currentData = data;
-      }
+    if (!userUpdated)
+      throw new HTTPException(500, { message: "Erro ao atualizar perfil" });
 
-      // Atualizar dados de autenticação (nome/foto) incluindo raw_user_meta_data
-      if (Object.keys(authFields).length > 0) {
-        // Buscar raw_user_meta_data atual se não foi buscado ainda
-        if (!currentData) {
-          const { data, error } = await supabase
-            .from("profiles")
-            .select("raw_user_meta_data")
-            .eq("id", userId)
-            .single();
-
-          if (error) throw error;
-          currentData = data;
-        }
-
-        // Merge com raw_user_meta_data existente
-        const currentMetaData = currentData?.raw_user_meta_data || {};
-        const updatedMetaData = {
-          ...currentMetaData,
-          ...authFields,
-        };
-
-        const { error: authError } = await supabase.auth.updateUser({
-          data: updatedMetaData,
-        });
-
-        if (authError) {
-          throw new HTTPException(500, {
-            message: "Erro ao atualizar dados de autenticação",
-          });
-        }
-
-        // Também atualizar raw_user_meta_data na tabela profiles diretamente
-        // para garantir consistência imediata
-        const { error: profileMetaError } = await supabase
-          .from("profiles")
-          .update({
-            raw_user_meta_data: updatedMetaData,
-            updated_at: new Date().toISOString(),
-          })
-          .eq("id", userId);
-
-        if (profileMetaError) {
-          console.warn(
-            "Aviso: Erro ao atualizar raw_user_meta_data na tabela profiles:",
-            profileMetaError,
-          );
-          // Não fazer throw aqui pois o auth já foi atualizado
-        }
-      }
-
-      // Atualizar dados do perfil
-      let user;
-      if (Object.keys(profileFields).length > 0) {
-        const updateData = mergeData(currentData, profileFields);
-        updateData.updated_at = new Date().toISOString();
-
-        const { data, error } = await supabase
-          .from("profiles")
-          .update(updateData)
-          .eq("id", userId)
-          .select(
-            `
-            id, raw_user_meta_data, created_at, updated_at,
-            banner, email, bio, badge, social_media, genre,
-            followers, following, normalized_name, preferences
-          `,
-          )
-          .single();
-
-        if (error) throw error;
-        user = data;
-      } else {
-        // Buscar dados atuais se só atualizou auth
-        user = await fetchUserProfileFromDB(userId);
-      }
-
-      // Invalidar cache do usuário após atualização
-      await delByPattern(getCacheKey(`user:profile:${userId}`));
-
-      return c.json({
-        user,
-        rateLimitRemaining: 0,
-      });
-    } catch (error) {
-      if (error instanceof HTTPException) throw error;
-
-      throw new HTTPException(500, {
-        message: "Erro ao atualizar perfil",
-      });
-    }
+    await delByPattern(getCacheKey(`user:profile:${userId}`));
+    return c.json({ user: userUpdated, rateLimitRemaining: 0 });
   },
 );
 
-/**
- * Buscar perfil do usuário atual
- */
-router.get("/profile", withAuth, async (c) => {
-  const user = c.get("user");
-  const userId = user.id;
+router.get("/profile", async (c) => {
+  const userId = c.get("user").id;
   const cacheKey = getUserProfileCacheKey(userId);
-
   try {
-    // Usar getOrSet para buscar do cache ou DB
     const user = await getOrSet(
       cacheKey,
       () => fetchUserProfileFromDB(userId),
       USER_PROFILE_CACHE_TTL,
     );
-
     return c.json({ user });
   } catch (error) {
-    if (error instanceof HTTPException) throw error;
-
     throw new HTTPException(500, {
-      message: "Erro ao buscar perfil",
+      message: `Erro ao buscar perfil: ${error}`,
     });
   }
 });
 
-// Funções auxiliares
-
-/**
- * Sanitiza e separa campos por destino
- */
 function sanitizeFields(input: z.infer<typeof EditableUserFieldsSchema>) {
   const profileFields: Record<string, any> = {};
-  const authFields: Record<string, any> = {};
-
-  // Campos para auth.users (raw_user_meta_data)
-  if (input.name !== undefined) {
-    authFields.full_name = input.name;
-    authFields.name = input.name;
-  }
-
-  if (input.picture !== undefined) {
-    authFields.picture = input.picture;
-  }
-
-  // Campos para tabela profiles
-  if (input.bio !== undefined) profileFields.bio = input.bio;
-  if (input.banner !== undefined) profileFields.banner = input.banner;
-  if (input.genre !== undefined) profileFields.genre = input.genre;
+  if (input.name) profileFields.name = input.name;
+  if (input.picture) profileFields.picture = input.picture;
+  if (input.bio) profileFields.bio = input.bio;
+  if (input.banner) profileFields.banner = input.banner;
+  if (input.genre) profileFields.genre = input.genre;
   if (input.preferences) profileFields.preferences = input.preferences;
-
-  // Social media (remover campos vazios)
   if (input.social_media) {
     const socialMedia: Record<string, string> = {};
-    Object.entries(input.social_media).forEach(([key, value]) => {
-      if (value && value.trim()) {
-        socialMedia[key] = value.trim();
-      }
-    });
-    if (Object.keys(socialMedia).length > 0) {
-      profileFields.social_media = socialMedia;
+    for (const [key, value] of Object.entries(input.social_media)) {
+      if (value && value.trim()) socialMedia[key] = value.trim();
     }
+    if (Object.keys(socialMedia).length > 0)
+      profileFields.social_media = socialMedia;
   }
-
-  return { profileFields, authFields };
+  return { profileFields };
 }
+
 function normalizeName(name: string): string {
   const accents =
     "áàâãäåāăąÁÀÂÃÄÅĀĂĄéèêëēĕėęěÉÈÊËĒĔĖĘĚíìîïīĭįİÍÌÎÏĪĬĮıóòôõöøōŏőÓÒÔÕÖØŌŎŐúùûüūŭůűųÚÙÛÜŪŬŮŰŲñÑçćčçÇĆČđÐĐģĞğĢħĦıĲĳĸĶĺļľłŁĹĻĽńņňÑŃŅŇŕŗřŔŖŘśşšŚŞŠţťŧŢŤŦýÿÝŸžźżŽŹŻœŒæÆ";
   const replacements =
     "aaaaaaaaaAAAAAAAAAeeeeeeeeeeEEEEEEEEEiiiiiiiiIIIIIIIIiooooooooOOOOOOOOOuuuuuuuuuUUUUUUUUUnNc3cCCCCdDDDgGgGhHiiijkKlllLLLnnnNNNrrrRRRsssSSStttTTTyyYYzzzZZZooaaAA";
-
-  const unaccented = name
+  return name
     .split("")
-    .map((char) => {
-      const index = accents.indexOf(char);
-      return index !== -1 ? replacements[index] : char;
-    })
-    .join("");
-
-  return unaccented
+    .map((char) =>
+      accents.includes(char) ? replacements[accents.indexOf(char)] : char,
+    )
+    .join("")
     .toLowerCase()
     .trim()
-    .replace(/[\s._\-]+/g, "."); // igual ao SQL: substitui espaços, pontos, underlines e hífens por "."
+    .replace(/[\s._\-]+/g, ".");
 }
-/**
- * Verifica se existe outro usuário com o mesmo nome
- */
-async function checkNameExists(name: string, currentUserId: string) {
-  const supabase = await createClient();
 
-  // Normalizar o nome para comparação (remover espaços extras, lowercase)
-  const normalized_name = normalizeName(name);
-
-  const { data, error } = await supabase
-    .from("profiles")
-    .select("id")
-    .ilike("normalized_name", normalized_name)
-    .neq("id", currentUserId)
-    .limit(1);
-
-  if (error) {
-    throw new HTTPException(500, {
-      message: "Erro ao verificar nome",
-    });
-  }
-
-  return data && data.length > 0;
-}
-/**
- * Merge dados atuais com atualizações
- */
 function mergeData(current: any, updates: any) {
   const merged = { ...updates };
-
   if (current) {
-    // Merge preferences
     if (updates.preferences && current.preferences) {
       merged.preferences = {
         ...current.preferences,
@@ -381,8 +200,6 @@ function mergeData(current: any, updates: any) {
         },
       };
     }
-
-    // Merge social_media
     if (updates.social_media && current.social_media) {
       merged.social_media = {
         ...current.social_media,
@@ -390,7 +207,6 @@ function mergeData(current: any, updates: any) {
       };
     }
   }
-
   return merged;
 }
 

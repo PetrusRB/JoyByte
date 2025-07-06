@@ -10,12 +10,11 @@ import React, {
   useCallback,
 } from "react";
 import { Loader } from "@/components/Loader";
-import { login } from "@/db/actions/login";
-import { signout } from "@/db/actions/signout";
+import { login } from "@/actions/login.action";
 import { Provider } from "@/types";
-import supabase from "@/db";
 import { useRouter } from "next/navigation";
 import { User } from "@/schemas/user";
+import { authClient } from "@/betterauth/auth-client";
 
 interface AuthContextType {
   user: User | null;
@@ -35,7 +34,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const fetchUser = async () => {
     try {
       // Primeiro tenta pegar sessão localmente
-      const session = await supabase.auth.getUser();
+      const session = await authClient.getSession();
       const authUser = session.data?.user;
 
       if (!authUser) {
@@ -44,34 +43,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       // Faz os dois fetches em paralelo
-      const [authRes, profileRes] = await Promise.all([
-        fetch("/api/auth/me", {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
-        }),
+      const [profileRes] = await Promise.all([
         fetch("/api/user/profile", {
           method: "GET",
           headers: { "Content-Type": "application/json" },
         }),
       ]);
 
-      if (!authRes.ok)
-        throw new Error("Erro ao buscar dados do usuário (/auth/me)");
       if (!profileRes.ok)
         throw new Error("Erro ao buscar perfil do usuário (/user/profile)");
 
-      const authData = await authRes.json();
       const profileData = await profileRes.json();
       // Mapeia para User conforme esperado
       const parsedUser: User = {
-        id: authData.id,
-        email: authData.email,
-        name: profileData.user?.raw_user_meta_data.name,
+        id: profileData.user.id,
+        email: profileData.user.email,
+        name: profileData.user?.name ?? "Sem nome",
+        picture: profileData.user?.picture ?? "/user.png",
         genre: profileData.user?.genre || "",
-        picture: profileData.user?.raw_user_meta_data.picture,
-        user_metadata: profileData.user?.raw_user_meta_data || {},
-        aud: authData.aud || "authenticated",
-        created_at: new Date(authData.created_at),
+        created_at: new Date(authUser.createdAt),
         bio: profileData.user?.bio || null,
         normalized_name: profileData.user?.normalized_name || null,
       };
@@ -86,17 +76,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    fetchUser(); // Apenas uma vez no mount
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, _session) => {
-      fetchUser(); // Atualiza quando login/logout ocorre
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
+    fetchUser();
   }, []);
 
   const signIn = useCallback(async (provider: Provider) => {
@@ -104,8 +84,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signOut = useCallback(async () => {
-    await signout();
-    await supabase.auth.signOut();
+    await authClient.signOut();
     setUser(null);
     router.refresh();
   }, [router]);

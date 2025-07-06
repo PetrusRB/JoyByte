@@ -20,6 +20,30 @@ export const getApiDocs = async () => {
             },
           },
         },
+        "/api/post/delete": {
+          post: {
+            summary: "Delete current user posts",
+            requestBody: {
+              required: true,
+              content: {
+                "application/json": {
+                  schema: {
+                    type: "object",
+                    properties: {
+                      post_id: { type: "number" },
+                    },
+                    required: ["Post id"],
+                  },
+                },
+              },
+            },
+            responses: {
+              "200": {
+                description: "OK",
+              },
+            },
+          },
+        },
         "/api/post/user": {
           post: {
             summary: "Get User posts",
@@ -34,7 +58,7 @@ export const getApiDocs = async () => {
                       limit: { type: "number", default: 10 },
                       offset: { type: "number", default: 0 },
                     },
-                    required: ["username", "email"],
+                    required: ["user id"],
                   },
                 },
               },

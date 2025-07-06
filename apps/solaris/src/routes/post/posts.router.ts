@@ -1,15 +1,13 @@
 import { z } from "zod";
-import { createClient } from "@/db/server";
 import { PostSchema, Comment } from "@/schemas/post";
 import { delByPattern, getOrSet } from "@/libs/redis";
 import { getCacheKey, slugToSearchQuery } from "@/libs/utils";
 import { createRouter } from "@/utils/router.utils";
 import { zValidator } from "@hono/zod-validator";
-import { withAuth } from "@/middlewares/withAuth";
 import { HTTPException } from "hono/http-exception";
 import { db } from "@/db/drizzle";
-import { postsLike, postsTable, profilesTable } from "@/db/drizzle/schema";
-import { and, desc, eq, inArray, sql } from "drizzle-orm";
+import { postsLike, posts, profiles } from "@/db/drizzle/schema";
+import { and, count, desc, eq, inArray, sql } from "drizzle-orm";
 
 const router = createRouter();
 
@@ -81,7 +79,6 @@ function transformPost(post: RawPost): TransformedPost {
  */
 router.post(
   "/batch-like-data",
-  withAuth,
   zValidator(
     "json",
     z.object({
@@ -91,14 +88,45 @@ router.post(
   async (c) => {
     const input = c.req.valid("json");
     const user = c.get("user");
-    const supabase = await createClient();
 
-    const { data, error } = await supabase.rpc("batch_get_post_like_data", {
-      post_ids_input: input.ids,
-      user_id_input: user.id,
-    });
+    try {
+      // Buscar contagem de likes para cada post
+      const likeCounts = await db
+        .select({
+          post_id: postsLike.post_id,
+          count: count(),
+        })
+        .from(postsLike)
+        .where(inArray(postsLike.post_id, input.ids))
+        .groupBy(postsLike.post_id);
 
-    if (error || !data) {
+      // Buscar quais posts o usuário curtiu
+      const userLikes = await db
+        .select({
+          post_id: postsLike.post_id,
+        })
+        .from(postsLike)
+        .where(
+          and(
+            inArray(postsLike.post_id, input.ids),
+            eq(postsLike.user_id, user.id),
+          ),
+        );
+
+      const likedPostIds = new Set(userLikes.map((like) => like.post_id));
+      const countsMap = new Map(
+        likeCounts.map((item) => [item.post_id, item.count]),
+      );
+
+      // Construir resposta
+      const result = input.ids.map((postId) => ({
+        postId,
+        liked: likedPostIds.has(postId),
+        count: countsMap.get(postId) || 0,
+      }));
+
+      return c.json(result);
+    } catch (error) {
       console.error("Erro ao buscar dados de like em lote:", error);
       return c.json(
         {
@@ -108,14 +136,6 @@ router.post(
         500,
       );
     }
-
-    return c.json(
-      (Array.isArray(data) ? data : []).map((result: any) => ({
-        postId: Number(result.post_id),
-        liked: Boolean(result.liked),
-        count: Number(result.count ?? 0),
-      })),
-    );
   },
 );
 
@@ -126,7 +146,6 @@ router.post(
  */
 router.post(
   "/like",
-  withAuth,
   zValidator(
     "json",
     z.object({
@@ -136,14 +155,52 @@ router.post(
   async (c) => {
     const input = c.req.valid("json");
     const user = c.get("user");
-    const supabase = await createClient();
 
-    const { data, error } = await supabase.rpc("toggle_post_like", {
-      post_id_input: input.id,
-      user_id_input: user.id,
-    });
+    try {
+      // Verificar se o usuário já curtiu o post
+      const existingLike = await db
+        .select()
+        .from(postsLike)
+        .where(
+          and(eq(postsLike.post_id, input.id), eq(postsLike.user_id, user.id)),
+        )
+        .limit(1);
 
-    if (error || !data) {
+      let liked: boolean;
+
+      if (existingLike.length > 0) {
+        // Remover like (descurtir)
+        await db
+          .delete(postsLike)
+          .where(
+            and(
+              eq(postsLike.post_id, input.id),
+              eq(postsLike.user_id, user.id),
+            ),
+          );
+        liked = false;
+      } else {
+        // Adicionar like (curtir)
+        await db.insert(postsLike).values({
+          post_id: input.id,
+          user_id: user.id,
+        });
+        liked = true;
+      }
+
+      // Buscar contagem atualizada
+      const [countResult] = await db
+        .select({
+          count: count(),
+        })
+        .from(postsLike)
+        .where(eq(postsLike.post_id, input.id));
+
+      return c.json({
+        liked,
+        count: countResult?.count || 0,
+      });
+    } catch (error) {
       console.error("Erro ao curtir/descurtir post:", error);
       return c.json(
         {
@@ -153,13 +210,6 @@ router.post(
         500,
       );
     }
-
-    const result = Array.isArray(data) ? data[0] : data;
-
-    return c.json({
-      liked: Boolean(result.liked),
-      count: Number(result.count ?? 0),
-    });
   },
 );
 
@@ -170,7 +220,7 @@ router.post(
  */
 router.get(
   "/like-count",
-  withAuth,
+
   zValidator(
     "json",
     z.object({
@@ -198,12 +248,12 @@ router.get(
  */
 router.get(
   "/check-user-liked",
-  withAuth,
+
   zValidator(
     "json",
     z.object({
       postId: z.number(),
-      userId: z.string().uuid(),
+      userId: z.string(),
     }),
   ),
   async (c) => {
@@ -229,7 +279,7 @@ router.get(
  */
 router.get(
   "/is-liked",
-  withAuth,
+
   zValidator(
     "json",
     z.object({
@@ -260,7 +310,6 @@ router.get(
  */
 router.post(
   "/delete",
-  withAuth,
   zValidator("json", z.object({ post_id: z.number() })),
   async (c) => {
     const { post_id } = c.req.valid("json");
@@ -268,10 +317,9 @@ router.post(
 
     // Deleta apenas se o post pertencer ao usuário autenticado
     const deleted = await db
-      .delete(postsTable)
-      .where(
-        and(eq(postsTable.id, post_id), eq(sql`(author->> 'id')`, user.id)),
-      );
+      .delete(posts)
+      .where(and(eq(posts.id, post_id), eq(sql`(author->> 'id')`, user.id)))
+      .returning({ id: posts.id });
 
     // Se nenhum registro foi deletado, não existe ou não é dono
     if (deleted.length === 0) {
@@ -290,7 +338,6 @@ router.post(
  */
 router.post(
   "/create",
-  withAuth,
   zValidator(
     "json",
     z.object({
@@ -303,12 +350,25 @@ router.post(
     const user = c.get("user");
     const { title, content, image } = c.req.valid("json");
 
+    const [profile] = await db
+      .select()
+      .from(profiles)
+      .where(eq(profiles.id, user.id))
+      .limit(1);
+
+    if (!profile) {
+      throw new HTTPException(404, {
+        message:
+          "Perfil do usuário não encontrado. Não foi possível criar o post.",
+      });
+    }
+
     // Cooldown
     const [last] = await db
-      .select({ created_at: postsTable.created_at })
-      .from(postsTable)
+      .select({ created_at: posts.created_at })
+      .from(posts)
       .where(eq(sql`(author->> 'id')`, user.id))
-      .orderBy(desc(postsTable.created_at))
+      .orderBy(desc(posts.created_at))
       .limit(1);
 
     if (last) {
@@ -321,17 +381,14 @@ router.post(
     }
 
     const author = {
-      id: user.id,
-      name: user.user_metadata.name,
-      picture: user.user_metadata.picture,
-      nickname: user.user_metadata.nickname,
-      full_name: user.user_metadata.full_name,
-      avatar_url: user.user_metadata.avatar_url,
-      normalized_name: slugToSearchQuery(user.user_metadata.name || ""),
+      id: profile.id,
+      name: profile.name ?? "Misterioso(a)",
+      picture: profile.picture ?? "/user.png",
+      normalized_name: slugToSearchQuery(profile.name || ""),
     };
 
     const [inserted] = await db
-      .insert(postsTable)
+      .insert(posts)
       .values({
         title,
         content,
@@ -351,7 +408,7 @@ router.post(
       comments: (inserted.comments as Comment[]) || [],
       author: inserted.author as any,
       profiles: {
-        normalized_name: slugToSearchQuery(user.user_metadata.name || ""),
+        normalized_name: slugToSearchQuery(profile.name || ""),
       },
     };
 
@@ -368,7 +425,6 @@ router.post(
  */
 router.get(
   "/get",
-  withAuth,
   zValidator(
     "query",
     z.object({
@@ -382,23 +438,23 @@ router.get(
 
     try {
       // Usa cache
-      const posts = await getOrSet<TransformedPost[]>(
+      const allPosts = await getOrSet<TransformedPost[]>(
         cacheKey,
         async () => {
           // 1) Buscar posts
           const rawPosts = await db
             .select({
-              id: postsTable.id,
-              title: postsTable.title,
-              content: postsTable.content,
-              image: postsTable.image,
-              created_at: postsTable.created_at,
-              author: postsTable.author,
-              comments: postsTable.comments,
-              author_id: postsTable.author_id,
+              id: posts.id,
+              title: posts.title,
+              content: posts.content,
+              image: posts.image,
+              created_at: posts.created_at,
+              author: posts.author,
+              comments: posts.comments,
+              author_id: posts.author_id,
             })
-            .from(postsTable)
-            .orderBy(postsTable.created_at)
+            .from(posts)
+            .orderBy(posts.created_at)
             .limit(limit)
             .offset(offset);
 
@@ -412,11 +468,11 @@ router.get(
           // 3) Obter normalized_name dos perfis
           const profs = await db
             .select({
-              id: profilesTable.id,
-              normalized_name: profilesTable.normalized_name,
+              id: profiles.id,
+              normalized_name: profiles.normalized_name,
             })
-            .from(profilesTable)
-            .where(inArray(profilesTable.id, authorIds));
+            .from(profiles)
+            .where(inArray(profiles.id, authorIds));
 
           const normMap = Object.fromEntries(
             profs.map((p) => [p.id, p.normalized_name]),
@@ -442,7 +498,7 @@ router.get(
         30,
       );
 
-      return c.json(posts);
+      return c.json(allPosts);
     } catch (err) {
       console.error("Erro geral ao buscar posts:", err);
       return c.json({ message: "Erro ao buscar posts" }, 500);
@@ -459,11 +515,11 @@ router.get(
  */
 router.post(
   "/user",
-  withAuth,
+
   zValidator(
     "json",
     z.object({
-      user_id: z.string().uuid(),
+      user_id: z.string(),
       limit: z.coerce.number().int().min(1).max(100).default(DEFAULT_LIMIT),
       offset: z.coerce.number().int().min(0).default(DEFAULT_OFFSET),
     }),
@@ -472,17 +528,17 @@ router.post(
     const { user_id, limit, offset } = c.req.valid("json");
     const rawPosts = await db
       .select({
-        id: postsTable.id,
-        title: postsTable.title,
-        content: postsTable.content,
-        image: postsTable.image,
-        created_at: postsTable.created_at,
-        author: postsTable.author,
-        comments: postsTable.comments,
+        id: posts.id,
+        title: posts.title,
+        content: posts.content,
+        image: posts.image,
+        created_at: posts.created_at,
+        author: posts.author,
+        comments: posts.comments,
       })
-      .from(postsTable)
+      .from(posts)
       .where(eq(sql`(author->> 'id')`, user_id))
-      .orderBy(desc(postsTable.created_at))
+      .orderBy(desc(posts.created_at))
       .limit(limit)
       .offset(offset);
 

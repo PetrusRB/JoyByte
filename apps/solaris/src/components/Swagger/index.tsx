@@ -1,10 +1,19 @@
 "use client";
 import dynamic from "next/dynamic";
 import { Skeleton } from "@mantine/core";
-import "@root/public/swagger/swagger.css";
+import { useEffect } from "react";
 
 const SwaggerUI = dynamic(() => import("swagger-ui-react"), {
-  loading: () => <Skeleton />,
+  loading: () => (
+    <Skeleton
+      height={50}
+      mt={6}
+      animate
+      color="gray"
+      radius="xl"
+      width="100%"
+    />
+  ),
 });
 
 type Props = {
@@ -12,7 +21,30 @@ type Props = {
 };
 
 function ReactSwagger({ spec }: Props) {
-  return <SwaggerUI spec={spec} />;
+  useEffect(() => {
+    const styleId = "swagger-ui-css";
+    if (document.getElementById(styleId)) {
+      return;
+    }
+    const link = document.createElement("link");
+    link.id = styleId;
+    link.rel = "stylesheet";
+    link.href = "/swagger/swagger.css";
+
+    document.head.appendChild(link);
+
+    return () => {
+      const styleElement = document.getElementById(styleId);
+      if (styleElement) {
+        styleElement.remove();
+      }
+    };
+  }, []);
+  return (
+    <>
+      <SwaggerUI spec={spec} />
+    </>
+  );
 }
 
 export default ReactSwagger;

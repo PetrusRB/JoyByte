@@ -3,7 +3,7 @@
 import React from "react";
 import Sidebar from "../Sidebar";
 import CreatePost from "../CreatePost";
-import PostGrid from "../Posts";
+import { Posts } from "@/components/Posts";
 import ContactsList from "../ContactList";
 import { Post, PostWithCount } from "@/schemas/post";
 import { useAuth } from "@/contexts/auth/AuthContext";
@@ -103,7 +103,7 @@ export default function HomeForm({ initialPages }: HomeFormProps) {
         <main className="col-span-1 lg:col-span-1 px-2 sm:px-4 py-4">
           <div className="max-w-full sm:max-w-lg md:max-w-xl lg:max-w-2xl mx-auto space-y-4 sm:space-y-6">
             <CreatePost />
-            <PostGrid
+            <Posts.Section
               data={allPosts}
               loading={isFetching && !data}
               user={user}

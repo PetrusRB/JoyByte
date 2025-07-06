@@ -6,6 +6,10 @@ out-tsc
 # dependencies
 node_modules
 
+#sqls
+sqls
+./sqls
+
 # IDEs and editors
 /.idea
 .project

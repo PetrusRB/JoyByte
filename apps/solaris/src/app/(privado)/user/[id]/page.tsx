@@ -12,7 +12,6 @@ import { useAuth } from "@/contexts/auth/AuthContext";
 import { Button } from "@/components/Button";
 import {
   ArrowLeft,
-  Badge,
   Calendar,
   Camera,
   Edit3,
@@ -49,7 +48,7 @@ interface MemoUserProps {
 const MemoAvatar = React.memo<MemoAvatarProps>(({ user, onClick }) => (
   <div className="relative group cursor-pointer" onClick={onClick}>
     <AntdImage
-      src={user?.raw_user_meta_data.avatar_url ?? DEFAULT_AVATAR}
+      src={user?.picture ?? DEFAULT_AVATAR}
       className="rounded-full border-4 border-white shadow-lg"
       width={96}
       height={96}
@@ -153,7 +152,7 @@ const Profile = React.memo<ProfileProps>(
                 className="p-4 bg-zinc-800 text-white rounded cursor-pointer hover:bg-zinc-700 transition-colors"
                 onClick={() => handleSelectDuplicate(dup)}
               >
-                <p className="font-bold">{dup.raw_user_meta_data?.name}</p>
+                <p className="font-bold">{dup?.name}</p>
                 <p className="text-sm text-zinc-400">ID: {dup.id}</p>
               </li>
             ))}
@@ -166,15 +165,15 @@ const Profile = React.memo<ProfileProps>(
       <div className="dark:bg-black bg-orange-50 min-h-screen pb-8 dark:text-white text-orange-700">
         {/* Banner Section */}
         <div className="relative">
-          <div className="h-48 sm:h-56 md:h-64 bg-zinc-800 dark:text-white text-orange-50 bg-center bg-cover cursor-pointer w-full">
-            <div className="absolute inset-0 bg-black/20 transition-all" />
+          <div className="h-48 sm:h-56 md:h-64 bg-orange-50 dark:bg-zinc-800 dark:text-white text-orange-50 bg-center bg-cover cursor-pointer w-full">
+            <div className="absolute inset-0 dark:bg-black/20 transition-all" />
             <Suspense fallback={<DynamicMediaSkeleton />}>
               <DynamicMedia
                 url={user.banner ?? DEFAULT_BANNER}
                 alt="User banner"
                 onClick={() => setShowBannerModal(true)}
                 fill
-                className="w-full h-auto rounded-lg mb-3 "
+                className="w-full h-auto mb-3 "
               />
             </Suspense>
             <Button
@@ -205,11 +204,11 @@ const Profile = React.memo<ProfileProps>(
               >
                 <div className="flex items-center justify-center lg:justify-start gap-2 mb-2">
                   <h1 className="text-xl sm:text-2xl font-bold">
-                    {user?.raw_user_meta_data.name ?? "Misterioso(a)"}
+                    {user?.name ?? "Misterioso(a)"}
                   </h1>
-                  {user?.raw_user_meta_data.verified && (
+                  {/* {user?.raw_user_meta_data.verified && (
                     <Badge className="bg-zinc-700" />
-                  )}
+                  )} */}
                 </div>
                 <p className="mb-4 dark:text-white text-orange-500">
                   @{user.normalized_name ?? "none"}
