@@ -16,9 +16,9 @@ CREATE TABLE "account" (
 --> statement-breakpoint
 CREATE TABLE "posts" (
 	"id" integer PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "posts_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 2147483647 START WITH 1 CACHE 1),
-	"title" varchar(255) NOT NULL,
-	"content" varchar(500) NOT NULL,
-	"image" varchar(500),
+	"title" text NOT NULL,
+	"content" text NOT NULL,
+	"image" text,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"comments" jsonb,
 	"author" jsonb,
@@ -27,30 +27,31 @@ CREATE TABLE "posts" (
 );
 --> statement-breakpoint
 CREATE TABLE "posts_like" (
-	"id" text PRIMARY KEY NOT NULL,
+	"id" text PRIMARY KEY DEFAULT '2b880726-8acc-4cb0-b879-909bda61f07b' NOT NULL,
+	"user_id" text PRIMARY KEY NOT NULL,
 	"post_id" integer DEFAULT 0,
 	"created_at" timestamp DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "profiles" (
 	"id" text PRIMARY KEY NOT NULL,
-	"name" varchar(85) NOT NULL,
-	"picture" varchar NOT NULL,
-	"email" varchar(255) NOT NULL,
+	"name" text NOT NULL,
+	"picture" text,
+	"email" text NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL,
-	"banner" varchar,
-	"bio" varchar(500),
-	"badge" varchar(255),
+	"banner" text DEFAULT 'https://res.cloudinary.com/djhid5hkm/image/upload/v1751761077/banner_csk0x7.png',
+	"bio" text,
+	"badge" text,
 	"followers" integer DEFAULT 0,
 	"following" integer DEFAULT 0,
 	"posts" jsonb,
-	"social_media" jsonb,
-	"genre" varchar(14),
-	"preferences" jsonb,
-	"normalized_name" varchar NOT NULL,
-	"phone" varchar NOT NULL,
-	"role" varchar(11) NOT NULL,
+	"social_media" jsonb DEFAULT '{}'::jsonb,
+	"genre" text DEFAULT 'prefernottosay',
+	"preferences" jsonb DEFAULT '{"privacy":{"profile_visibility":"public"}}'::jsonb,
+	"normalized_name" text NOT NULL,
+	"phone" text,
+	"role" text,
 	CONSTRAINT "profiles_email_unique" UNIQUE("email")
 );
 --> statement-breakpoint

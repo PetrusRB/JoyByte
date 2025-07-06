@@ -1,1 +1,0 @@
-ALTER TABLE "profiles" ALTER COLUMN "genre" SET DEFAULT 'prefernottosay';

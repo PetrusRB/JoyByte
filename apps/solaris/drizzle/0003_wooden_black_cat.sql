@@ -1,1 +1,0 @@
-ALTER TABLE "profiles" ALTER COLUMN "picture" DROP NOT NULL;

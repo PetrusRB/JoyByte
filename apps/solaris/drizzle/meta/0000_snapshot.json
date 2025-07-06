@@ -1,5 +1,5 @@
 {
-  "id": "67e8ab98-cdb1-48fc-b48c-0d489bd8755d",
+  "id": "ee747a9e-77bf-4850-be72-39c2ea9030e9",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -132,19 +132,19 @@
         },
         "title": {
           "name": "title",
-          "type": "varchar(255)",
+          "type": "text",
           "primaryKey": false,
           "notNull": true
         },
         "content": {
           "name": "content",
-          "type": "varchar(500)",
+          "type": "text",
           "primaryKey": false,
           "notNull": true
         },
         "image": {
           "name": "image",
-          "type": "varchar(500)",
+          "type": "text",
           "primaryKey": false,
           "notNull": false
         },
@@ -197,6 +197,13 @@
           "name": "id",
           "type": "text",
           "primaryKey": true,
+          "notNull": true,
+          "default": "'2b880726-8acc-4cb0-b879-909bda61f07b'"
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "text",
+          "primaryKey": true,
           "notNull": true
         },
         "post_id": {
@@ -234,19 +241,19 @@
         },
         "name": {
           "name": "name",
-          "type": "varchar(85)",
+          "type": "text",
           "primaryKey": false,
           "notNull": true
         },
         "picture": {
           "name": "picture",
-          "type": "varchar",
+          "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "email": {
           "name": "email",
-          "type": "varchar(255)",
+          "type": "text",
           "primaryKey": false,
           "notNull": true
         },
@@ -266,19 +273,20 @@
         },
         "banner": {
           "name": "banner",
-          "type": "varchar",
+          "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "default": "'https://res.cloudinary.com/djhid5hkm/image/upload/v1751761077/banner_csk0x7.png'"
         },
         "bio": {
           "name": "bio",
-          "type": "varchar(500)",
+          "type": "text",
           "primaryKey": false,
           "notNull": false
         },
         "badge": {
           "name": "badge",
-          "type": "varchar(255)",
+          "type": "text",
           "primaryKey": false,
           "notNull": false
         },
@@ -306,37 +314,40 @@
           "name": "social_media",
           "type": "jsonb",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "default": "'{}'::jsonb"
         },
         "genre": {
           "name": "genre",
-          "type": "varchar(14)",
+          "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "default": "'prefernottosay'"
         },
         "preferences": {
           "name": "preferences",
           "type": "jsonb",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "default": "'{\"privacy\":{\"profile_visibility\":\"public\"}}'::jsonb"
         },
         "normalized_name": {
           "name": "normalized_name",
-          "type": "varchar",
+          "type": "text",
           "primaryKey": false,
           "notNull": true
         },
         "phone": {
           "name": "phone",
-          "type": "varchar",
+          "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "role": {
           "name": "role",
-          "type": "varchar(11)",
+          "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         }
       },
       "indexes": {},

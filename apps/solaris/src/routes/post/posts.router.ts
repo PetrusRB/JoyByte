@@ -8,6 +8,7 @@ import { HTTPException } from "hono/http-exception";
 import { db } from "@/db/drizzle";
 import { postsLike, posts, profiles } from "@/db/drizzle/schema";
 import { and, count, desc, eq, inArray, sql } from "drizzle-orm";
+import { genCharacters } from "@/utils/crypto";
 
 const router = createRouter();
 
@@ -182,6 +183,7 @@ router.post(
       } else {
         // Adicionar like (curtir)
         await db.insert(postsLike).values({
+          id: genCharacters(36),
           post_id: input.id,
           user_id: user.id,
         });

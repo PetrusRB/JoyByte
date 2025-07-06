@@ -1,3 +1,4 @@
+import { randomUUID } from "crypto";
 import {
   integer,
   pgTable,
@@ -100,8 +101,9 @@ export const posts = pgTable("posts", {
   likes_count: integer().default(0),
 });
 export const postsLike = pgTable("posts_like", {
-  user_id: text("id").primaryKey(),
-  post_id: integer().default(0),
+  id: text("id").primaryKey().default(randomUUID()),
+  user_id: text("user_id"),
+  post_id: integer("post_id").default(0),
   created_at: timestamp("created_at").notNull().defaultNow(),
 });
 
