@@ -55,6 +55,7 @@ const MemoAvatar = React.memo<MemoAvatarProps>(({ user, onClick }) => (
     />
   </div>
 ));
+// User posts that will be shown on user profile.
 const MemoUserPosts = React.memo<MemoUserProps>(({ posts }) => {
   // Verifica se posts é nulo/undefined ou array vazio
   if (!posts?.length) {

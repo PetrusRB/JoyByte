@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
 import { Ubuntu } from "next/font/google";
+import Navbar from "@/components/Navbar";
+import { Loader } from "@/components/Loader";
+
 import "./global.css";
 import "@mantine/core/styles.css";
 import "@mantine/nprogress/styles.css";
@@ -25,8 +28,10 @@ export const metadata: Metadata = {
 
 export default async function RootLayout({
   children,
+  modal,
 }: Readonly<{
   children: React.ReactNode;
+  modal: React.ReactNode;
 }>) {
   const locale = await getLocale();
 
@@ -43,7 +48,12 @@ export default async function RootLayout({
       >
         <NextIntlClientProvider messages={messages}>
           <MantineProvider>
-            <LayoutClient>{children}</LayoutClient>
+            <LayoutClient>
+              <Loader.Progress />
+              <Navbar />
+              {modal}
+              {children}
+            </LayoutClient>
           </MantineProvider>
         </NextIntlClientProvider>
       </body>

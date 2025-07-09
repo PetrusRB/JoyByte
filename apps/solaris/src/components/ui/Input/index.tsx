@@ -9,17 +9,17 @@ const Input = React.forwardRef<HTMLInputElement, React.ComponentProps<"input">>(
         type={type}
         className={cn(
           // Base styles
-          "group relative flex w-full items-center justify-between gap-3 rounded-xl border-2 bg-white text-sm font-medium transition-all duration-200 outline-none",
+          "group relative flex w-full items-center justify-between gap-3 rounded-xl border-2 text-sm font-medium transition-all duration-200 outline-none",
           // Sizing
           "h-11 px-4 text-sm",
           // Light mode colors
-          "border-orange-200 text-gray-700 placeholder:text-gray-400",
-          "hover:border-orange-300 hover:bg-orange-50/50",
-          "focus:border-orange-300 focus:bg-orange-50/30",
+          "border-orange-200 bg-white text-gray-700 placeholder:text-gray-400",
+          "hover:border-orange-300 hover:bg-orange-50",
+          "focus:border-orange-300 focus:bg-orange-50",
           // Dark mode colors
           "dark:bg-zinc-950 dark:border-zinc-900 dark:text-gray-200 dark:placeholder:text-gray-500",
-          "dark:hover:border-zinc-900 dark:hover:bg-zinc-950/20",
-          "dark:focus:border-zinc-900 dark:focus:bg-zinc-950/10",
+          "dark:hover:border-zinc-900 dark:hover:bg-zinc-950",
+          "dark:focus:border-zinc-900 dark:focus:bg-zinc-950",
           // States
           "data-[placeholder]:text-gray-400 dark:data-[placeholder]:text-gray-500",
           "disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-zinc-50 dark:disabled:bg-zinc-950",

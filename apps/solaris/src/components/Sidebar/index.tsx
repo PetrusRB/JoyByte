@@ -6,6 +6,7 @@ import {
   Video,
   Image as ImageIcon,
   Calendar,
+  NotebookPen,
 } from "lucide-react";
 import { Button } from "@/components/Button";
 import { cn, getUserSlug } from "@/libs/utils";
@@ -59,6 +60,7 @@ const Sidebar = () => {
 
         {/* Menu Items */}
         <div className="space-y-1">
+          {/* Butões dinamicos */}
           {menuItems.map((item) => (
             <Button
               key={item.label}
@@ -100,6 +102,27 @@ const Sidebar = () => {
               )}
             </Button>
           ))}
+          {/* Criar post */}
+          <Link href={"/create/post"}>
+            <Button
+              variant="ghost"
+              className={cn(
+                "w-full justify-start h-12 px-4 rounded-full ring-1 transition-all duration-200 bg-transparent hover:scale-[1.02]",
+                "bg-orange-50/30 ring-orange-500",
+                "dark:bg-zinc-950 dark:ring-zinc-900",
+                "shadow-sm",
+                "font-medium text-1xl",
+              )}
+            >
+              <NotebookPen
+                className={cn(
+                  "w-5 h-5 mr-3",
+                  "text-orange-700 dark:text-white",
+                )}
+              />
+              Criar Post
+            </Button>
+          </Link>
         </div>
       </div>
     </div>

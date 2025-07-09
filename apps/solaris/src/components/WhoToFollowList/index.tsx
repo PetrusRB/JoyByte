@@ -7,53 +7,53 @@ import { memo, useCallback, useMemo } from "react";
 import { slugToSearchQuery } from "@/libs/utils";
 import { useRouter } from "next/navigation";
 
-export interface ContactType {
+export interface WhoFollowType {
   name: string;
   avatar: string;
 }
 
-interface ContactListProps {
-  contacts: ContactType[];
+interface WhoFollowListProps {
+  whotofollow: WhoFollowType[];
 }
 
-const ContactList = memo(({ contacts }: ContactListProps) => {
+const WhoFollowList = memo(({ whotofollow }: WhoFollowListProps) => {
   const t = useTranslations("User");
   const navigate = useRouter();
 
-  const goto = useCallback((ContactType: ContactType) => {
-    if (!ContactType) return;
-    const slugProfile = slugToSearchQuery(ContactType.name ?? "");
+  const goto = useCallback((WhoFollowType: WhoFollowType) => {
+    if (!WhoFollowType) return;
+    const slugProfile = slugToSearchQuery(WhoFollowType.name ?? "");
     navigate.push(
       "/user/:user".replace(":user", slugProfile.replace(" ", ".")),
     );
   }, []);
 
-  const renderedContact = useMemo(
+  const renderedWhoFollow = useMemo(
     () =>
-      contacts.map((ContactProps) => (
+      whotofollow.map((WhoFollowProps) => (
         <div
-          key={ContactProps.name}
-          onClick={() => goto(ContactProps)}
+          key={WhoFollowProps.name}
+          onClick={() => goto(WhoFollowProps)}
           className="flex items-center space-x-3 p-2 rounded-xl cursor-pointer transition-all duration-200 hover:scale-[1.02]"
         >
           <div className="relative">
             <img
               loading="lazy"
-              src={ContactProps.avatar}
-              alt={ContactProps.name}
+              src={WhoFollowProps.avatar}
+              alt={WhoFollowProps.name}
               className="w-10 h-10 rounded-full border-2 border-slate-200"
             />
             <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-white" />
           </div>
           <div className="flex-1 min-w-0">
             <p className="font-medium dark:text-white hover:text-yellow-600 text-gray-600 truncate">
-              {ContactProps.name}
+              {WhoFollowProps.name}
             </p>
             <p className="text-sm text-green-600">Online</p>
           </div>
         </div>
       )),
-    [contacts, goto],
+    [whotofollow, goto],
   );
 
   return (
@@ -61,7 +61,7 @@ const ContactList = memo(({ contacts }: ContactListProps) => {
       <div className="dark:text-white rounded-2xl shadow-sm p-4">
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-semibold bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">
-            {t("Contacts")}
+            {t("Who to follow")}
           </h3>
           <div className="flex gap-1">
             <Button
@@ -81,20 +81,11 @@ const ContactList = memo(({ contacts }: ContactListProps) => {
           </div>
         </div>
 
-        <div className="space-y-2">{renderedContact}</div>
-
-        <div className="mt-6 p-3 dark:bg-zinc-950 bg-orange-50 dark:text-white text-orange-700 rounded-xl">
-          <p className="text-sm">
-            <span className="font-semibold text-green-600">
-              {contacts.length}
-            </span>{" "}
-            {t("friends online")}
-          </p>
-        </div>
+        <div className="space-y-2">{renderedWhoFollow}</div>
       </div>
     </div>
   );
 });
 
-ContactList.displayName = "ContactList";
-export default ContactList;
+WhoFollowList.displayName = "WhoFollowList";
+export default WhoFollowList;

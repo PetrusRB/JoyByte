@@ -12,6 +12,10 @@ const nextConfig = {
   // See: https://nx.dev/recipes/next/next-config-setup
   nx: {},
   experimental: {
+    staleTimes: {
+      dynamic: 0,
+      static: 180,
+    },
     serverComponentsExternalPackages: ["pino", "pino-pretty"],
   },
   images: {

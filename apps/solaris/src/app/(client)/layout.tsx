@@ -4,11 +4,9 @@ import { AuthProvider } from "@/contexts/auth/AuthContext";
 import { AntdRegistry } from "@ant-design/nextjs-registry";
 import { ThemeProvider } from "next-themes";
 
-import Navbar from "@/components/Navbar";
 import React from "react";
 import { Toaster } from "@/components/ui/Toast";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Loader } from "@/components/Loader";
 
 type LayoutClientProps = {
   children: React.ReactNode;
@@ -22,10 +20,6 @@ const LayoutClient: React.FC<LayoutClientProps> = ({ children }) => {
       <ThemeProvider attribute="class" defaultTheme="system">
         <QueryClientProvider client={queryClient}>
           <AuthProvider>
-            <Loader.Progress />
-            {/* Navbar sempre visível, dentro do AuthContext */}
-            <Navbar />
-
             {/* Aqui irá renderizar o layout com home/login */}
             <div className="flex-1">{children}</div>
             {/* Notificações */}

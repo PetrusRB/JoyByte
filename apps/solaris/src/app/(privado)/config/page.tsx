@@ -47,7 +47,16 @@ import {
 import { Textarea } from "@/components/ui/TextArea";
 import Image from "next/image";
 import { getPlaceholder } from "@/libs/blur";
-
+import { Avatar } from "@/components/Avatar";
+import { User as UserSchema } from "@/schemas/user";
+const RenderProviderGroups = ({ user }: { user: UserSchema | null }) => {
+  if (!user) return null;
+  return (
+    <>
+      <Avatar.Group id="providers" srcs={["/user.png", "/user.png"]} />
+    </>
+  );
+};
 const Settings = memo(() => {
   const { user, signOut } = useAuth();
   const t = useTranslations("User");
@@ -100,7 +109,6 @@ const Settings = memo(() => {
 
   const handleSave = useCallback(async () => {
     setIsLoading(true);
-
     try {
       const res = await fetch("/api/user/profile", {
         method: "PATCH",
@@ -190,7 +198,7 @@ const Settings = memo(() => {
       <main className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex flex-col xl:flex-row xl:flex-wrap gap-8 w-full">
           <div className="w-full xl:w-1/3">
-            <Card className="w-full transition-all dark:bg-zinc-950 bg-white/80 border-none dark:text-white text-orange-700 ring-1 ring-orange-200 dark:ring-zinc-800 hover:ring-orange-700">
+            <Card className="w-full dark:bg-zinc-950 bg-white/80 border-none dark:text-white text-orange-700 ring-1 ring-orange-200 dark:ring-zinc-800 hover:ring-orange-700">
               <CardHeader className="text-center pb-2">
                 <CardTitle>{ConfigTrans("Preview")}</CardTitle>
                 <CardDescription>
@@ -238,7 +246,7 @@ const Settings = memo(() => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <User className="w-5 h-5" />{" "}
-                  {ConfigTrans("Pessoal Information")}
+                  {ConfigTrans("Basic Information")}
                 </CardTitle>
                 <CardDescription>
                   {ConfigTrans("Update your basic data")}
@@ -254,7 +262,7 @@ const Settings = memo(() => {
                     placeholder="Um nome de exibição"
                   />
                 </div>
-                <div className="space-y-2">
+                <div>
                   <Label htmlFor="bio">{ConfigTrans("Biography")}</Label>
                   <Textarea
                     id="bio"
@@ -264,12 +272,16 @@ const Settings = memo(() => {
                     placeholder="Eu sou programador"
                   />
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-1">
+                  <Label htmlFor="genre">{ConfigTrans("Genre")}</Label>
                   <Select
                     onValueChange={(value) => setGenre(value)}
                     defaultValue={user?.genre || "prefer_not_to_say"}
                   >
-                    <SelectTrigger className="w-full min-w-[200px] max-w-[280px]">
+                    <SelectTrigger
+                      id="genre"
+                      className="w-full min-w-[200px] max-w-[280px]"
+                    >
                       <SelectValue placeholder={ConfigTrans("SelectGenre")} />
                     </SelectTrigger>
                     <SelectContent className="max-h-[300px]">
@@ -294,6 +306,12 @@ const Settings = memo(() => {
                       </SelectGroup>
                     </SelectContent>
                   </Select>
+                </div>
+                <div>
+                  <Label htmlFor="providers">
+                    {ConfigTrans("Providers of your account")}
+                  </Label>
+                  <RenderProviderGroups user={user} />
                 </div>
               </CardContent>
             </Card>

@@ -135,6 +135,7 @@ router.patch(
   },
 );
 
+// Pegar usuaŕio atual
 router.get("/profile", async (c) => {
   const userId = c.get("user").id;
   const cacheKey = getUserProfileCacheKey(userId);

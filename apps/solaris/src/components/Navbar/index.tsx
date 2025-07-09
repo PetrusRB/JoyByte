@@ -1,11 +1,5 @@
-import {
-  Bell,
-  Menu,
-  MessageCircle,
-  Search,
-  Settings,
-  User,
-} from "lucide-react";
+"use client";
+import { Bell, Menu, Search, Settings, User } from "lucide-react";
 import { useAuth } from "@/contexts/auth/AuthContext";
 import { useEffect, useState } from "react";
 import { Button } from "../Button";
@@ -94,13 +88,6 @@ const Navbar = () => {
                 badgeColor: "bg-red-500",
                 showBadge: true,
                 tooltip: "Notifications",
-              },
-              {
-                icon: MessageCircle,
-                onClick: () => console.log("Messages clicked"),
-                badgeColor: "bg-blue-500",
-                showBadge: true,
-                tooltip: "Messages",
               },
               {
                 icon: Settings,

@@ -6,7 +6,12 @@ import { auth } from "@/betterauth/auth";
 import { logger } from "@/libs/logger";
 
 // Lista branca de providers suportados
-const SUPPORTED_PROVIDERS = ["google", "github", "facebook"] as const;
+const SUPPORTED_PROVIDERS = [
+  "google",
+  "github",
+  "facebook",
+  "twitter",
+] as const;
 
 // Server-safe redirect wrapper
 function redirectToError(params: {

@@ -7,7 +7,7 @@ import { zValidator } from "@hono/zod-validator";
 import { HTTPException } from "hono/http-exception";
 import { db } from "@/db/drizzle";
 import { postsLike, posts, profiles } from "@/db/drizzle/schema";
-import { and, count, desc, eq, inArray, sql } from "drizzle-orm";
+import { and, count, desc, eq, inArray, sql, gt } from "drizzle-orm";
 import { genCharacters } from "@/utils/crypto";
 
 const router = createRouter();
@@ -359,10 +359,13 @@ router.post(
       .limit(1);
 
     if (!profile) {
-      throw new HTTPException(404, {
-        message:
-          "Perfil do usuário não encontrado. Não foi possível criar o post.",
-      });
+      return c.json(
+        {
+          message:
+            "Perfil do usuário não encontrado. Não foi possível criar o post.",
+        },
+        404,
+      );
     }
 
     // Cooldown
@@ -376,9 +379,12 @@ router.post(
     if (last) {
       const delta = Date.now() - new Date(last.created_at).getTime();
       if (delta < COOLDOWN_MS) {
-        throw new HTTPException(429, {
-          message: `Espere ${Math.ceil((COOLDOWN_MS - delta) / 1000)}s para postar novamente.`,
-        });
+        return c.json(
+          {
+            message: `Espere ${Math.ceil((COOLDOWN_MS - delta) / 1000)}s para postar novamente.`,
+          },
+          429,
+        );
       }
     }
 
@@ -430,12 +436,13 @@ router.get(
   zValidator(
     "query",
     z.object({
+      cursor: z.coerce.number().int().min(1).default(5).optional(),
       limit: z.coerce.number().int().min(1).max(100).default(DEFAULT_LIMIT),
       offset: z.coerce.number().int().min(0).default(DEFAULT_OFFSET),
     }),
   ),
   async (c) => {
-    const { limit, offset } = c.req.valid("query");
+    const { limit, offset, cursor } = c.req.valid("query");
     const cacheKey = getCacheKey(`posts:${limit}:${offset}`);
 
     try {
@@ -445,18 +452,10 @@ router.get(
         async () => {
           // 1) Buscar posts
           const rawPosts = await db
-            .select({
-              id: posts.id,
-              title: posts.title,
-              content: posts.content,
-              image: posts.image,
-              created_at: posts.created_at,
-              author: posts.author,
-              comments: posts.comments,
-              author_id: posts.author_id,
-            })
+            .select()
             .from(posts)
             .orderBy(posts.created_at)
+            .where(cursor ? gt(posts.id, cursor) : undefined)
             .limit(limit)
             .offset(offset);
 

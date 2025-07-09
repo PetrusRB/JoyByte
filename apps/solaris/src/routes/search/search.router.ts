@@ -6,7 +6,7 @@ import { getOrSet, redis } from "@/libs/redis";
 import { createRouter } from "@/utils/router.utils";
 import { db } from "@/db/drizzle";
 import { profiles } from "@/db/drizzle/schema";
-import { ilike, asc, count, inArray } from "drizzle-orm";
+import { ilike, asc, count, inArray, sql } from "drizzle-orm";
 
 const router = createRouter();
 
@@ -16,9 +16,87 @@ const querySchema = z.object({
   offset: z.coerce.number().int().min(0).default(0),
 });
 
+const randSchema = z.object({
+  limit: z.coerce
+    .number()
+    .int()
+    .min(1, "Limite tem quer ser maior que 1 abaixo de 5")
+    .max(5, "Limite tem que ser menor que 5")
+    .default(10),
+  offset: z.coerce.number().int().min(0).default(0),
+});
+
+// Pegar usuários aleatorios no banco de dados.
+router.get("/random", zValidator("query", randSchema), async (c) => {
+  const { limit, offset } = c.req.valid("query");
+  // Caches
+  const cacheKey = getCacheKey(`searchRandom:${limit}:${offset}`);
+
+  // Busca IDs cacheados
+  const userIds = await getOrSet(
+    cacheKey,
+    async () => {
+      const result = await db
+        .select({ id: profiles.id })
+        .from(profiles)
+        .orderBy(sql`random()`)
+        .limit(limit)
+        .offset(offset);
+
+      return result.map((row) => row.id);
+    },
+    60,
+  );
+  if (!userIds.length) {
+    return c.json(
+      {
+        success: false,
+        message: `Nenhum usuário encontrado no banco de dados`,
+        type: "NOT_FOUND",
+        users: [],
+      },
+      404,
+    );
+  }
+  try {
+    const usersDetails = await db
+      .select({
+        id: profiles.id,
+        name: profiles.name,
+        picture: profiles.picture,
+        preferences: profiles.preferences,
+        normalized_name: profiles.normalized_name,
+      })
+      .from(profiles)
+      .where(inArray(profiles.id, userIds))
+      .orderBy(asc(profiles.name));
+
+    const safeData = z.array(UserProfileSchema).parse(usersDetails);
+    return c.json(
+      {
+        success: true,
+        type: "SEARCH_SUCCESS_RANDOM",
+        users: safeData,
+      },
+      200,
+    );
+  } catch (error) {
+    return c.json(
+      {
+        success: false,
+        type: "INTERNAL_SERVER_ERROR",
+        error: `Falha ao tentar buscar usuários aleatórios: ${error} `,
+      },
+      500,
+    );
+  }
+});
+
+// Pegar o perfil de usuário
 router.get("/user", zValidator("query", querySchema), async (c) => {
   const { user, limit, offset } = c.req.valid("query");
 
+  // Caches
   const searchQuery = slugToSearchQuery(user).toLowerCase();
   const cacheKey = getCacheKey(`searchUsers:${searchQuery}:${limit}:${offset}`);
   const popularityKey = getCacheKey(`searchPopularity:${searchQuery}`);
@@ -107,17 +185,20 @@ router.get("/user", zValidator("query", querySchema), async (c) => {
       10,
     );
 
-    return c.json({
-      success: true,
-      type: "SEARCH_SUCCESS",
-      users: safeData,
-      pagination: {
-        total: totalCount,
-        offset,
-        limit,
-        hasMore: totalCount > offset + limit,
+    return c.json(
+      {
+        success: true,
+        type: "SEARCH_SUCCESS",
+        users: safeData,
+        pagination: {
+          total: totalCount,
+          offset,
+          limit,
+          hasMore: totalCount > offset + limit,
+        },
       },
-    });
+      200,
+    );
   } catch (error) {
     console.error("Erro ao buscar perfis:", error);
     return c.json(

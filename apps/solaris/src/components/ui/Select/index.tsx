@@ -44,13 +44,13 @@ function SelectTrigger({
         "data-[size=default]:h-11 data-[size=default]:px-4 data-[size=default]:text-sm",
         "data-[size=lg]:h-13 data-[size=lg]:px-5 data-[size=lg]:text-base",
         // Light mode colors
-        "border-orange-200 text-gray-700 placeholder:text-gray-400",
-        "hover:border-orange-300 hover:bg-orange-50/50",
-        "focus:border-orange-300 focus:bg-orange-50/30 focus:ring-4 focus:ring-orange-200/20",
+        "border-orange-200 bg-white text-gray-700 placeholder:text-gray-400",
+        "hover:border-orange-300 hover:bg-orange-50",
+        "focus:border-orange-300 focus:bg-orange-50",
         // Dark mode colors
-        "dark:bg-zinc-950 dark:border-orange-300/30 dark:text-gray-200 dark:placeholder:text-gray-500",
-        "dark:hover:border-orange-300/50 dark:hover:bg-orange-950/20",
-        "dark:focus:border-orange-300/70 dark:focus:bg-orange-950/10 dark:focus:ring-orange-300/10",
+        "dark:bg-zinc-950 dark:border-zinc-900 dark:text-gray-200 dark:placeholder:text-gray-500",
+        "dark:hover:border-zinc-900 dark:hover:bg-zinc-950",
+        "dark:focus:border-zinc-900 dark:focus:bg-zinc-950",
         // States
         "data-[placeholder]:text-gray-400 dark:data-[placeholder]:text-gray-500",
         "disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-zinc-50 dark:disabled:bg-zinc-950",
@@ -84,10 +84,14 @@ function SelectContent({
         className={cn(
           // Base styles
           "relative z-50 max-h-96 min-w-[8rem] overflow-hidden rounded-xl border-2 shadow-xl backdrop-blur-sm",
-          // Light mode
-          "bg-white/95 border-orange-200 text-gray-700",
-          // Dark mode
-          "dark:bg-zinc-950 dark:border-orange-300/30 dark:text-gray-200",
+          // Light mode colors
+          "light:border-orange-200 light:bg-white text-gray-700 placeholder:text-gray-400",
+          "light:hover:border-orange-300 light:hover:bg-orange-50",
+          "light:focus:border-orange-300 light:focus:bg-orange-50",
+          // Dark mode colors
+          "dark:bg-zinc-950 dark:border-zinc-900 dark:text-gray-200 dark:placeholder:text-gray-500",
+          "dark:hover:border-zinc-900 dark:hover:bg-zinc-950",
+          "dark:focus:border-zinc-900 dark:focus:bg-zinc-950",
           // Animations
           "data-[state=open]:animate-in data-[state=closed]:animate-out",
           "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",

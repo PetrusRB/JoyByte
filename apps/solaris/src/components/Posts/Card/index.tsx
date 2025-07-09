@@ -306,8 +306,8 @@ const PostCard: React.FC<PostWithCount & { user: User | null }> = memo(
     );
 
     return (
-      <article className="bg-white dark:bg-zinc-950 rounded-2xl duration-300 overflow-hidden flex flex-col">
-        <header className="flex items-center justify-between p-4 bg-gray-50 dark:bg-zinc-900">
+      <article className="bg-orange-50 dark:bg-zinc-950 rounded-2xl duration-300 overflow-hidden flex flex-col shadow-lg">
+        <header className="flex items-center justify-between p-4 bg-orange-50 dark:bg-zinc-900">
           <div className="flex items-center space-x-3">
             <button
               onClick={handleAvatarClick}
@@ -409,7 +409,7 @@ const PostCard: React.FC<PostWithCount & { user: User | null }> = memo(
             </div>
           </DynamicPopup>
         </div>
-        <footer className="flex items-center justify-between p-4 bg-gray-50 dark:bg-zinc-900 border-t border-gray-200 dark:border-zinc-800">
+        <footer className="flex items-center justify-between p-4 bg-orange-50 dark:bg-zinc-900 border-t border-gray-200 dark:border-zinc-800">
           <div className="flex space-x-4">
             {LikeButton}
             <button

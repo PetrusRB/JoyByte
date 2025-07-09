@@ -3,6 +3,8 @@
     "Login": "Entrar",
     "Logout": "Sair",
     "Register": "Registrar",
+    "Sign in with": "Entrar com ",
+    "Sign up with": "Registrar com ",
     "Forgot Password": "Esqueci minha senha",
     "Reset Password": "Redefinir senha",
     "Change Password": "Alterar senha",
@@ -24,6 +26,7 @@
     "Notifications": "Notificações",
     "Profile": "Perfil",
     "Contacts": "Contatos",
+    "Who to follow": "Inspirações para seguir",
     "friends online": "Amigos Online"
   },
   "Post": {
@@ -50,9 +53,10 @@
     "Username": "Nome Criativo",
     "Dark Theme": "Tema Escuro",
     "Danger": "Perigoso",
+    "Providers of your account": "Provedores da sua conta.",
     "Personalize your Experience": "Personalize sua experiência",
     "How people see you": "Como os outros te veem",
-    "Pessoal Information": "Informações Pessoais",
+    "Basic Information": "Informações Básicas",
     "Update your basic data": "Atualize seus dados básicos",
     "Genre": "Gênero",
     "Biography": "Biografia",

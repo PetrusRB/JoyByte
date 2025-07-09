@@ -1,6 +1,6 @@
 "use client";
 
-import { Image as ImageIcon, Video, Smile } from "lucide-react";
+import { Image as ImageIcon, Smile } from "lucide-react";
 import { Button } from "@/components/Button";
 import Image from "next/image";
 import { Card, CardContent } from "@/components/ui/Card";
@@ -119,7 +119,10 @@ export default function CreatePost() {
   }, [title, content]);
 
   return (
-    <Card className="dark:bg-black bg-white dark:text-white border-0 shadow-lg rounded-2xl overflow-hidden">
+    <Card
+      id="create-post"
+      className="dark:bg-black bg-orange-50 dark:text-white border-0 shadow-lg rounded-2xl overflow-hidden"
+    >
       <CardContent className="p-6 space-y-4">
         <div className="flex items-start space-x-4">
           <Image
@@ -167,10 +170,6 @@ export default function CreatePost() {
 
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pt-3 gap-2 sm:gap-0 border-t border-orange-300 dark:border-zinc-800">
           <div className="flex flex-wrap gap-2 pt-2">
-            <PostAction
-              icon={<Video className="w-4 h-4 mr-1" />}
-              label={t("Go Live")}
-            />
             <PostAction
               icon={<ImageIcon className="w-4 h-4 mr-1" />}
               label={t("Photo/Video")}

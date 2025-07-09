@@ -1,19 +1,18 @@
 "use client";
+import dynamic from "next/dynamic";
+import React, { useMemo } from "react";
 
-import React from "react";
-import Sidebar from "../Sidebar";
-import CreatePost from "../CreatePost";
+const Sidebar = dynamic(() => import("../Sidebar"));
+const CreatePost = dynamic(() => import("../CreatePost"));
+const WhoFollowList = dynamic(() => import("../WhoToFollowList"));
+
 import { Posts } from "@/components/Posts";
-import ContactsList from "../ContactList";
 import { Post, PostWithCount } from "@/schemas/post";
 import { useAuth } from "@/contexts/auth/AuthContext";
 import { useInfiniteQuery } from "@tanstack/react-query";
+import { WhoFollowType } from "../WhoToFollowList";
 
-interface Contact {
-  name: string;
-  avatar: string;
-}
-const contacts: Contact[] = [
+const whotofollow: WhoFollowType[] = [
   {
     name: "Mari Albino",
     avatar:
@@ -80,6 +79,8 @@ export default function HomeForm({ initialPages }: HomeFormProps) {
     queryKey: ["posts"],
     queryFn: ({ pageParam = 1 }) => fetchPage(pageParam),
     initialPageParam: 1,
+    staleTime: 5 * 60 * 1000, // 5 minutos
+    gcTime: 10 * 60 * 1000, // 10 minutos
     getNextPageParam: (lastPage) => lastPage.nextPage,
     enabled: isAuthenticated,
     initialData: initialPages
@@ -87,9 +88,10 @@ export default function HomeForm({ initialPages }: HomeFormProps) {
       : undefined,
   });
 
-  const allPosts: PostWithCount[] = data
-    ? data.pages.flatMap((p) => p.posts)
-    : [];
+  const allPosts: PostWithCount[] = useMemo(
+    () => (data ? data.pages.flatMap((p) => p.posts) : []),
+    [data],
+  );
 
   return (
     <div className="min-h-screen dark:bg-black bg-orange-50 dark:text-white text-orange-700">
@@ -123,7 +125,7 @@ export default function HomeForm({ initialPages }: HomeFormProps) {
 
         <aside className="hidden lg:block">
           <div className="sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto">
-            <ContactsList contacts={contacts} />
+            <WhoFollowList whotofollow={whotofollow} />
           </div>
         </aside>
       </div>
