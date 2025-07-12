@@ -1,6 +1,7 @@
 "use client";
 import dynamic from "next/dynamic";
 import React, { useMemo } from "react";
+import { useRandomUsers } from "@/hooks/useRandomUsers";
 
 const Sidebar = dynamic(() => import("../Sidebar"));
 const CreatePost = dynamic(() => import("../CreatePost"));
@@ -10,30 +11,6 @@ import { Posts } from "@/components/Posts";
 import { Post, PostWithCount } from "@/schemas/post";
 import { useAuth } from "@/contexts/auth/AuthContext";
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { WhoFollowType } from "../WhoToFollowList";
-
-const whotofollow: WhoFollowType[] = [
-  {
-    name: "Mari Albino",
-    avatar:
-      "https://images.unsplash.com/photo-1494790108755-2616b332c5c8?w=40&h=40&fit=crop&crop=face",
-  },
-  {
-    name: "Xbvv Zx",
-    avatar:
-      "https://images.unsplash.com/photo-1599566150163-29194dcaad36?q=80&w=404&auto=format&fit=crop&crop=face",
-  },
-  {
-    name: "Marliza Albino",
-    avatar:
-      "https://images.unsplash.com/photo-1544723795-3fb6469f5b39?w=40&h=40&fit=crop&crop=face",
-  },
-  {
-    name: "Pedro",
-    avatar:
-      "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=40&h=40&fit=crop&crop=face",
-  },
-];
 
 type HomeFormProps = {
   initialPages?: { posts: PostWithCount[]; nextPage: number | null }[];
@@ -87,6 +64,11 @@ export default function HomeForm({ initialPages }: HomeFormProps) {
       ? { pages: initialPages, pageParams: [1] }
       : undefined,
   });
+  const {
+    duplicates: queryRandDuplicates,
+    error: queryRandError,
+    loading: queryRandLoading,
+  } = useRandomUsers(user);
 
   const allPosts: PostWithCount[] = useMemo(
     () => (data ? data.pages.flatMap((p) => p.posts) : []),
@@ -125,7 +107,11 @@ export default function HomeForm({ initialPages }: HomeFormProps) {
 
         <aside className="hidden lg:block">
           <div className="sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto">
-            <WhoFollowList whotofollow={whotofollow} />
+            <WhoFollowList
+              queryRandError={queryRandError}
+              queryRandLoading={queryRandLoading}
+              queryRandUsers={queryRandDuplicates}
+            />
           </div>
         </aside>
       </div>

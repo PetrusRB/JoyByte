@@ -1,7 +1,62 @@
 import { Redis } from "@upstash/redis";
+import { CACHE_VERSION, ENV_PREFIX, getCacheKey } from "./utils";
 
 export const redis = Redis.fromEnv();
 
+/**
+ * Função segura para pegar do cache (json)
+ * @param key - Chave do Redis
+ */
+export async function getJsonFromCache<T>(key: string): Promise<T | null> {
+  try {
+    const cachedData = await redis.get(key);
+    if (cachedData === null || cachedData === undefined) return null;
+
+    // Verifica se já é um objeto (às vezes o Redis client faz parse automático)
+    if (typeof cachedData === "object") return cachedData as T;
+
+    // Garantia de string e limpeza
+    const cachedString = String(cachedData)
+      .replace(new RegExp(`^${ENV_PREFIX}:`), "")
+      .replace(new RegExp(`^${CACHE_VERSION}:`), "")
+      .trim();
+
+    try {
+      return JSON.parse(cachedString);
+    } catch {
+      // Se ainda falhar, retorna null para buscar no banco
+      return null;
+    }
+  } catch (error) {
+    console.error(`Erro ao acessar cache para key ${key}:`, error);
+    return null;
+  }
+}
+
+/**
+ * Função segura para armazenar no cache
+ * @param key - Chave do Redis
+ * @param data - Dados a serem armazenados
+ * @param ttl - Tempo de cache (em segundos)
+ */
+export async function setJsonInCache(
+  key: string,
+  data: any,
+  ttl?: number,
+): Promise<void> {
+  const cacheKey = getCacheKey(key);
+
+  try {
+    const value = JSON.stringify(data);
+    if (ttl) {
+      await redis.setex(cacheKey, ttl, value);
+    } else {
+      await redis.set(cacheKey, value);
+    }
+  } catch (error) {
+    console.error(`Erro ao salvar no cache para key ${cacheKey}:`, error);
+  }
+}
 /**
  * Pega do cache se existir, ou seta o valor com TTL.
  * @param key - Chave do Redis

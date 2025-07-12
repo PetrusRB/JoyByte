@@ -6,7 +6,10 @@ export const DEFAULT_AVATAR =
 export const DEFAULT_BANNER = "/placeholder.png";
 export const DEFAULT_NAME = "Misterioso(a)";
 export const DEFAULT_BIO = "🎮️♥️";
-const ENV_PREFIX = process.env.NODE_ENV === "production" ? "prod" : "dev";
+
+export const CACHE_VERSION = "v1"; // Útil para invalidar caches em deploys novos
+export const ENV_PREFIX =
+  process.env.NODE_ENV === "production" ? "prod" : "dev";
 
 export function getCacheKey(base: string): string {
   return `${ENV_PREFIX}:${base}`;

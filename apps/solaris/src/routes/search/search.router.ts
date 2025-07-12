@@ -1,211 +1,180 @@
 import { z } from "zod";
 import { zValidator } from "@hono/zod-validator";
-import { usernameSlugSchema, UserProfileSchema } from "@/schemas/user";
+import { usernameSlugSchema } from "@/schemas/user";
 import { slugToSearchQuery, getCacheKey } from "@/libs/utils";
 import { getOrSet, redis } from "@/libs/redis";
 import { createRouter } from "@/utils/router.utils";
 import { db } from "@/db/drizzle";
 import { profiles } from "@/db/drizzle/schema";
-import { ilike, asc, count, inArray, sql } from "drizzle-orm";
+import { ilike, asc, count, sql } from "drizzle-orm";
 
 const router = createRouter();
 
-const querySchema = z.object({
-  user: usernameSlugSchema,
+// Esquemas otimizados e reutilizados
+const BaseQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(50).default(10),
   offset: z.coerce.number().int().min(0).default(0),
 });
 
-const randSchema = z.object({
-  limit: z.coerce
-    .number()
-    .int()
-    .min(1, "Limite tem quer ser maior que 1 abaixo de 5")
-    .max(5, "Limite tem que ser menor que 5")
-    .default(10),
-  offset: z.coerce.number().int().min(0).default(0),
+const UserQuerySchema = BaseQuerySchema.extend({
+  user: usernameSlugSchema,
 });
 
-// Pegar usuários aleatorios no banco de dados.
-router.get("/random", zValidator("query", randSchema), async (c) => {
+const RandQuerySchema = BaseQuerySchema.extend({
+  limit: z.coerce.number().int().min(1).max(5).default(3),
+});
+
+// Funções auxiliares para reutilização
+const getUserProfileFields = {
+  id: profiles.id,
+  name: profiles.name,
+  picture: profiles.picture,
+  created_at: profiles.created_at,
+  updated_at: profiles.updated_at,
+  banner: profiles.banner,
+  email: profiles.email,
+  bio: profiles.bio,
+  badge: profiles.badge,
+  social_media: profiles.social_media,
+  genre: profiles.genre,
+  followers: profiles.followers,
+  following: profiles.following,
+  preferences: profiles.preferences,
+  normalized_name: profiles.normalized_name,
+};
+
+// Endpoint otimizado para usuários aleatórios
+router.get("/random", zValidator("query", RandQuerySchema), async (c) => {
   const { limit, offset } = c.req.valid("query");
-  // Caches
   const cacheKey = getCacheKey(`searchRandom:${limit}:${offset}`);
 
-  // Busca IDs cacheados
-  const userIds = await getOrSet(
-    cacheKey,
-    async () => {
-      const result = await db
-        .select({ id: profiles.id })
-        .from(profiles)
-        .orderBy(sql`random()`)
-        .limit(limit)
-        .offset(offset);
-
-      return result.map((row) => row.id);
-    },
-    60,
-  );
-  if (!userIds.length) {
-    return c.json(
-      {
-        success: false,
-        message: `Nenhum usuário encontrado no banco de dados`,
-        type: "NOT_FOUND",
-        users: [],
-      },
-      404,
-    );
-  }
   try {
-    const usersDetails = await db
-      .select({
-        id: profiles.id,
-        name: profiles.name,
-        picture: profiles.picture,
-        preferences: profiles.preferences,
-        normalized_name: profiles.normalized_name,
-      })
-      .from(profiles)
-      .where(inArray(profiles.id, userIds))
-      .orderBy(asc(profiles.name));
+    const userDetails = await getOrSet(
+      cacheKey,
+      async () => {
+        const result = await db
+          .select(getUserProfileFields)
+          .from(profiles)
+          .orderBy(sql`random()`)
+          .limit(limit)
+          .offset(offset);
 
-    const safeData = z.array(UserProfileSchema).parse(usersDetails);
-    return c.json(
-      {
-        success: true,
-        type: "SEARCH_SUCCESS_RANDOM",
-        users: safeData,
+        return result;
       },
-      200,
+      60, // TTL fixo para dados aleatórios
     );
+
+    if (!userDetails.length) {
+      return c.json(
+        {
+          success: false,
+          message: "Nenhum usuário encontrado",
+          type: "NOT_FOUND",
+          users: [],
+        },
+        404,
+      );
+    }
+
+    // Validação direta sem parse redundante
+    return c.json({
+      success: true,
+      type: "SEARCH_SUCCESS_RANDOM",
+      users: userDetails,
+    });
   } catch (error) {
+    console.error("Erro em /random:", error);
     return c.json(
       {
         success: false,
         type: "INTERNAL_SERVER_ERROR",
-        error: `Falha ao tentar buscar usuários aleatórios: ${error} `,
+        error: "Falha ao buscar usuários aleatórios",
       },
       500,
     );
   }
 });
 
-// Pegar o perfil de usuário
-router.get("/user", zValidator("query", querySchema), async (c) => {
+// Endpoint principal para busca usuários
+router.get("/user", zValidator("query", UserQuerySchema), async (c) => {
   const { user, limit, offset } = c.req.valid("query");
-
-  // Caches
   const searchQuery = slugToSearchQuery(user).toLowerCase();
+
+  // Chaves de cache
   const cacheKey = getCacheKey(`searchUsers:${searchQuery}:${limit}:${offset}`);
+  const countKey = getCacheKey(`searchTotal:${searchQuery}`);
   const popularityKey = getCacheKey(`searchPopularity:${searchQuery}`);
 
-  // TTL baseado em popularidade
-  const popularity = await redis.incr(popularityKey);
-  const ttl = popularity > 100 ? 120 : 60;
-  await redis.expire(popularityKey, 3600);
-
-  // Busca IDs cacheados
-  const userIds = await getOrSet(
-    cacheKey,
-    async () => {
-      try {
-        const result = await db
-          .select({ id: profiles.id })
-          .from(profiles)
-          .where(ilike(profiles.normalized_name, `%${searchQuery}%`))
-          .orderBy(asc(profiles.id))
-          .limit(limit)
-          .offset(offset);
-
-        return result.map((row) => row.id);
-      } catch (error) {
-        console.error("Erro ao buscar IDs:", error);
-        return [];
-      }
-    },
-    ttl,
-  );
-
-  if (!userIds.length) {
-    return c.json(
-      {
-        success: false,
-        message: `Nenhum usuário encontrado para "${user}"`,
-        type: "NOT_FOUND",
-        users: [],
-      },
-      404,
-    );
-  }
-
-  // Detalhes dos perfis usando Drizzle
   try {
-    const userDetails = await db
-      .select({
-        id: profiles.id,
-        name: profiles.name,
-        picture: profiles.picture,
-        created_at: profiles.created_at,
-        updated_at: profiles.updated_at,
-        banner: profiles.banner,
-        email: profiles.email,
-        bio: profiles.bio,
-        badge: profiles.badge,
-        social_media: profiles.social_media,
-        genre: profiles.genre,
-        followers: profiles.followers,
-        following: profiles.following,
-        preferences: profiles.preferences,
-        normalized_name: profiles.normalized_name,
-      })
-      .from(profiles)
-      .where(inArray(profiles.id, userIds))
-      .orderBy(asc(profiles.name));
+    // Controle de popularidade com pipeline
+    await redis
+      .pipeline()
+      .incr(popularityKey)
+      .expire(popularityKey, 3600)
+      .exec();
 
-    const safeData = z.array(UserProfileSchema).parse(userDetails);
+    // Busca dados em cache ou no banco
+    const [userDetails, totalCount] = await Promise.all([
+      getOrSet(
+        cacheKey,
+        async () => {
+          const result = await db
+            .select(getUserProfileFields)
+            .from(profiles)
+            .where(ilike(profiles.normalized_name, `%${searchQuery}%`))
+            .orderBy(asc(profiles.name))
+            .limit(limit)
+            .offset(offset);
 
-    // Busca total count separado (cacheado)
-    const totalCount = await getOrSet(
-      getCacheKey(`searchTotal:${searchQuery}`),
-      async () => {
-        try {
+          return result;
+        },
+        60,
+      ), // TTL fixo simplificado
+
+      getOrSet(
+        countKey,
+        async () => {
           const result = await db
             .select({ count: count() })
             .from(profiles)
             .where(ilike(profiles.normalized_name, `%${searchQuery}%`));
 
           return result[0]?.count ?? 0;
-        } catch (error) {
-          console.error("Erro ao contar usuários:", error);
-          return 0;
-        }
-      },
-      10,
-    );
-
-    return c.json(
-      {
-        success: true,
-        type: "SEARCH_SUCCESS",
-        users: safeData,
-        pagination: {
-          total: totalCount,
-          offset,
-          limit,
-          hasMore: totalCount > offset + limit,
         },
+        300,
+      ), // Cache mais longo para contagem
+    ]);
+
+    if (!userDetails.length) {
+      return c.json(
+        {
+          success: false,
+          message: `Nenhum usuário encontrado para "${user}"`,
+          type: "NOT_FOUND",
+          users: [],
+        },
+        404,
+      );
+    }
+
+    return c.json({
+      success: true,
+      type: "SEARCH_SUCCESS",
+      users: userDetails,
+      pagination: {
+        total: totalCount,
+        offset,
+        limit,
+        hasMore: totalCount > offset + limit,
       },
-      200,
-    );
+    });
   } catch (error) {
-    console.error("Erro ao buscar perfis:", error);
+    console.error("Erro em /user:", error);
     return c.json(
       {
         success: false,
-        message: "Erro ao buscar detalhes dos usuários",
         type: "INTERNAL_ERROR",
+        error: "Erro ao processar a requisição",
       },
       500,
     );

@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { PostSchema } from "./post";
 
 export type User = z.infer<typeof UserSchema>;
 export type UserProfile = z.infer<typeof UserProfileSchema>;
@@ -25,9 +24,6 @@ const allowedPlatforms = [
 // Type for allowed platforms
 export type SocialMediaPlatform = (typeof allowedPlatforms)[number];
 
-// Create a schema for platform keys
-const PlatformKeySchema = z.enum(allowedPlatforms);
-
 // Social media URL validation schema
 const SocialMediaUrlSchema = z.union([
   z.string().url("Must be a valid URL"),
@@ -48,19 +44,6 @@ export const SocialMediaSchema = z
   })
   .default({});
 
-// Social media dynamic
-export const SocialMediaSchemaRecord = z
-  .record(PlatformKeySchema, SocialMediaUrlSchema)
-  .refine(
-    (obj) =>
-      Object.keys(obj).every((key) =>
-        allowedPlatforms.includes(key as SocialMediaPlatform),
-      ),
-    {
-      message: "Social media object contains invalid platform keys",
-    },
-  )
-  .default({});
 export const UserProfileSchema = z.object({
   id: z.string(),
   created_at: z.date().optional(),
@@ -81,7 +64,6 @@ export const UserProfileSchema = z.object({
   genre: z.string().nullable().optional(),
   normalized_name: z.string().nullable().optional(),
   preferences: z.record(z.any()),
-  posts: z.array(PostSchema).optional(),
 });
 export const UserSchema = z.object({
   id: z.string(),

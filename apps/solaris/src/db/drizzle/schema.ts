@@ -1,4 +1,5 @@
 import { randomUUID } from "crypto";
+import { InferSelectModel } from "drizzle-orm";
 import {
   integer,
   pgTable,
@@ -7,6 +8,7 @@ import {
   boolean,
   jsonb,
 } from "drizzle-orm/pg-core";
+export type Profile = InferSelectModel<typeof profiles>;
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
@@ -81,7 +83,6 @@ export const profiles = pgTable("profiles", {
   badge: text("badge"),
   followers: integer().default(0),
   following: integer().default(0),
-  posts: jsonb(),
   social_media: jsonb().default({}),
   genre: text("genre").default("prefernottosay"),
   preferences: jsonb().default({ privacy: { profile_visibility: "public" } }),
@@ -98,7 +99,6 @@ export const posts = pgTable("posts", {
   comments: jsonb(),
   author: jsonb(),
   author_id: text("author_id").notNull(),
-  likes_count: integer().default(0),
 });
 export const postsLike = pgTable("posts_like", {
   id: text("id").primaryKey().default(randomUUID()),
@@ -106,10 +106,30 @@ export const postsLike = pgTable("posts_like", {
   post_id: integer("post_id").default(0),
   created_at: timestamp("created_at").notNull().defaultNow(),
 });
-
+export const followers = pgTable("followers", {
+  id: text("id").primaryKey().default(randomUUID()),
+  user_id: text("user_id").notNull(),
+  metadata_follower: jsonb("metadata_follower")
+    .$type<Partial<Profile>>()
+    .notNull(),
+  author_id: text("author_id").notNull(),
+  created_at: timestamp("created_at").notNull().defaultNow(),
+});
+export const following = pgTable("following", {
+  id: text("id").primaryKey().default(randomUUID()),
+  user_id: text("user_id").notNull(),
+  metadata_following: jsonb("metadata_following")
+    .$type<Partial<Profile>>()
+    .notNull(),
+  author_id: text("author_id").notNull(),
+  created_at: timestamp("created_at").notNull().defaultNow(),
+});
 export const schema = {
   user,
   session,
+  followers,
+  postsLike,
+  posts,
   account,
   verification,
 };

@@ -1,12 +1,21 @@
-import { getOrSet, delByPattern } from "@/libs/redis";
+// Refatorado para performance máxima, escalabilidade e limpeza
+
+import {
+  getOrSet,
+  delByPattern,
+  getJsonFromCache,
+  setJsonInCache,
+} from "@/libs/redis";
 import { z } from "zod";
 import { getCacheKey } from "@/libs/utils";
 import { HTTPException } from "hono/http-exception";
 import { createRouter } from "@/utils/router.utils";
 import { zValidator } from "@hono/zod-validator";
-import { profiles } from "@/db/drizzle/schema";
+import { followers, following, profiles } from "@/db/drizzle/schema";
 import { db } from "@/db/drizzle";
-import { and, eq, ilike, ne } from "drizzle-orm";
+import { and, eq, ilike, ne, sql } from "drizzle-orm";
+import { genCharacters } from "@/utils/crypto";
+import unidecode from "unidecode";
 
 const router = createRouter();
 
@@ -42,23 +51,268 @@ const EditableUserFieldsSchema = z
   .passthrough();
 
 const USER_PROFILE_CACHE_TTL = 300;
+const FOLLOWERS_CACHE_TTL = 600;
 
-function getUserProfileCacheKey(userId: string): string {
-  return getCacheKey(`user:profile:${userId}`);
-}
+const getUserProfileCacheKey = (userId: string) =>
+  getCacheKey(`user:profile:${userId}`);
 
 async function fetchUserProfileFromDB(userId: string) {
+  const baseCacheKey = `profile:${userId}`;
+  const cachedProfile =
+    await getJsonFromCache<typeof profiles.$inferSelect>(baseCacheKey);
+  if (cachedProfile) return cachedProfile;
+
   const user = await db
     .select()
     .from(profiles)
     .where(eq(profiles.id, userId))
     .limit(1)
     .then((res) => res[0]);
+  if (!user) throw new HTTPException(404, { message: "Perfil não encontrado" });
 
-  if (!user) throw new HTTPException(500, { message: "Perfil não encontrado" });
+  await setJsonInCache(baseCacheKey, user, 3600);
   return user;
 }
-// Atualizar perfil de usuário
+// Pegar seguidores do usuário
+router.get(
+  "/followers",
+  zValidator("query", z.object({ userId: z.string() })),
+  async (c) => {
+    const { userId } = c.req.valid("query");
+    const cacheKey = getCacheKey(`user:followers:${userId}`);
+
+    try {
+      const followersList = await getOrSet(
+        cacheKey,
+        async () => {
+          // Buscar seguidores com informações completas do perfil
+          const result = await db
+            .select({
+              id: followers.id,
+              user_id: followers.user_id,
+              author_id: followers.author_id,
+              created_at: followers.created_at,
+              profile: {
+                id: profiles.id,
+                name: profiles.name,
+                picture: profiles.picture,
+                bio: profiles.bio,
+                normalized_name: profiles.normalized_name,
+              },
+            })
+            .from(followers)
+            .innerJoin(profiles, eq(followers.user_id, profiles.id))
+            .where(eq(followers.author_id, userId))
+            .orderBy(followers.created_at)
+            .limit(100);
+
+          return result;
+        },
+        FOLLOWERS_CACHE_TTL,
+      );
+
+      // Contar total de seguidores
+      const totalFollowers = await db
+        .select({ count: sql`COUNT(*)`.mapWith(Number) })
+        .from(followers)
+        .where(eq(followers.author_id, userId))
+        .then((res) => res[0]?.count || 0);
+
+      return c.json({
+        followers: followersList,
+        count: totalFollowers,
+        total: totalFollowers,
+      });
+    } catch (error) {
+      console.error("Erro ao buscar seguidores:", error);
+      return c.json(
+        { message: "Erro ao buscar seguidores", cause: String(error) },
+        500,
+      );
+    }
+  },
+);
+// Pegar quem o usuário está seguindo
+router.get(
+  "/following",
+  zValidator("query", z.object({ userId: z.string() })),
+  async (c) => {
+    const { userId } = c.req.valid("query");
+    const cacheKey = getCacheKey(`user:following:${userId}`);
+
+    try {
+      const followingList = await getOrSet(
+        cacheKey,
+        async () => {
+          const result = await db
+            .select({
+              id: following.id,
+              user_id: following.user_id,
+              author_id: following.author_id,
+              created_at: following.created_at,
+              profile: {
+                id: profiles.id,
+                name: profiles.name,
+                picture: profiles.picture,
+                bio: profiles.bio,
+                normalized_name: profiles.normalized_name,
+              },
+            })
+            .from(following)
+            .innerJoin(profiles, eq(following.author_id, profiles.id))
+            .where(eq(following.user_id, userId))
+            .orderBy(following.created_at)
+            .limit(100);
+
+          return result;
+        },
+        FOLLOWERS_CACHE_TTL,
+      );
+
+      const totalFollowing = await db
+        .select({ count: sql`COUNT(*)`.mapWith(Number) })
+        .from(following)
+        .where(eq(following.user_id, userId))
+        .then((res) => res[0]?.count || 0);
+
+      return c.json({
+        following: followingList,
+        count: totalFollowing,
+        total: totalFollowing,
+      });
+    } catch (error) {
+      console.error("Erro ao buscar seguindo:", error);
+      return c.json(
+        { message: "Erro ao buscar seguindo", cause: String(error) },
+        500,
+      );
+    }
+  },
+);
+// Verificar status de seguimento
+router.get(
+  "/following-status",
+  zValidator("query", z.object({ userId: z.string() })),
+  async (c) => {
+    const { userId } = c.req.valid("query");
+    const currentUser = c.get("user");
+
+    if (!currentUser) {
+      return c.json({ following: false });
+    }
+
+    try {
+      const [{ count }] = await db
+        .select({ count: sql`COUNT(*)`.mapWith(Number) })
+        .from(followers)
+        .where(
+          and(
+            eq(followers.author_id, userId),
+            eq(followers.user_id, currentUser.id),
+          ),
+        );
+
+      return c.json({ following: count > 0 });
+    } catch (error) {
+      console.error("Erro ao verificar status de seguimento:", error);
+      return c.json({ following: false });
+    }
+  },
+);
+
+// Seguir usuário
+router.post(
+  "/follow",
+  zValidator("json", z.object({ id: z.string() })),
+  async (c) => {
+    const input = c.req.valid("json");
+    const user = c.get("user");
+
+    if (input.id === user.id)
+      return c.json({ message: "Você não pode seguir a si mesmo" }, 400);
+
+    const followerCacheKey = getCacheKey(`user:followers:${input.id}`);
+    const followingCacheKey = getCacheKey(`user:following:${user.id}`);
+
+    try {
+      const [{ count }] = await db
+        .select({ count: sql`COUNT(*)`.mapWith(Number) })
+        .from(followers)
+        .where(
+          and(
+            eq(followers.author_id, input.id),
+            eq(followers.user_id, user.id),
+          ),
+        );
+
+      if (count > 0) {
+        await db
+          .delete(followers)
+          .where(
+            and(
+              eq(followers.author_id, input.id),
+              eq(followers.user_id, user.id),
+            ),
+          );
+        await Promise.all([
+          delByPattern(followerCacheKey),
+          delByPattern(followingCacheKey),
+        ]);
+        return c.json({ following: false });
+      } else {
+        const [followerProfile] = await db
+          .select({
+            id: profiles.id,
+            name: profiles.name,
+            picture: profiles.picture,
+          })
+          .from(profiles)
+          .where(eq(profiles.id, user.id))
+          .limit(1);
+
+        if (!followerProfile)
+          return c.json({ message: "Perfil não encontrado" }, 404);
+
+        await db.insert(followers).values({
+          id: genCharacters(36),
+          user_id: user.id,
+          author_id: input.id,
+          metadata_follower: followerProfile,
+        });
+
+        await Promise.all([
+          delByPattern(followerCacheKey),
+          delByPattern(followingCacheKey),
+        ]);
+        return c.json({ following: true });
+      }
+    } catch (error) {
+      console.error("Erro ao seguir/deixar de seguir:", error);
+      return c.json(
+        { message: "Erro ao seguir/deixar de seguir", cause: String(error) },
+        500,
+      );
+    }
+  },
+);
+// Pegar perfil do usuário atual
+router.get("/profile", async (c) => {
+  const userId = c.get("user").id;
+  const cacheKey = getUserProfileCacheKey(userId);
+  try {
+    const user = await getOrSet(
+      cacheKey,
+      () => fetchUserProfileFromDB(userId),
+      USER_PROFILE_CACHE_TTL,
+    );
+    return c.json({ user });
+  } catch (error) {
+    throw new HTTPException(500, {
+      message: `Erro ao buscar perfil: ${error}`,
+    });
+  }
+});
+// Atualizar perfil de usuário atual
 router.patch(
   "/profile",
   zValidator("json", EditableUserFieldsSchema),
@@ -66,13 +320,13 @@ router.patch(
     const input = c.req.valid("json");
     const userId = c.get("user").id;
 
-    // Verificar implementação de throttling
     const lastUpdate = await db
       .select({ updated_at: profiles.updated_at })
       .from(profiles)
       .where(eq(profiles.id, userId))
       .limit(1)
       .then((res) => res[0]?.updated_at);
+
     if (!lastUpdate)
       throw new HTTPException(500, { message: "Erro ao verificar data" });
 
@@ -99,14 +353,14 @@ router.patch(
         .limit(1)
         .then((r) => r.length > 0);
 
-      if (exists) {
+      if (exists)
         throw new HTTPException(409, { message: "Este nome já está em uso" });
-      }
     }
 
     const { profileFields } = sanitizeFields(input);
     if (Object.keys(profileFields).length === 0)
       throw new HTTPException(400, { message: "Nenhum campo para atualizar" });
+
     let current = await db
       .select({
         preferences: profiles.preferences,
@@ -117,7 +371,6 @@ router.patch(
       .limit(1)
       .then((res) => res[0] ?? {});
 
-    // Merge manual fica igual
     const merged = mergeData(current, profileFields);
     merged.updated_at = new Date();
 
@@ -126,7 +379,6 @@ router.patch(
       .set(merged)
       .where(eq(profiles.id, userId))
       .returning();
-
     if (!userUpdated)
       throw new HTTPException(500, { message: "Erro ao atualizar perfil" });
 
@@ -134,24 +386,6 @@ router.patch(
     return c.json({ user: userUpdated, rateLimitRemaining: 0 });
   },
 );
-
-// Pegar usuaŕio atual
-router.get("/profile", async (c) => {
-  const userId = c.get("user").id;
-  const cacheKey = getUserProfileCacheKey(userId);
-  try {
-    const user = await getOrSet(
-      cacheKey,
-      () => fetchUserProfileFromDB(userId),
-      USER_PROFILE_CACHE_TTL,
-    );
-    return c.json({ user });
-  } catch (error) {
-    throw new HTTPException(500, {
-      message: `Erro ao buscar perfil: ${error}`,
-    });
-  }
-});
 
 function sanitizeFields(input: z.infer<typeof EditableUserFieldsSchema>) {
   const profileFields: Record<string, any> = {};
@@ -173,16 +407,7 @@ function sanitizeFields(input: z.infer<typeof EditableUserFieldsSchema>) {
 }
 
 function normalizeName(name: string): string {
-  const accents =
-    "áàâãäåāăąÁÀÂÃÄÅĀĂĄéèêëēĕėęěÉÈÊËĒĔĖĘĚíìîïīĭįİÍÌÎÏĪĬĮıóòôõöøōŏőÓÒÔÕÖØŌŎŐúùûüūŭůűųÚÙÛÜŪŬŮŰŲñÑçćčçÇĆČđÐĐģĞğĢħĦıĲĳĸĶĺļľłŁĹĻĽńņňÑŃŅŇŕŗřŔŖŘśşšŚŞŠţťŧŢŤŦýÿÝŸžźżŽŹŻœŒæÆ";
-  const replacements =
-    "aaaaaaaaaAAAAAAAAAeeeeeeeeeeEEEEEEEEEiiiiiiiiIIIIIIIIiooooooooOOOOOOOOOuuuuuuuuuUUUUUUUUUnNc3cCCCCdDDDgGgGhHiiijkKlllLLLnnnNNNrrrRRRsssSSStttTTTyyYYzzzZZZooaaAA";
-  return name
-    .split("")
-    .map((char) =>
-      accents.includes(char) ? replacements[accents.indexOf(char)] : char,
-    )
-    .join("")
+  return unidecode(name)
     .toLowerCase()
     .trim()
     .replace(/[\s._\-]+/g, ".");

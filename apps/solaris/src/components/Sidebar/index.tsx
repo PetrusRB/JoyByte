@@ -3,10 +3,10 @@ import {
   Users,
   MessageSquare,
   Bell,
-  Video,
-  Image as ImageIcon,
   Calendar,
   NotebookPen,
+  Swords,
+  LetterText,
 } from "lucide-react";
 import { Button } from "@/components/Button";
 import { cn, getUserSlug } from "@/libs/utils";
@@ -21,10 +21,10 @@ const Sidebar = () => {
   const menuItems = [
     { icon: Home, label: SidebarTrans("Home"), active: true },
     { icon: Users, label: SidebarTrans("Friends"), count: 12 },
-    { icon: MessageSquare, label: SidebarTrans("Messages"), count: 3 },
+    { icon: MessageSquare, label: SidebarTrans("Chat"), count: 3 },
     { icon: Bell, label: SidebarTrans("Notifications"), count: 5 },
-    { icon: Video, label: SidebarTrans("Watch") },
-    { icon: ImageIcon, label: SidebarTrans("Photos") },
+    { icon: Swords, label: SidebarTrans("Clans") },
+    { icon: LetterText, label: SidebarTrans("Forums") },
     { icon: Calendar, label: SidebarTrans("Events") },
   ];
 
@@ -107,7 +107,7 @@ const Sidebar = () => {
             <Button
               variant="ghost"
               className={cn(
-                "w-full justify-start h-12 px-4 rounded-full ring-1 transition-all duration-200 bg-transparent hover:scale-[1.02]",
+                "w-full justify-start h-12 px-4 py-3 rounded-full ring-1 transition-all duration-200 bg-transparent hover:scale-[1.02]",
                 "bg-orange-50/30 ring-orange-500",
                 "dark:bg-zinc-950 dark:ring-zinc-900",
                 "shadow-sm",

@@ -1,9 +1,8 @@
 import { z } from "zod";
-import { UserMetadata } from "@supabase/supabase-js";
 import { User } from "./user";
 
 // Define PostSchema first since it's referenced by the Post type
-export interface CustomUserMetadata extends UserMetadata {
+export interface CustomUserMetadata extends User {
   normalized_name?: string;
 }
 export const PostSchema = z.object({

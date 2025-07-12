@@ -63,9 +63,6 @@ function transformPost(post: RawPost): TransformedPost {
       id: post.author.id,
       name: post.author.name,
       picture: post.author.picture ?? "",
-      nickname: post.author.nickname ?? "",
-      full_name: post.author.full_name ?? "",
-      avatar_url: post.author.avatar_url ?? "",
       normalized_name: post.profiles?.normalized_name ?? "",
     },
     comments: post.comments ?? [],
@@ -516,7 +513,6 @@ router.get(
  */
 router.post(
   "/user",
-
   zValidator(
     "json",
     z.object({

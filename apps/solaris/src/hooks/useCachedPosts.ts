@@ -23,6 +23,7 @@ export const useCachedPosts = (userId: string) => {
     },
     enabled: Boolean(userId),
     staleTime: 1000 * 60 * 3, // 3 minutos
+    gcTime: 10 * 60 * 1000, // 10 minutos
     retry: 1, // uma tentativa de retry
     refetchOnWindowFocus: false, // evita refetch ao trocar de aba
   });

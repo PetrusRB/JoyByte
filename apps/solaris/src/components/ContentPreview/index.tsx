@@ -11,7 +11,7 @@ export default function ContentPreview({ text }: Props) {
       maxHeight={120}
       showLabel="Ver mais"
       hideLabel="Esconder"
-      className="dark:text-white text-orange-500"
+      className="dark:text-white text-zinc-700"
     >
       {text}
     </Spoiler>
