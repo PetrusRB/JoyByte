@@ -111,6 +111,9 @@ function isExcludeRequest(c: any): boolean {
     { path: "/api/post/get", methods: ["GET"] },
     { path: "/api/search/random", methods: ["GET"] },
     { path: "/api/user/profile", methods: ["GET"] },
+    { path: "/api/user/followers", methods: ["GET"] },
+    { path: "/api/user/following", methods: ["GET"] },
+    { path: "/api/user/follow", methods: ["POST"] },
     { path: "/api/user/following-status", methods: ["GET"] },
   ];
 

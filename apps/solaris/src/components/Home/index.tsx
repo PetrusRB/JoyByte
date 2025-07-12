@@ -42,7 +42,7 @@ const fetchPage = async (
   return { posts: postsWithCounts, nextPage: hasMore ? page + 1 : null };
 };
 
-export default function HomeForm({ initialPages }: HomeFormProps) {
+function HomeForm({ initialPages }: HomeFormProps) {
   const { isAuthenticated, user } = useAuth();
 
   const {
@@ -118,3 +118,5 @@ export default function HomeForm({ initialPages }: HomeFormProps) {
     </div>
   );
 }
+
+export default React.memo(HomeForm);

@@ -29,7 +29,7 @@ const Header = ({ banner, avatar, name }: ProfileHeaderProps) => {
         <Button
           variant="ghost"
           size="icon"
-          className="absolute top-4 left-4 bg-zinc-700/50 hover:bg-zinc-600 rounded-full z-10"
+          className="absolute top-4 left-4 bg-orange-50 hover:bg-orange-300 rounded-full z-10"
           onClick={() => router.back()}
         >
           <ArrowLeft className="w-5 h-5" />

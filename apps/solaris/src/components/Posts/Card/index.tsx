@@ -99,7 +99,7 @@ const PostCard: React.FC<PostWithCount & { user: User | null }> = memo(
     const [likeState, setLikeState] = useState<LikeState>({
       count: initialLikeCount,
       liked: false,
-      isLoading: !!user, // Loading true if user is logged in
+      isLoading: !!user, // Loading false if user is logged in
     });
 
     // Listen for like updates via custom events
