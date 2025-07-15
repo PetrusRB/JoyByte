@@ -2,19 +2,15 @@ import type { Metadata } from "next";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
 import { Ubuntu } from "next/font/google";
-import Navbar from "@/components/Navbar";
 import { Loader } from "@/components/Loader";
 
 import "./global.css";
 import "@mantine/core/styles.css";
 import "@mantine/nprogress/styles.css";
-import {
-  ColorSchemeScript,
-  MantineProvider,
-  mantineHtmlProps,
-} from "@mantine/core";
+import { ColorSchemeScript, mantineHtmlProps } from "@mantine/core";
 
-import LayoutClient from "./(client)/layout";
+import LayoutClient from "@/layouts/layout.client";
+import { Providers } from "@/providers";
 
 const ubuntu = Ubuntu({
   subsets: ["latin"],
@@ -36,8 +32,8 @@ export default async function RootLayout({
   const locale = await getLocale();
 
   // Providing all messages to the client
-  // side is the easiest way to get started
   const messages = await getMessages();
+
   return (
     <html lang={locale} {...mantineHtmlProps} suppressHydrationWarning>
       <head>
@@ -47,14 +43,13 @@ export default async function RootLayout({
         className={`${ubuntu.className} dark:bg-black bg-orange-50 antialiased`}
       >
         <NextIntlClientProvider messages={messages}>
-          <MantineProvider>
+          <Providers>
             <LayoutClient>
               <Loader.Progress />
-              <Navbar />
               {modal}
               {children}
             </LayoutClient>
-          </MantineProvider>
+          </Providers>
         </NextIntlClientProvider>
       </body>
     </html>

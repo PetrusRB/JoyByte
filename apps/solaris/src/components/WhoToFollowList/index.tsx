@@ -7,11 +7,13 @@ import { memo, useCallback, useMemo } from "react";
 import { slugToSearchQuery } from "@/libs/utils";
 import { useRouter } from "next/navigation";
 import { UserProfile } from "@/schemas/user";
+import { usePathname } from "next/navigation";
+import { useRandomUsers } from "@/hooks/useRandomUsers";
+import { useAuth } from "@/contexts/auth/AuthContext";
 
 interface WhoFollowListProps {
-  queryRandUsers: UserProfile[] | null;
-  queryRandError: string | null;
-  queryRandLoading: boolean;
+  translation: any;
+  style?: React.CSSProperties;
 }
 
 // Componente de Loading
@@ -80,77 +82,83 @@ const UserItem = memo(
 
 UserItem.displayName = "UserItem";
 
-const WhoFollowList = memo(
-  ({
-    queryRandUsers,
-    queryRandError,
-    queryRandLoading,
-  }: WhoFollowListProps) => {
-    const t = useTranslations("User");
-    const router = useRouter();
+const WhoFollowList = memo(({ style, translation }: WhoFollowListProps) => {
+  const router = useRouter();
+  const path = usePathname();
+  const { user } = useAuth();
 
-    const goto = useCallback(
-      (user: UserProfile) => {
-        if (!user?.normalized_name) return;
-        const slugProfile = slugToSearchQuery(user.normalized_name);
-        router.push(`/user/${slugProfile.replace(" ", ".")}`);
-      },
-      [router],
-    );
+  const {
+    duplicates: queryRandDuplicates,
+    error: queryRandError,
+    loading: queryRandLoading,
+  } = useRandomUsers(user);
+  const goto = useCallback(
+    (user: UserProfile) => {
+      if (!user?.normalized_name) return;
+      const slugProfile = slugToSearchQuery(user.normalized_name);
+      router.push(`/user/${slugProfile.replace(" ", ".")}`);
+    },
+    [router],
+  );
 
-    // Renderização condicional otimizada
-    const renderContent = useMemo(() => {
-      if (queryRandLoading) {
-        return Array.from({ length: 3 }, (_, i) => <LoadingState key={i} />);
-      }
+  // Renderização condicional otimizada
+  const renderContent = useMemo(() => {
+    if (queryRandLoading) {
+      return Array.from({ length: 3 }, (_, i) => <LoadingState key={i} />);
+    }
 
-      if (queryRandError) {
-        return <ErrorState error={queryRandError} />;
-      }
+    if (queryRandError) {
+      return <ErrorState error={queryRandError} />;
+    }
 
-      if (!queryRandUsers?.length) {
-        return <EmptyState />;
-      }
+    if (!queryRandDuplicates?.length) {
+      return <EmptyState />;
+    }
 
-      return queryRandUsers.map((user) => (
-        <UserItem
-          key={user.name || user.id}
-          user={user}
-          onClick={() => goto(user)}
-        />
-      ));
-    }, [queryRandUsers, queryRandError, queryRandLoading, goto]);
+    return queryRandDuplicates.map((user) => (
+      <UserItem
+        key={user.name || user.id}
+        user={user}
+        onClick={() => goto(user)}
+      />
+    ));
+  }, [queryRandDuplicates, queryRandError, queryRandLoading, goto]);
 
-    return (
-      <div className="p-4 h-full dark:text-white text-gray-600">
-        <div className="dark:text-white rounded-2xl shadow-sm p-4">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">
-              {t("Who to follow")}
-            </h3>
-            <div className="flex gap-1">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="rounded-full w-8 h-8 hover:bg-slate-100"
-              >
-                <Search className="w-4 h-4 text-slate-500" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="rounded-full w-8 h-8 hover:bg-slate-100"
-              >
-                <MoreHorizontal className="w-4 h-4 text-slate-500" />
-              </Button>
+  if (path !== "/") return null;
+
+  return (
+    <aside className="hidden lg:block">
+      <div className="sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto">
+        <div className="p-4 h-full dark:text-white text-gray-600">
+          <div className="dark:text-white rounded-2xl shadow-sm p-4">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-semibold bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">
+                {translation("Who to follow")}
+              </h3>
+              <div className="flex gap-1">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="rounded-full w-8 h-8 hover:bg-slate-100"
+                >
+                  <Search className="w-4 h-4 text-slate-500" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="rounded-full w-8 h-8 hover:bg-slate-100"
+                >
+                  <MoreHorizontal className="w-4 h-4 text-slate-500" />
+                </Button>
+              </div>
             </div>
+            <div className="space-y-2">{renderContent}</div>
           </div>
-          <div className="space-y-2">{renderContent}</div>
         </div>
       </div>
-    );
-  },
-);
+    </aside>
+  );
+});
 
 WhoFollowList.displayName = "WhoFollowList";
 export default WhoFollowList;

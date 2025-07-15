@@ -1,16 +1,15 @@
 "use client";
 import dynamic from "next/dynamic";
 import React, { useMemo } from "react";
-import { useRandomUsers } from "@/hooks/useRandomUsers";
 
-const Sidebar = dynamic(() => import("../Sidebar"));
 const CreatePost = dynamic(() => import("../CreatePost"));
-const WhoFollowList = dynamic(() => import("../WhoToFollowList"));
 
 import { Posts } from "@/components/Posts";
 import { Post, PostWithCount } from "@/schemas/post";
 import { useAuth } from "@/contexts/auth/AuthContext";
 import { useInfiniteQuery } from "@tanstack/react-query";
+import WhoToFollowList from "../WhoToFollowList";
+import { useTranslations } from "next-intl";
 
 type HomeFormProps = {
   initialPages?: { posts: PostWithCount[]; nextPage: number | null }[];
@@ -44,6 +43,7 @@ const fetchPage = async (
 
 function HomeForm({ initialPages }: HomeFormProps) {
   const { isAuthenticated, user } = useAuth();
+  const t = useTranslations("User");
 
   const {
     data,
@@ -64,58 +64,52 @@ function HomeForm({ initialPages }: HomeFormProps) {
       ? { pages: initialPages, pageParams: [1] }
       : undefined,
   });
-  const {
-    duplicates: queryRandDuplicates,
-    error: queryRandError,
-    loading: queryRandLoading,
-  } = useRandomUsers(user);
-
   const allPosts: PostWithCount[] = useMemo(
     () => (data ? data.pages.flatMap((p) => p.posts) : []),
     [data],
   );
 
   return (
-    <div className="min-h-screen dark:bg-black bg-orange-50 dark:text-white text-orange-700">
-      <div className="grid grid-cols-1 lg:grid-cols-[250px,1fr,250px] gap-4 max-w-7xl mx-auto pt-4 lg:pt-16">
-        <aside className="hidden lg:block">
-          <div className="sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto">
-            <Sidebar />
-          </div>
-        </aside>
+    <>
+      <div className="grid grid-cols-1 lg:grid-cols-10 gap-6">
+        {/* Coluna principal com posts */}
+        <div className="lg:col-span-6">
+          {/* CreatePost com sticky no topo */}
+          {user && (
+            <div className="top-16 z-10 mb-6 bg-orange-50 dark:bg-black pb-4">
+              <CreatePost />
+            </div>
+          )}
 
-        <main className="col-span-1 lg:col-span-1 px-2 sm:px-4 py-4">
-          <div className="max-w-full sm:max-w-lg md:max-w-xl lg:max-w-2xl mx-auto space-y-4 sm:space-y-6">
-            <CreatePost />
+          <div className="space-y-6">
+            {/* Posts */}
             <Posts.Section
               data={allPosts}
               loading={isFetching && !data}
               user={user}
               error={error?.message ?? null}
             />
+
             {hasNextPage && (
               <button
                 onClick={() => fetchNextPage()}
                 disabled={isFetchingNextPage}
-                className="w-full py-2 rounded bg-orange-600 text-white hover:bg-orange-700 transition"
+                className="w-full py-3 rounded-lg bg-orange-600 text-white hover:bg-orange-700 disabled:opacity-50 transition-all duration-200"
               >
                 {isFetchingNextPage ? "Carregando..." : "Carregar mais"}
               </button>
             )}
           </div>
-        </main>
+        </div>
 
-        <aside className="hidden lg:block">
-          <div className="sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto">
-            <WhoFollowList
-              queryRandError={queryRandError}
-              queryRandLoading={queryRandLoading}
-              queryRandUsers={queryRandDuplicates}
-            />
+        {/* Sidebar direita com sticky */}
+        <div className="lg:col-span-4">
+          <div className="sticky top-24 max-h-[calc(100vh-6rem)] overflow-y-auto hidden lg:block scrollbar-hide">
+            <WhoToFollowList translation={t} />
           </div>
-        </aside>
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 

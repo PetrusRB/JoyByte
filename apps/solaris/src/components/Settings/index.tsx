@@ -49,6 +49,7 @@ import Image from "next/image";
 import { getPlaceholder } from "@/libs/blur";
 import { Avatar } from "@/components/Avatar";
 import { User as UserSchema } from "@/schemas/user";
+
 const RenderProviderGroups = ({ user }: { user: UserSchema | null }) => {
   if (!user) return null;
   return (
@@ -57,7 +58,7 @@ const RenderProviderGroups = ({ user }: { user: UserSchema | null }) => {
     </>
   );
 };
-const Settings = memo(() => {
+const SettingsComp = memo(() => {
   const { user, signOut } = useAuth();
   const t = useTranslations("User");
   const ConfigTrans = useTranslations("Config");
@@ -409,4 +410,4 @@ const Settings = memo(() => {
   );
 });
 
-export default Settings;
+export default SettingsComp;

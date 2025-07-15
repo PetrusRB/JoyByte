@@ -6,6 +6,7 @@ import { Button } from "../Button";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Input } from "../ui/Input";
+import Link from "next/link";
 
 const Navbar = () => {
   const { isAuthenticated } = useAuth();
@@ -84,37 +85,34 @@ const Navbar = () => {
             {[
               {
                 icon: Bell,
-                onClick: () => console.log("Notifications clicked"),
                 badgeColor: "bg-red-500",
+                href: "/notifications",
                 showBadge: true,
                 tooltip: "Notifications",
               },
               {
                 icon: Settings,
-                onClick: () => navigate.push("/config"),
+                href: "/settings/account",
                 showBadge: false,
                 tooltip: "Settings",
               },
             ].map(
-              (
-                { icon: Icon, onClick, badgeColor, showBadge, tooltip },
-                index,
-              ) => (
-                <Button
-                  key={index}
-                  variant="ghost"
-                  size="icon"
-                  onClick={onClick}
-                  className="hidden sm:flex rounded-full bg-orange-50 hover:bg-orange-200 dark:bg-zinc-950 dark:hover:bg-zinc-800 relative"
-                  title={tooltip}
-                >
-                  <Icon className="w-5 h-5 dark:text-white text-orange-800" />
-                  {showBadge && (
-                    <span
-                      className={`absolute -top-1 -right-1 w-3 h-3 ${badgeColor} rounded-full border-2 border-white`}
-                    ></span>
-                  )}
-                </Button>
+              ({ icon: Icon, badgeColor, href, showBadge, tooltip }, index) => (
+                <Link key={index} href={href}>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="hidden sm:flex rounded-full bg-orange-50 hover:bg-orange-200 dark:bg-zinc-950 dark:hover:bg-zinc-800 relative"
+                    title={tooltip}
+                  >
+                    <Icon className="w-5 h-5 dark:text-white text-orange-800" />
+                    {showBadge && (
+                      <span
+                        className={`absolute -top-1 -right-1 w-3 h-3 ${badgeColor} rounded-full border-2 border-white`}
+                      ></span>
+                    )}
+                  </Button>
+                </Link>
               ),
             )}
 

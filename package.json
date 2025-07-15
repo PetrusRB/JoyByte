@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "license": "MIT",
   "scripts": {
-    "web": "cd apps/solaris && next dev --turbopack",
+    "web": "cd apps/solaris && next dev",
     "build": "cd apps/solaris && next build",
     "mob": "cd apps/joy-mob && expo start --tunnel",
     "prebuild": "cd apps/joy-mob && expo prebuild --clean",

@@ -29,11 +29,12 @@ const Sidebar = () => {
   ];
 
   const { user } = useAuth();
+  if (!user) return null;
   return (
     <div className="p-4 h-full dark:text-white">
       <div className="space-y-2">
         {/* Profile Section */}
-        <div className="p-4 dark:bg-zinc-950 bg-white dark:text-white rounded-2xl shadow-sm mb-6">
+        <div className="p-4 dark:bg-zinc-950 bg-orange-50 dark:text-white rounded-2xl shadow-sm mb-6">
           <div className="flex items-center space-x-3">
             <Image
               src={user?.picture ?? "/user.png"}
