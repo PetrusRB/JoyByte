@@ -175,7 +175,7 @@ const SettingsComp = memo(() => {
 
   return (
     <div className="min-h-screen bg-orange-50 dark:bg-black dark:text-white text-orange-700">
-      <header className="sticky top-0 z-30 bg-orange-50 dark:bg-black ring-1 dark:ring-zinc-800 ring-orange-200/40 backdrop-blur">
+      <header className="sticky top-0 z-30 bg-orange-50 dark:bg-zinc-950 ring-1 rounded-lg dark:ring-zinc-800 ring-orange-200/40 backdrop-blur">
         <div className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center gap-4">
           <Button
             variant="ghost"

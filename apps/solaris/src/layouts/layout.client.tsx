@@ -4,12 +4,19 @@ const Navbar = lazy(() => import("@/components/Navbar"));
 import React, { lazy } from "react";
 import { Toaster } from "@/components/ui/Toast";
 import Sidebar from "@/components/Sidebar";
+import { useAuth } from "@/contexts/auth/AuthContext";
 
 type LayoutClientProps = {
   children: React.ReactNode;
 };
 
 const LayoutClient: React.FC<LayoutClientProps> = ({ children }) => {
+  const { isAuthenticated } = useAuth();
+
+  // Se não estiver autenticado, renderiza apenas os filhos (ex: página de login)
+  if (!isAuthenticated) {
+    return <>{children}</>;
+  }
   return (
     <>
       {/* Navbar com sticky no topo */}
