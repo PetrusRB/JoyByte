@@ -44,11 +44,11 @@ function SelectTrigger({
         "data-[size=default]:h-11 data-[size=default]:px-4 data-[size=default]:text-sm",
         "data-[size=lg]:h-13 data-[size=lg]:px-5 data-[size=lg]:text-base",
         // Light mode colors
-        "border-orange-200 bg-orange-50 text-gray-700 placeholder:text-gray-400",
+        "border-orange-200 bg-orange-50 text-gray-700",
         "hover:border-orange-300 hover:bg-orange-50",
         "focus:border-orange-300",
         // Dark mode colors
-        "dark:bg-zinc-950 dark:border-zinc-900 dark:text-gray-200 dark:placeholder:text-gray-500",
+        "dark:bg-zinc-950 dark:border-zinc-900 dark:text-gray-200",
         "dark:hover:border-zinc-900 dark:hover:bg-zinc-950",
         "dark:focus:border-zinc-900 dark:focus:bg-zinc-950",
         // States
@@ -85,11 +85,11 @@ function SelectContent({
           // Base styles
           "relative z-50 max-h-96 min-w-[8rem] overflow-hidden rounded-xl border-2 shadow-xl",
           // Light mode colors
-          "border-orange-200 bg-orange-50 text-gray-700 placeholder:text-gray-400",
+          "border-orange-200 bg-orange-50 text-gray-700",
           "hover:border-orange-300 hover:bg-orange-50",
           "focus:border-orange-300 focus:bg-orange-50",
           // Dark mode colors
-          "dark:bg-zinc-950 dark:border-zinc-900 dark:text-gray-200 dark:placeholder:text-gray-500",
+          "dark:bg-zinc-950 dark:border-zinc-900 dark:text-gray-200",
           "dark:hover:border-zinc-900 dark:hover:bg-zinc-950",
           "dark:focus:border-zinc-900 dark:focus:bg-zinc-950",
           // Animations

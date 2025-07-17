@@ -14,6 +14,9 @@ importers:
       '@arcjet/inspect':
         specifier: ^1.0.0-beta.9
         version: 1.0.0-beta.9
+      '@arcjet/ip':
+        specifier: 1.0.0-beta.9
+        version: 1.0.0-beta.9
       '@arcjet/next':
         specifier: ^1.0.0-beta.9
         version: 1.0.0-beta.9(next@15.2.5(@babel/core@7.28.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0))
@@ -65,9 +68,15 @@ importers:
       '@preact/signals-react':
         specifier: ^3.2.1
         version: 3.2.1(react@19.0.0)
+      '@radix-ui/react-avatar':
+        specifier: ^1.1.10
+        version: 1.1.10(@types/react-dom@19.0.0)(@types/react@19.0.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
       '@radix-ui/react-dialog':
         specifier: ^1.1.14
         version: 1.1.14(@types/react-dom@19.0.0)(@types/react@19.0.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
+      '@radix-ui/react-label':
+        specifier: ^2.1.7
+        version: 2.1.7(@types/react-dom@19.0.0)(@types/react@19.0.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
       '@radix-ui/react-select':
         specifier: ^2.2.5
         version: 2.2.5(@types/react-dom@19.0.0)(@types/react@19.0.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
@@ -266,6 +275,9 @@ importers:
       unstorage:
         specifier: ^1.16.0
         version: 1.16.1(@upstash/redis@1.35.1)
+      use-intl:
+        specifier: ^4.3.4
+        version: 4.3.4(react@19.0.0)
       winston:
         specifier: ^3.17.0
         version: 3.17.0
@@ -1723,7 +1735,7 @@ packages:
 
   '@expo/bunyan@4.0.1':
     resolution: {integrity: sha512-+Lla7nYSiHZirgK+U/uYzsLv/X+HaJienbD5AKX1UQZHYfWaP+9uuQluRB4GrEVWF0GZ7vEVp/jzaOT9k/SQlg==}
-    engines: {'0': node >=0.10.0}
+    engines: {node: '>=0.10.0'}
 
   '@expo/cli@0.21.8':
     resolution: {integrity: sha512-gU+NlL/XS9r7LEfLhjDDKuv3jEtOh+rVnk/k7Lp8WrUwaMCoEGfmQpSqLXetFCCC4UFXSaj1cdMGoy2UBw4rew==}

@@ -13,11 +13,11 @@ const Input = React.forwardRef<HTMLInputElement, React.ComponentProps<"input">>(
           // Sizing
           "h-11 px-4 text-sm",
           // Light mode colors
-          "border-orange-200 bg-white text-gray-700 placeholder:text-gray-400",
+          "border-orange-200 bg-white text-gray-700",
           "hover:border-orange-300 hover:bg-orange-50",
           "focus:border-orange-300 focus:bg-orange-50",
           // Dark mode colors
-          "dark:bg-zinc-950 dark:border-zinc-900 dark:text-gray-200 dark:placeholder:text-gray-500",
+          "dark:bg-zinc-950 dark:border-zinc-900 dark:text-gray-200",
           "dark:hover:border-zinc-900 dark:hover:bg-zinc-950",
           "dark:focus:border-zinc-900 dark:focus:bg-zinc-950",
           // States
