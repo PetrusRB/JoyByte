@@ -139,16 +139,16 @@ const WhoFollowList = memo(({ style, translation }: WhoFollowListProps) => {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="rounded-full w-8 h-8 hover:bg-slate-100"
+                  className="rounded-full w-8 h-8 hover:bg-zinc-800"
                 >
-                  <Search className="w-4 h-4 text-slate-500" />
+                  <Search className="w-4 h-4 text-white" />
                 </Button>
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="rounded-full w-8 h-8 hover:bg-slate-100"
+                  className="rounded-full w-8 h-8 hover:bg-zinc-800"
                 >
-                  <MoreHorizontal className="w-4 h-4 text-slate-500" />
+                  <MoreHorizontal className="w-4 h-4 text-white" />
                 </Button>
               </div>
             </div>
