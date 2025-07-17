@@ -1,18 +1,14 @@
-import { useRef } from 'react';
-import { StyleSheet } from 'react-native';
-
-import {WebView} from "react-native-webview"
+import { useRef } from "react";
+import { StyleSheet, Text } from "react-native";
 
 export default function HomeScreen() {
-  const webview = useRef(null)
-  return (
-    <WebView ref={webview} style={styles.webview} javaScriptEnabled source={{uri: 'https://joybyte.vercel.app'}}/>
-  );
+  const webview = useRef(null);
+  return <Text>Home</Text>;
 }
 
 const styles = StyleSheet.create({
   webview: {
     marginBottom: 20,
-    marginTop: 10
-  }
+    marginTop: 10,
+  },
 });

@@ -6,11 +6,7 @@
     "emitDeclarationOnly": false,
     "esModuleInterop": true,
     "resolveJsonModule": true,
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
+    "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "allowSyntheticDefaultImports": true,
     "forceConsistentCasingInFileNames": true,
@@ -21,17 +17,10 @@
       }
     ],
     "paths": {
-      "@/*": [
-        "./src/*"
-      ],
-      "@root/*": [
-        "./*"
-      ],
+      "@/*": ["./src/*"],
+      "@root/*": ["./*"]
     },
-    "types": [
-      "jest",
-      "node"
-    ],
+    "types": ["node"],
     "outDir": "dist",
     "rootDir": ".",
     "tsBuildInfoFile": "dist/tsconfig.tsbuildinfo"
@@ -46,13 +35,13 @@
     "src/**/*.jsx",
     "src/**/*.ts",
     "src/**/*.tsx",
-    ".next/types/**/*.ts"
-, "next-i18next.config.js"  ],
+    ".next/types/**/*.ts",
+    "next-i18next.config.js"
+  ],
   "exclude": [
     "out-tsc",
     "dist",
     "node_modules",
-    "jest.config.ts",
     "src/**/*.spec.ts",
     "src/**/*.test.ts",
     ".next"

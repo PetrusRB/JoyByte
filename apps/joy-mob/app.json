@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "joy-mob",
+    "name": "Joy Byte",
     "slug": "joy-mob",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -10,7 +10,7 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.joymob"
+      "bundleIdentifier": "app.binary.joybyte"
     },
     "android": {
       "adaptiveIcon": {
@@ -18,7 +18,7 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.anonymous.joymob"
+      "package": "app.binary.joybyte"
     },
     "web": {
       "bundler": "metro",

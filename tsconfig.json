@@ -4,7 +4,7 @@
   "files": [],
   "references": [
     {
-      "path": "./apps/solaris"
+      "path": "./apps/joy-web"
     },
     {
       "path": "./apps/joy-mob"
