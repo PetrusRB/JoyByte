@@ -1,4 +1,4 @@
-package com.anonymous.joymob
+package app.binary.joybyte
 import expo.modules.splashscreen.SplashScreenManager
 
 import android.os.Build

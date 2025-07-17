@@ -1,4 +1,4 @@
-package com.anonymous.joymob
+package app.binary.joybyte
 
 import android.app.Application
 import android.content.res.Configuration

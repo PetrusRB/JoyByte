@@ -87,9 +87,9 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace 'com.anonymous.joymob'
+    namespace 'app.binary.joybyte'
     defaultConfig {
-        applicationId 'com.anonymous.joymob'
+        applicationId 'app.binary.joybyte'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1

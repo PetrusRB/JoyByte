@@ -26,8 +26,8 @@
     "tsBuildInfoFile": "dist/tsconfig.tsbuildinfo"
   },
   "include": [
-    "../../apps/solaris/.next/types/**/*.ts",
-    "../../dist/apps/solaris/.next/types/**/*.ts",
+    "../../apps/joy-web/.next/types/**/*.ts",
+    "../../dist/apps/joy-web/.next/types/**/*.ts",
     "src/locales/**/*.json",
     "public/locales/**/*.json",
     "next-env.d.ts",
