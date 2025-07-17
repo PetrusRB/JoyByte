@@ -6,5 +6,14 @@
   "scripts": {
     "android": "expo run:android",
     "ios": "expo run:ios"
+  },
+  "dependencies": {
+    "nativewind": "^4.1.23",
+    "react-native-reanimated": "~3.17.5",
+    "react-native-safe-area-context": "5.4.0"
+  },
+  "devDependencies": {
+    "prettier-plugin-tailwindcss": "^0.5.14",
+    "tailwindcss": "^3.4.17"
   }
 }

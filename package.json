@@ -6,8 +6,8 @@
     "web": "cd apps/solaris && next dev",
     "build": "cd apps/solaris && next build",
     "mob": "cd apps/joy-mob && expo start --tunnel",
-    "prebuild": "cd apps/joy-mob && expo prebuild --clean",
-    "mobbuild": "cd apps/joy-mob && eas build --platform android",
+    "build:pre": "cd apps/joy-mob && expo prebuild --clean",
+    "build:mob": "cd apps/joy-mob && eas build --platform android",
     "db:migrate": "cd apps/solaris && drizzle-kit migrate",
     "db:generate": "cd apps/solaris && drizzle-kit generate"
   },

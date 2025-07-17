@@ -1,13 +1,20 @@
 import { useRef } from "react";
-import { StyleSheet, Text } from "react-native";
+import { View, StyleSheet, Text } from "react-native";
 
 export default function HomeScreen() {
-  const webview = useRef(null);
-  return <Text>Home</Text>;
+  return (
+    <>
+      <View className="flex-1 items-center justify-center bg-white">
+        <Text className="text-xl font-bold text-blue-500">
+          Welcome to Nativewind!
+        </Text>
+      </View>
+    </>
+  );
 }
 
 const styles = StyleSheet.create({
-  webview: {
+  container: {
     marginBottom: 20,
     marginTop: 10,
   },
