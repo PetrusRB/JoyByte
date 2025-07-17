@@ -3,13 +3,13 @@
   "version": "0.0.0",
   "license": "MIT",
   "scripts": {
-    "web": "cd apps/solaris && next dev",
-    "build": "cd apps/solaris && next build",
+    "web": "cd apps/joy-web && next dev",
+    "build": "cd apps/joy-web && next build",
     "mob": "cd apps/joy-mob && expo start --tunnel",
     "build:pre": "cd apps/joy-mob && expo prebuild --clean",
     "build:mob": "cd apps/joy-mob && eas build --platform android",
-    "db:migrate": "cd apps/solaris && drizzle-kit migrate",
-    "db:generate": "cd apps/solaris && drizzle-kit generate"
+    "db:migrate": "cd apps/joy-web && drizzle-kit migrate",
+    "db:generate": "cd apps/joy-web && drizzle-kit generate"
   },
   "private": true,
   "dependencies": {
