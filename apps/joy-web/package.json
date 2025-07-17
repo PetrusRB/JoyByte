@@ -1,5 +1,12 @@
 {
   "name": "@hexagano/joy-web",
   "version": "0.0.1",
-  "private": true
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build"
+  },
+  "dependencies": {
+    "@hexagano/system": "workspace:*"
+  }
 }

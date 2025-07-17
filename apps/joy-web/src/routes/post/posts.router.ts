@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { PostSchema, Comment } from "@/schemas/post";
+import { PostSchema, Comment } from "@/schemas";
 import { delByPattern, getOrSet } from "@/libs/redis";
 import { getCacheKey, slugToSearchQuery } from "@/libs/utils";
 import { createRouter } from "@/utils/router.utils";

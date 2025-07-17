@@ -8,7 +8,7 @@ import { isSpoofedBot } from "@arcjet/inspect";
 import postRoutes from "@/routes/post/posts.router";
 import userRoutes from "@/routes/user/user.router";
 import searchRoutes from "@/routes/search/search.router";
-import { User } from "@/schemas/user";
+import { User } from "@/schemas";
 import { openApiDoc } from "@/utils/api.utils";
 
 const basePath = "/api";

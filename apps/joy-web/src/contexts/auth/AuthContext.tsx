@@ -13,7 +13,7 @@ import { Loader } from "@/components/Loader";
 import { login } from "@/actions/login.action";
 import { Provider } from "@/types";
 import { useRouter } from "next/navigation";
-import { User } from "@/schemas/user";
+import { User } from "@/schemas";
 import { authClient } from "@/betterauth/auth-client";
 
 interface AuthContextType {

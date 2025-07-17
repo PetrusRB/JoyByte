@@ -1,4 +1,4 @@
-import { User } from "@/schemas/user"; // Assumindo que você tem um tipo User
+import { User } from "@/schemas";
 
 import { useState, useEffect } from "react";
 

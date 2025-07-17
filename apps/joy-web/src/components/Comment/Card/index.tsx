@@ -1,6 +1,6 @@
 "use client";
 import { Component } from "react";
-import { Comment as CommentSchema, CustomUserMetadata } from "@/schemas/post";
+import { Comment as CommentSchema, CustomUserMetadata } from "@/schemas";
 import {
   Heart,
   MoreHorizontal,

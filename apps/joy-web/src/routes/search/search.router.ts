@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { zValidator } from "@hono/zod-validator";
-import { usernameSlugSchema } from "@/schemas/user";
+import { usernameSlugSchema } from "@/schemas";
 import { slugToSearchQuery, getCacheKey } from "@/libs/utils";
 import { getOrSet, redis } from "@/libs/redis";
 import { createRouter } from "@/utils/router.utils";

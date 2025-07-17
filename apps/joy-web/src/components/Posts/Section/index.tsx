@@ -7,8 +7,8 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { PostWithCount } from "@/schemas/post";
-import { User } from "@/schemas/user";
+import { PostWithCount } from "@/schemas";
+import { User } from "@/schemas";
 import { LikeData } from "@/routes/post/posts.router";
 import { Posts } from "..";
 

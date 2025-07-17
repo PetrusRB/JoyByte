@@ -6,8 +6,8 @@ import { useParams } from "next/navigation";
 import { useUserProfile } from "@/hooks/useUserProfile";
 
 import { Loader } from "@/components/Loader";
-import { UserProfile } from "@/schemas/user";
-import { Post } from "@/schemas/post";
+import { UserProfile } from "@/schemas";
+import { Post } from "@/schemas";
 import { Profile as ProfileComp } from "@/components/Profile";
 import { useAuth } from "@/contexts/auth/AuthContext";
 

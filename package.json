@@ -3,8 +3,8 @@
   "version": "0.0.0",
   "license": "MIT",
   "scripts": {
-    "web": "cd apps/joy-web && next dev",
-    "build": "cd apps/joy-web && next build",
+    "web": "turbo dev --parallel",
+    "build": "turbo build --parallel",
     "mob": "cd apps/joy-mob && expo start --tunnel",
     "build:pre": "cd apps/joy-mob && expo prebuild --clean",
     "build:mob": "cd apps/joy-mob && eas build --platform android",
@@ -100,12 +100,14 @@
     "sanitize-html": "^2.17.0",
     "sonner": "^2.0.5",
     "tailwind-merge": "^3.3.0",
+    "turbo": "^2.5.5",
     "unidecode": "^1.1.0",
     "unstorage": "^1.16.0",
     "use-intl": "^4.3.4",
     "winston": "^3.17.0",
     "zod": "3.25.56"
   },
+  "packageManager": "pnpm@10.13.1",
   "devDependencies": {
     "@babel/core": "^7.14.5",
     "@babel/preset-react": "^7.14.5",
@@ -154,8 +156,5 @@
     "typescript": "~5.7.2",
     "vite": "^6.0.0",
     "vitest": "^3.0.0"
-  },
-  "workspaces": [
-    "apps/*"
-  ]
+  }
 }

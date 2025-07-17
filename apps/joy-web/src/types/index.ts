@@ -1,4 +1,4 @@
-import { User } from "@/schemas/user";
+import { User } from "@/schemas";
 
 // Types
 export type Provider = "google" | "github" | "facebook" | "twitter";

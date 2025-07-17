@@ -5,7 +5,7 @@ import React, { useMemo } from "react";
 const CreatePost = dynamic(() => import("../CreatePost"));
 
 import { Posts } from "@/components/Posts";
-import { Post, PostWithCount } from "@/schemas/post";
+import { Post, PostWithCount } from "@/schemas";
 import { useAuth } from "@/contexts/auth/AuthContext";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import WhoToFollowList from "../WhoToFollowList";

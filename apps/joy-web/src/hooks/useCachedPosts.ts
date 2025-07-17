@@ -1,4 +1,4 @@
-import { Post } from "@/schemas/post";
+import { Post } from "@/schemas";
 import { useQuery } from "@tanstack/react-query";
 
 export const useCachedPosts = (userId: string) => {

@@ -6,7 +6,7 @@ import { useTranslations } from "next-intl";
 import { memo, useCallback, useMemo } from "react";
 import { slugToSearchQuery } from "@/libs/utils";
 import { useRouter } from "next/navigation";
-import { UserProfile } from "@/schemas/user";
+import { UserProfile } from "@/schemas";
 
 export interface ContactType {
   name: string;
