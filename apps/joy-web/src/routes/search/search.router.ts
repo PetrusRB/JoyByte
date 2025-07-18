@@ -4,8 +4,8 @@ import { usernameSlugSchema } from "@/schemas";
 import { slugToSearchQuery, getCacheKey } from "@/libs/utils";
 import { getOrSet, redis } from "@/libs/redis";
 import { createRouter } from "@/utils/router.utils";
-import { db } from "@/db/drizzle";
-import { profiles } from "@/db/drizzle/schema";
+import { db } from "@/db";
+import { profiles } from "@/db/schema";
 import { ilike, asc, count, sql } from "drizzle-orm";
 
 const router = createRouter();

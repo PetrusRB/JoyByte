@@ -1,7 +1,6 @@
 import { z } from "zod";
 import { User } from "./user";
 
-// Define PostSchema first since it's referenced by the Post type
 export interface CustomUserMetadata extends User {
   normalized_name?: string;
 }

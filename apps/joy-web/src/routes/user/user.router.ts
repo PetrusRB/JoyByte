@@ -1,5 +1,3 @@
-// Refatorado para performance máxima, escalabilidade e limpeza
-
 import {
   getOrSet,
   delByPattern,
@@ -11,8 +9,8 @@ import { getCacheKey } from "@/libs/utils";
 import { HTTPException } from "hono/http-exception";
 import { createRouter } from "@/utils/router.utils";
 import { zValidator } from "@hono/zod-validator";
-import { followers, following, profiles } from "@/db/drizzle/schema";
-import { db } from "@/db/drizzle";
+import { followers, following, profiles } from "@/db/schema";
+import { db } from "@/db";
 import { and, eq, ilike, ne, sql } from "drizzle-orm";
 import { genCharacters } from "@/utils/crypto";
 import unidecode from "unidecode";

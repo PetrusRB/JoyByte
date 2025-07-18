@@ -4,7 +4,7 @@
   "license": "MIT",
   "scripts": {
     "web": "turbo dev --parallel",
-    "build": "turbo build --parallel",
+    "build": "turbo build --parallel --env-mode=loose",
     "mob": "cd apps/joy-mob && expo start --tunnel",
     "build:pre": "cd apps/joy-mob && expo prebuild --clean",
     "build:mob": "cd apps/joy-mob && eas build --platform android",

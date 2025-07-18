@@ -5,8 +5,8 @@ import { getCacheKey, slugToSearchQuery } from "@/libs/utils";
 import { createRouter } from "@/utils/router.utils";
 import { zValidator } from "@hono/zod-validator";
 import { HTTPException } from "hono/http-exception";
-import { db } from "@/db/drizzle";
-import { postsLike, posts, profiles } from "@/db/drizzle/schema";
+import { db } from "@/db";
+import { postsLike, posts, profiles } from "@/db/schema";
 import { and, count, desc, eq, inArray, sql, gt } from "drizzle-orm";
 import { genCharacters } from "@/utils/crypto";
 
