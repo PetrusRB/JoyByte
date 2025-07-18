@@ -16,10 +16,9 @@
         "name": "next"
       }
     ],
-    "baseUrl": ".",
+    "baseUrl": "./src",
     "paths": {
-      "@/*": ["./src/*"],
-      "@root/*": ["./*"]
+      "@/*": ["*"]
     },
     "types": ["node"],
     "outDir": "dist",
