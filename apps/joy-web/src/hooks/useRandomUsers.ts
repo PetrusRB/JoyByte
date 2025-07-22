@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { User, UserProfile } from "@/schemas";
+import { User, UserProfile } from "@hexagano/backend";
 
 export function useRandomUsers(user: User | null) {
   const query = useQuery({

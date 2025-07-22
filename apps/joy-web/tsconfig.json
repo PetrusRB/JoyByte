@@ -36,7 +36,9 @@
     "src/**/*.ts",
     "src/**/*.tsx",
     ".next/types/**/*.ts",
-    "next-i18next.config.js"
+    "next-i18next.config.js",
+    "../../packages/backend/src/utils/crypto.ts",
+    "../../packages/backend/src/utils/api.utils.ts"
   ],
   "exclude": ["out-tsc", "dist", "node_modules", ".next"]
 }

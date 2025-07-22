@@ -1,4 +1,4 @@
-import { User } from "@/schemas";
+import { User } from "@hexagano/backend";
 
 import { useState, useEffect } from "react";
 

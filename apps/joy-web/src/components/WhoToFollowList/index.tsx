@@ -6,7 +6,7 @@ import { useTranslations } from "next-intl";
 import { memo, useCallback, useMemo } from "react";
 import { slugToSearchQuery } from "@/libs/utils";
 import { useRouter } from "next/navigation";
-import { UserProfile } from "@/schemas";
+import { UserProfile } from "@hexagano/backend";
 import { usePathname } from "next/navigation";
 import { useRandomUsers } from "@/hooks/useRandomUsers";
 import { useAuth } from "@/contexts/auth/AuthContext";
@@ -71,7 +71,7 @@ const UserItem = memo(
         <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-white" />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="font-medium dark:text-white hover:text-yellow-600 text-gray-600 truncate">
+        <p className="font-medium dark:text-white hover:text-orange-600 text-gray-600 truncate">
           {user.name}
         </p>
         <p className="text-sm text-green-600">Online</p>
@@ -139,16 +139,16 @@ const WhoFollowList = memo(({ style, translation }: WhoFollowListProps) => {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="rounded-full w-8 h-8 hover:bg-zinc-800"
+                  className="rounded-full w-8 h-8 hover:bg-orange-200 dark:hover:bg-zinc-800"
                 >
-                  <Search className="w-4 h-4 text-white" />
+                  <Search className="w-4 h-4 dark:text-white text-orange-700" />
                 </Button>
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="rounded-full w-8 h-8 hover:bg-zinc-800"
+                  className="rounded-full w-8 h-8 hover:bg-orange-200 dark:hover:bg-zinc-800"
                 >
-                  <MoreHorizontal className="w-4 h-4 text-white" />
+                  <MoreHorizontal className="w-4 h-4 dark:text-white text-orange-700" />
                 </Button>
               </div>
             </div>

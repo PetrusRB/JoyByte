@@ -1,6 +1,9 @@
 "use client";
 import { Component } from "react";
-import { Comment as CommentSchema, CustomUserMetadata } from "@/schemas";
+import {
+  Comment as CommentSchema,
+  CustomUserMetadata,
+} from "@hexagano/backend";
 import {
   Heart,
   MoreHorizontal,

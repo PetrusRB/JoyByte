@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { UserProfile } from "@/schemas/user";
+import { UserProfile } from "@hexagano/backend";
 
 interface UserProfileResponse {
   primary: UserProfile | null;

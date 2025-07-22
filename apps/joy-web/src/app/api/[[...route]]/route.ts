@@ -8,8 +8,8 @@ import { isSpoofedBot } from "@arcjet/inspect";
 import postRoutes from "@/routes/post/posts.router";
 import userRoutes from "@/routes/user/user.router";
 import searchRoutes from "@/routes/search/search.router";
-import { User } from "@/schemas";
-import { openApiDoc } from "@/utils/api.utils";
+import { User } from "@hexagano/backend";
+import { openApiDoc } from "@hexagano/backend";
 
 const basePath = "/api";
 const app = new Hono<{

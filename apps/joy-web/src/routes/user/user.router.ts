@@ -9,10 +9,10 @@ import { getCacheKey } from "@/libs/utils";
 import { HTTPException } from "hono/http-exception";
 import { createRouter } from "@/utils/router.utils";
 import { zValidator } from "@hono/zod-validator";
-import { followers, following, profiles } from "@/db/schema";
-import { db } from "@/db";
+import { followers, following, profiles } from "@hexagano/backend";
+import { db } from "@hexagano/backend";
 import { and, eq, ilike, ne, sql } from "drizzle-orm";
-import { genCharacters } from "@/utils/crypto";
+import { genCharacters } from "@hexagano/backend";
 import unidecode from "unidecode";
 
 const router = createRouter();

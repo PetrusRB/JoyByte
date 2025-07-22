@@ -1,5 +1,5 @@
 import { useCachedPosts } from "@/hooks/useCachedPosts";
-import { Post } from "@/schemas/post";
+import { Post } from "@hexagano/backend";
 import { Grid3X3, Camera, Heart } from "lucide-react";
 
 interface ProfileContentProps {

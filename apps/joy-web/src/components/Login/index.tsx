@@ -1,15 +1,15 @@
 "use client";
 import React, { JSX, useMemo } from "react";
 import { useAuth } from "@/contexts/auth/AuthContext";
-import { Provider } from "@/types";
+import { ProviderType } from "@hexagano/backend";
 import { Button, Tooltip } from "@mantine/core";
 import Image from "next/image";
 import { Input } from "../ui/Input";
 import { useTranslations } from "next-intl";
 
-const providers: Provider[] = ["google", "github", "facebook", "twitter"];
+const providers: ProviderType[] = ["google", "github", "facebook", "twitter"];
 // Mapeia provider para SVG inline
-const providerIcons: Record<Provider, JSX.Element> = {
+const providerIcons: Record<ProviderType, JSX.Element> = {
   google: (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -96,7 +96,7 @@ const providerIcons: Record<Provider, JSX.Element> = {
 };
 export default function EnhancedAuth() {
   const { signIn, isLoading } = useAuth();
-  const handleSignIn = (provider: Provider) => () => {
+  const handleSignIn = (provider: ProviderType) => () => {
     signIn(provider);
   };
   const AuthTrans = useTranslations("Auth");

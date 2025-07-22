@@ -11,6 +11,7 @@ const nextConfig = {
       dynamic: 0,
       static: 180,
     },
+    optimizePackageImports: ["@mantine/core", "@mantine/hooks"],
     serverExternalPackages: ["pino", "pino-pretty", "drizzle-orm", "pg"],
   },
   images: {

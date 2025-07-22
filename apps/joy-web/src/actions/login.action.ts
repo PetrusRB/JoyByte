@@ -1,7 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { Provider } from "@/types";
+import { ProviderType } from "@hexagano/backend";
 import { auth } from "@/betterauth/auth";
 import { logger } from "@/libs/logger";
 
@@ -24,7 +24,7 @@ function redirectToError(params: {
   redirect(`/error?message=${params.message}&code=${params.code}`);
 }
 
-export async function login(provider: Provider) {
+export async function login(provider: ProviderType) {
   // Checa se provider é válido e suportado
   if (!SUPPORTED_PROVIDERS.includes(provider)) {
     // Fallback se URL ausente

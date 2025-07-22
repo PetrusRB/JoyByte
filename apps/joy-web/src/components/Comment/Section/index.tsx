@@ -1,10 +1,10 @@
 "use client";
 import { Component } from "react";
-import { Comment as CommentSchema, Reply } from "@/schemas";
+import { Comment as CommentSchema, Reply } from "@hexagano/backend";
 import { Comment } from "..";
 import Image from "next/image";
 import { Input } from "@/components/ui/Input";
-import { User } from "@/schemas";
+import { User } from "@hexagano/backend";
 import { DEFAULT_AVATAR } from "@/libs/utils";
 
 type Props = {

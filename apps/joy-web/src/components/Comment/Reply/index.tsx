@@ -3,7 +3,7 @@ import { Button } from "@/components/Button";
 import { ChevronDown, ChevronUp, Heart, MoreHorizontal } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/Avatar";
 import { formatRelativeTime } from "@/libs/utils";
-import { Reply } from "@/schemas";
+import { Reply } from "@hexagano/backend";
 
 type CommentFormProps = {
   reply: Reply;

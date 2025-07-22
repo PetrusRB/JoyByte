@@ -1,11 +1,11 @@
 import { z } from "zod";
 import { zValidator } from "@hono/zod-validator";
-import { usernameSlugSchema } from "@/schemas";
+import { usernameSlugSchema } from "@hexagano/backend";
 import { slugToSearchQuery, getCacheKey } from "@/libs/utils";
 import { getOrSet, redis } from "@/libs/redis";
 import { createRouter } from "@/utils/router.utils";
-import { db } from "@/db";
-import { profiles } from "@/db/schema";
+import { db } from "@hexagano/backend";
+import { profiles } from "@hexagano/backend";
 import { ilike, asc, count, sql } from "drizzle-orm";
 
 const router = createRouter();

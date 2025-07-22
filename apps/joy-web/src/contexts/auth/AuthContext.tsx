@@ -11,16 +11,16 @@ import React, {
 } from "react";
 import { Loader } from "@/components/Loader";
 import { login } from "@/actions/login.action";
-import { Provider } from "@/types";
+import { ProviderType } from "@hexagano/backend";
 import { useRouter } from "next/navigation";
-import { User } from "@/schemas";
+import { User } from "@hexagano/backend";
 import { authClient } from "@/betterauth/auth-client";
 
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  signIn: (provider: Provider) => Promise<void>;
+  signIn: (provider: ProviderType) => Promise<void>;
   signOut: () => Promise<void>;
 }
 
@@ -79,7 +79,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     fetchUser();
   }, []);
 
-  const signIn = useCallback(async (provider: Provider) => {
+  const signIn = useCallback(async (provider: ProviderType) => {
     await login(provider);
   }, []);
 

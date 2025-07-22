@@ -1,7 +1,7 @@
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/Button";
 import { Calendar, Link2, Mail, Edit3, Users } from "lucide-react";
-import { UserProfile } from "@/schemas";
+import { UserProfile } from "@hexagano/backend";
 import { useTranslations } from "next-intl";
 import { useMutation } from "@tanstack/react-query";
 import { useCallback, useState } from "react";

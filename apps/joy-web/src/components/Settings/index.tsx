@@ -48,7 +48,7 @@ import { Textarea } from "@/components/ui/TextArea";
 import Image from "next/image";
 import { getPlaceholder } from "@/libs/blur";
 import { Avatar } from "@/components/Avatar";
-import { User as UserSchema } from "@/schemas";
+import { User as UserSchema } from "@hexagano/backend";
 
 const RenderProviderGroups = ({ user }: { user: UserSchema | null }) => {
   if (!user) return null;

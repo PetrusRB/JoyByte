@@ -1,14 +1,14 @@
 import { z } from "zod";
-import { PostSchema, Comment } from "@/schemas";
+import { PostSchema, Comment } from "@hexagano/backend";
 import { delByPattern, getOrSet } from "@/libs/redis";
 import { getCacheKey, slugToSearchQuery } from "@/libs/utils";
 import { createRouter } from "@/utils/router.utils";
 import { zValidator } from "@hono/zod-validator";
 import { HTTPException } from "hono/http-exception";
-import { db } from "@/db";
-import { postsLike, posts, profiles } from "@/db/schema";
+import { db } from "@hexagano/backend";
+import { postsLike, posts, profiles } from "@hexagano/backend";
 import { and, count, desc, eq, inArray, sql, gt } from "drizzle-orm";
-import { genCharacters } from "@/utils/crypto";
+import { genCharacters } from "@hexagano/backend";
 
 const router = createRouter();
 
